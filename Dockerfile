@@ -7,6 +7,7 @@ RUN conda install --quiet --yes \
     geopandas \
     pyyaml \
     rasterio \
+    redis \
     && conda clean --all -f -y
 
 RUN pip install --no-cache-dir \
@@ -29,6 +30,8 @@ COPY utils /opt/notebooks/utils
 COPY dev_process_sentinel2.ipynb /opt/notebooks
 
 COPY aws_creds.csv /opt/notebooks
+
+COPY rediswq.py /opt/notebooks
 
 CMD jupyter notebook \
     --allow-root \
