@@ -6,6 +6,8 @@ import glob
 from sentinelsat import SentinelAPI
 import zipfile
 import shutil
+import rasterio
+import numpy
 
 from .cogeo import *
 
@@ -114,7 +116,7 @@ def download_extract_s2_esa(scene_uuid, down_dir, original_scene_dir):
             
             
             
-def conv_s2scene_cogs(original_scene_dir, cog_scene_dir, scene_name, overwrite=False):
+def conv_s2scene_cogs(original_scene_dir, cog_scene_dir, scene_name, des_prods=False, overwrite=False):
     """
     Convert S2 scene products to cogs + validate.
     TBD whether consistent for L1C + L2A prcoessing levels.
@@ -133,9 +135,10 @@ def conv_s2scene_cogs(original_scene_dir, cog_scene_dir, scene_name, overwrite=F
     
     cog_val = []
     
-    des_prods = ["AOT_10m", "B01_60m", "B02_10m", "B03_10m", "B04_10m", "B05_20m", "B06_20m",
-                 "B07_20m", "B08_10m", "B8A_20m", "B09_60m", "B11_20m", "B12_20m", "SCL_20m",
-                 "WVP_10m"]
+    if not des_prods:
+        des_prods = ["AOT_10m", "B01_60m", "B02_10m", "B03_10m", "B04_10m", "B05_20m", "B06_20m",
+                     "B07_20m", "B08_10m", "B8A_20m", "B09_60m", "B11_20m", "B12_20m", "SCL_20m",
+                     "WVP_10m"]
     
     # find all individual prods to convert to cog (ignore true colour images (TCI))
     prod_paths = glob.glob(original_scene_dir + 'GRANULE/*/IMG_DATA/*/*.jp2')
@@ -202,7 +205,6 @@ def conv_sgl_cog(in_path, out_path):
     ds = None 
 
 
-    
 def copy_s2_metadata(original_scene_dir, cog_scene_dir, scene_name):
     """
     Parse through S2 metadtaa .xml for either l1c or l2a S2 scenes.
@@ -241,24 +243,29 @@ def sen2cor_correction(sen2cor, in_dir, out_dir):
     l2a_dir = glob.glob(in_dir.replace('_MSIL1C', '_MSIL2A')[:-39]+'*')[0] +'/'
     os.rename(l2a_dir, in_dir.replace('_MSIL1C_','_MSIL2A_'))
 
-                
-# def download_granules(s2_ids, download_dir, safe_form=True, bands=False):
-#     """
-#     Downloads RGBNIR bands of Sentinel-2 acquisitions from GCloud bucket into new S2ID directories
-
-#     :param s2_ids: List of Sentinel-2 IDs (i.e. "S2B_MSIL1C_20190815T110629_N0208_R137_T30UWB_20190815T135651")
-#     :param download_dir: path to directory for downloaded S2 granules
-#     :param safe_form: download into .SAFE folder structure. default=True
-#     :param bands: download only a subset of S2 bands. default is False. input is list i.e. [B02.jp2, B03.jp2]
-#     """
     
-#     client = storage.Client.create_anonymous_client()
-#     bucket = client.bucket(bucket_name="gcp-public-data-sentinel-2", user_project=None)
     
-#     for s2_id in tqdm(s2_ids[:]):
-#         print("Attempting to download: {}".format(s2_id))
-#         start = time.time()
-#         download_one_granule(s2_id, download_dir, bucket, safe_form=safe_form, bands=bands)
-#         end = time.time()
-#         print("Downloaded: {}".format(end - start))
-
+def s2_ndvi(red_file, nir_file, out_file=False):
+    
+    # NEED TO WRITE DIRECTLY TO COG TO DRASTICALLY SPEED UP
+    
+    inter = red_file[:-11] + 'NDVI_10m_inter.tif'
+    
+    r = rasterio.open(red_file).read(1)
+    nir = rasterio.open(nir_file).read(1)
+    ndvi = (nir.astype(float) - r.astype(float)) / (nir + r)
+    
+    with rasterio.open(red_file) as src:
+        kwds = src.profile
+        kwds['dtype'] = rasterio.float32
+        with rasterio.open(inter, 'w', **kwds) as dst:
+            dst.write(ndvi.astype(rasterio.float32), 1)
+            
+    if not out_file:
+        out_file = red_file[:-11] + 'NDVI_10m.tif'
+    
+    conv_sgl_cog(inter, out_file)
+    os.remove(inter)
+    
+    return ndvi
+    
