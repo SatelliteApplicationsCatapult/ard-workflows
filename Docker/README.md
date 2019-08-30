@@ -10,7 +10,7 @@ To use it you can issue:
 
 ```docker-compose up```
 
-Once the above completes the job queue is ready to be filled in with scene names by issuing:
+Once the above completes, the job queue is ready to be filled in with scene names by issuing:
 
 ```
 docker exec -it redis /bin/bash
