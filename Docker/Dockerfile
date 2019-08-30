@@ -25,9 +25,7 @@ RUN conda install --quiet --yes \
     && conda clean --all -f -y && \
     mkdir /opt/notebooks
 
-COPY utils /opt/notebooks/utils
-
-COPY aws_creds.csv /opt/notebooks
+COPY ../utils /opt/notebooks/utils
 
 COPY rediswq.py /opt/notebooks
 
