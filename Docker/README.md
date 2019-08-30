@@ -31,3 +31,11 @@ In order to be able to get/put data from/to S3, you need to ensure that the envi
 ## Jupyter Notebook
 Jupyter Notebook can be accessed at the URL: http://{Serve's IP Address}:8888\
 For the access token, check the CMD statement within the [Dockerfile](Dockerfile).
+
+## TODO
+The `process_scene()` method will be generalised for multiple satellites and source locations, thus taking multiple arguments.\
+Consequently, jobs will be defined by means of JSON entries, such as:
+
+```
+"{'scene_id': 'S2A_MSIL1C_20180820T223011_N0206_R072_T60KWE_20180821T013410.SAFE', 'source': 'GCloud'}"
+```
