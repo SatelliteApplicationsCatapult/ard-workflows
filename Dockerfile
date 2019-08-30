@@ -33,6 +33,8 @@ COPY aws_creds.csv /opt/notebooks
 
 COPY rediswq.py /opt/notebooks
 
+COPY worker.ipynb /opt/notebooks
+
 CMD jupyter notebook \
     --allow-root \
     --notebook-dir=/opt/notebooks \
