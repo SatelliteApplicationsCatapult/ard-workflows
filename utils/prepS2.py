@@ -40,7 +40,10 @@ def download_s2_granule_gcloud(s2_id, download_dir, safe_form=True, bands=False)
     
     TO DO:UPDATE PARAMS
     """
-
+    
+    if s2_id.endswith('.SAFE'):
+        s2_id = s2_id[:-5]
+    
     client = storage.Client.create_anonymous_client()
     bucket = client.bucket(bucket_name="gcp-public-data-sentinel-2", user_project=None)
     
@@ -114,9 +117,10 @@ def download_extract_s2_esa(scene_uuid, down_dir, original_scene_dir):
         os.remove(original_scene_dir.replace('.SAFE/','.zip'))
             
             
+
             
             
-def conv_s2scene_cogs(original_scene_dir, cog_scene_dir, scene_name, des_prods=False, overwrite=False):
+def conv_s2scene_cogs(original_scene_dir, cog_scene_dir, scene_name, overwrite=False):
     """
     Convert S2 scene products to cogs + validate.
     TBD whether consistent for L1C + L2A prcoessing levels.
@@ -135,16 +139,16 @@ def conv_s2scene_cogs(original_scene_dir, cog_scene_dir, scene_name, des_prods=F
     
     cog_val = []
     
-    if not des_prods:
-        des_prods = ["AOT_10m", "B01_60m", "B02_10m", "B03_10m", "B04_10m", "B05_20m", "B06_20m",
-                     "B07_20m", "B08_10m", "B8A_20m", "B09_60m", "B11_20m", "B12_20m", "SCL_20m",
-                     "WVP_10m"]
+    des_prods = ["AOT_10m", "B01_60m", "B02_10m", "B03_10m", "B04_10m", "B05_20m", "B06_20m",
+                 "B07_20m", "B08_10m", "B8A_20m", "B09_60m", "B11_20m", "B12_20m", "SCL_20m",
+                 "WVP_10m"]
     
     # find all individual prods to convert to cog (ignore true colour images (TCI))
-    prod_paths = glob.glob(original_scene_dir + 'GRANULE/*/IMG_DATA/*/*.jp2')
-    prod_paths = [x for x in prod_paths if x[-11:-4] in des_prods]
+    prod_paths = glob.glob(original_scene_dir + 'GRANULE/*/IMG_DATA/*.jp2')
+
+    if scene_name.split('_')[1] == 'MSIL2A':
+        prod_paths = [x for x in prod_paths if x[-11:-4] in des_prods]
     
-#     print(prod_paths)
 #     for i in prod_paths: print (i)
     
     proc_list = []

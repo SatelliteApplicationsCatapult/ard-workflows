@@ -6,13 +6,13 @@ import os
 import rasterio
 from rasterio.io import MemoryFile
 from rasterio.enums import Resampling
-from rasterio import shutil
 from rasterio.shutil import copy
 from osgeo import osr
 import uuid
 from pathlib import Path
 from xml.etree import ElementTree  # should use cElementTree..
 import yaml
+
 
 def get_geometry(path):
     """
@@ -82,25 +82,47 @@ def band_name_s2(prod_path):
     
     prod_name = str(os.path.basename(prod_path))
     # print ( "Product name is: {}".format(prod_name) )
-    prod_name = prod_name[-11:-4]
-    
-    prod_map = {
-        "AOT_10m": 'aerosol_optical_thickness',
-        "B01_60m": 'coastal_aerosol',
-        "B02_10m": 'blue',
-        "B03_10m": 'green',
-        "B04_10m": 'red',
-        "B05_20m": 'vegetation_red_edge_1',
-        "B06_20m": 'vegetation_red_edge_2',
-        "B07_20m": 'vegetation_red_edge_3',
-        "B08_10m": 'nir',
-        "B8A_20m": 'water_vapour',
-        "B09_60m": 'swir_1',
-        "B11_20m": 'swir_2',
-        "B12_20m": 'narrow_nir',
-        "SCL_20m": 'scene_classification',
-        "WVP_10m": 'wvp'       
-    }   
+
+    print(prod_name.split('_'))
+    if prod_name.split('_')[1] == 'MSIL1C':
+        print(prod_name)
+        prod_name = prod_name.split('_')[-1][:-4]
+        prod_map = {
+            "B01": 'coastal_aerosol',
+            "B02": 'blue',
+            "B03": 'green',
+            "B04": 'red',
+            "B05": 'vegetation_red_edge_1',
+            "B06": 'vegetation_red_edge_2',
+            "B07": 'vegetation_red_edge_3',
+            "B08": 'nir',
+            "B8A": 'water_vapour',
+            "B09": 'swir_1',
+            "B10": 'swir_cirrus',
+            "B11": 'swir_2',
+            "B12": 'narrow_nir',
+            "TCI": 'true_colour'       
+        }   
+        
+    else:
+        prod_name = prod_name[-11:-4]
+        prod_map = {
+            "AOT_10m": 'aerosol_optical_thickness',
+            "B01_60m": 'coastal_aerosol',
+            "B02_10m": 'blue',
+            "B03_10m": 'green',
+            "B04_10m": 'red',
+            "B05_20m": 'vegetation_red_edge_1',
+            "B06_20m": 'vegetation_red_edge_2',
+            "B07_20m": 'vegetation_red_edge_3',
+            "B08_10m": 'nir',
+            "B8A_20m": 'water_vapour',
+            "B09_60m": 'swir_1',
+            "B11_20m": 'swir_2',
+            "B12_20m": 'narrow_nir',
+            "SCL_20m": 'scene_classification',
+            "WVP_10m": 'wvp'       
+        }   
         
     layername = prod_map[prod_name]
     
@@ -195,7 +217,11 @@ def yaml_prep_s2(scene_dir):
     
     # date time assumed eqv for start and stop - this isn't true and could be 
     # pulled from .xml file (or scene dir) not done yet for sake of progression
-    t0=parse(str( datetime.strptime(prod_paths[0].split("_")[-4], '%Y%m%dT%H%M%S')))
+    
+    if scene_dir.split('/')[-2].split('_')[1] == 'MSIL1C':
+        t0=parse(str( datetime.strptime(prod_paths[0].split("_")[-3], '%Y%m%dT%H%M%S')))
+    else:
+        t0=parse(str( datetime.strptime(prod_paths[0].split("_")[-4], '%Y%m%dT%H%M%S')))
     # print ( t0 )
     t1=t0
     # print ( t1 )
@@ -212,7 +238,7 @@ def yaml_prep_s2(scene_dir):
     projection, extent = get_geometry('/'.join([str(scene_dir), images['blue']['path']]))
     
     # parse esa l2a prod metadata file for reference
-    scene_genesis =  glob.glob(scene_dir + '*MTD_MSIL2A.xml')[0]
+    scene_genesis =  glob.glob(scene_dir + '*MTD_*.xml')[0]
     if os.path.exists(scene_genesis):
         scene_genesis = os.path.basename(scene_genesis)
     else:

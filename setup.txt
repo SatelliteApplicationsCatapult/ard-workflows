@@ -21,6 +21,8 @@ conda install geopandas
 
 pip install pyyaml
 pip install boto3
+pip install google-cloud-storage
+
 
 # install latest sen2cor: http://step.esa.int/thirdparties/sen2cor/2.8.0/docs/S2-PDGS-MPC-L2A-SRN-V2.8.pdf
 wget http://step.esa.int/thirdparties/sen2cor/2.8.0/Sen2Cor-02.08.00-Linux64.run
