@@ -7,11 +7,11 @@ RUN conda install --quiet --yes \
     geopandas \
     pyyaml \
     rasterio \
-    redis \
     && conda clean --all -f -y
 
 RUN pip install --no-cache-dir \
     google-cloud-storage \
+    redis \
     sentinelsat
 
 RUN wget --quiet http://step.esa.int/thirdparties/sen2cor/2.8.0/Sen2Cor-02.08.00-Linux64.run && \
@@ -26,8 +26,6 @@ RUN conda install --quiet --yes \
     mkdir /opt/notebooks
 
 COPY utils /opt/notebooks/utils
-
-COPY dev_process_sentinel2.ipynb /opt/notebooks
 
 COPY aws_creds.csv /opt/notebooks
 
