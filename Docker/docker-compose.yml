@@ -1,0 +1,22 @@
+version: '3'
+
+services:
+  redis:
+    image: redis
+    container_name: redis
+    ports:
+      - "6379:6379"
+    restart: always
+  
+  jupyterworker:
+    build: .
+    #image: satellite-workflows
+    container_name: worker1
+    environment:
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_KEY}
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./data:/data
+    restart: always
