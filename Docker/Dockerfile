@@ -25,7 +25,7 @@ RUN conda install --quiet --yes \
     && conda clean --all -f -y && \
     mkdir /opt/notebooks
 
-COPY ../utils /opt/notebooks/utils
+COPY utils /opt/notebooks/utils
 
 COPY rediswq.py /opt/notebooks
 
