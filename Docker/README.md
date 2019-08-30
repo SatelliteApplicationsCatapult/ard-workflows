@@ -1,4 +1,4 @@
-# Open Data Cube core Dockerfile
+# ARD workflow container infrastructure
 
 ## Base image
 The provided [Dockerfile](Dockerfile) creates a Docker image with an ARD workflow set up by means of Miniconda v4.7.10.
