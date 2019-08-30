@@ -10,17 +10,17 @@ To use it you can issue:
 
 ```docker-compose up```
 
-Once the above completes the job queue is ready to be filled in with scene names with:
+Once the above completes the job queue is ready to be filled in with scene names by issuing:
 
 ```
-docker-compose exec -it redis /bin/bash
+docker exec -it redis /bin/bash
 redis-cli -h redis
 rpush job2 "S2A_MSIL1C_20180820T223011_N0206_R072_T60KWE_20180821T013410.SAFE"
 ...
 lrange job2 0 -1
 ```
 
-At any time afterwards, the queue can be processed interactively by running the [worker Notebook](worker.ipynb).
+At any time afterwards, the queue can be processed interactively by running the [worker](worker.ipynb) Jupyter Notebook.
 
 ## Environment variables for Docker Compose
 Environment variables can be set in a `.env` file for Docker Compose. You might use [.env.example](./.env.example) as a starting point.
