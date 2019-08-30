@@ -22,6 +22,12 @@ lrange job2 0 -1
 
 At any time afterwards, the queue can be processed interactively by running the [worker Notebook](worker.ipynb).
 
+## Environment variables for Docker Compose
+Environment variables can be set in a `.env` file for Docker Compose. You might use [.env.example](./.env.example) as a starting point.
+
+## AWS access
+In order to be able to get/put data from/to S3, you need to ensure that the environment variables `AWS_ACCESS_KEY` and `AWS_SECRET_KEY` are set.
+
 ## Jupyter Notebook
 Jupyter Notebook can be accessed at the URL: http://{Serve's IP Address}:8888\
 For the access token, check the CMD statement within the [Dockerfile](Dockerfile).
