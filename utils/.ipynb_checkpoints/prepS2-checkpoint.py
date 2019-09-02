@@ -117,11 +117,6 @@ def download_extract_s2_esa(scene_uuid, down_dir, original_scene_dir):
 
             copernicus_pwd=os.getenv("COPERNICUS_USERNAME")
             copernicus_username=os.getenv("COPERNICUS_PWD")
-            print(copernicus_pwd, copernicus_username)
-        
-#             esa_api = SentinelAPI('tmj21','Welcome12!')            
-#             esa_api = SentinelAPI(copernicus_username, copernicus_pwd)
-
             esa_api.download(scene_uuid, down_dir, checksum=True)
     
         # extract downloaded .zip file
