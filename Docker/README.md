@@ -8,16 +8,16 @@ The provided [Dockerfile](Dockerfile) creates a Docker image with an ARD workflo
 A [Docker Compose](docker-compose.yml) example file is provided to set up a fully functional ARD workflow instance.\
 To use it you can issue:
 
-```docker-compose up```
+```docker-compose up &```
 
 Once the above completes, the job queue is ready to be filled in with scene names by issuing:
 
 ```
 docker exec -it redis /bin/bash
 redis-cli -h redis
-rpush job2 "S2A_MSIL1C_20180820T223011_N0206_R072_T60KWE_20180821T013410.SAFE"
+rpush jobS2 "S2A_MSIL1C_20180820T223011_N0206_R072_T60KWE_20180821T013410.SAFE"
 ...
-lrange job2 0 -1
+lrange jobS2 0 -1
 ```
 
 At any time afterwards, the queue can be processed interactively by running the [worker](worker.ipynb) Jupyter Notebook.
