@@ -37,5 +37,5 @@ The `process_scene()` method will be generalised for multiple satellites and sou
 Consequently, jobs will be defined by means of JSON entries, such as:
 
 ```
-"{'scene_id': 'S2A_MSIL1C_20180820T223011_N0206_R072_T60KWE_20180821T013410.SAFE', 'source': 'GCloud'}"
+"{'in_scene': 'S2A_MSIL1C_20180820T223011_N0206_R072_T60KWE_20180821T013410.SAFE', 'out_dir': 'public-eo-data', 'inter_dir': '/data/inter', 'prod_level': 'L2A', 'source': 'gcloud'}"
 ```
