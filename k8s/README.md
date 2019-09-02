@@ -31,7 +31,6 @@ redis-master:6379> rpush jobS2 "S2A_MSIL1C_20180820T223011_N0206_R072_T60KWE_201
 (integer) 1
 redis-master:6379> lrange jobS2 0 -1
 1) "S2A_MSIL1C_20180820T223011_N0206_R072_T60KWE_20180821T013410.SAFE"
-redis-master:6379>
 ```
 
 ## Running jobs
