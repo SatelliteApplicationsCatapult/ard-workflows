@@ -8,12 +8,12 @@ We use Redis as storage service to hold the work queue and store our work items.
 ## Redis master server deployment
 In order to deploy the master issue the following:
 ```
-RELEASE=redis
-NAMESPACE=redis
+RELEASEREDIS=redis
+NAMESPACEREDIS=redis
 
-helm upgrade --install $RELEASE stable/redis \
-  --namespace $NAMESPACE \
-  -- version=9.1.3 \
+helm upgrade --install $RELEASEREDIS stable/redis \
+  --namespace $NAMESPACEREDIS \
+  --version=9.1.3 \
   --values 04-config-redis.yaml
 ```
 
