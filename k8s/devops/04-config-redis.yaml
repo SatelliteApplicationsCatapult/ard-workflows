@@ -9,18 +9,6 @@ usePassword: false
 ## Redis Master parameters
 ##
 master:
-  ## Redis Master Service properties
-  service:
-    ##  Redis Master Service type
-    type: LoadBalancer
-
-    ## Provide any additional annotations which may be required. This can be used to
-    ## set the LoadBalancer service type to internal only.
-    ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#internal-load-balancer
-    ##
-    annotations: {}
-    loadBalancerIP:
-
   ## Enable persistence using Persistent Volume Claims
   ## ref: http://kubernetes.io/docs/user-guide/persistent-volumes/
   ##
