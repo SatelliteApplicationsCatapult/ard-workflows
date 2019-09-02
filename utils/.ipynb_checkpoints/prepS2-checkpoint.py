@@ -359,14 +359,14 @@ def s3_upload_cogs(in_paths, s3_bucket, s3_dir):
     pool.starmap(s3_single_upload, upload_list)
 
 
-@click.command()
-@click.argument("in_scene")
-@click.argument("out_dir", type=click.Path())
-@click.option("--inter_dir", default="out_dir", type=click.Path(), help="Optional intermediary directory to be used for processing. If not specified then sub-dir within out_dir is used. Ought to be specified if out_dir is Cloud Bucket.")
-@click.option("--prodlevel", default="L1C", help="Desired Sentinel-2 product level. Defaults to 'L1C'. Use 'L2A' for ARD equivalent")
-@click.option("--source", default="gcloud", help="Api source to be used for downloading scenes.")
+# @click.command()
+# @click.argument("in_scene")
+# @click.argument("out_dir")
+# @click.option("--inter_dir", default="out_dir", type=click.Path(), help="Optional intermediary directory to be used for processing. If not specified then sub-dir within out_dir is used. Ought to be specified if out_dir is Cloud Bucket.")
+# @click.option("--prodlevel", default="L1C", help="Desired Sentinel-2 product level. Defaults to 'L1C'. Use 'L2A' for ARD equivalent")
+# @click.option("--source", default="gcloud", help="Api source to be used for downloading scenes.")
 
-def prepareS2(in_scene, out_dir, inter_dir, prodlevel, source):
+def prepareS2(in_scene, out_dir, inter_dir='out_dir', prodlevel='L2A', source='gcloud'):
     """
     Prepare IN_SCENE of Sentinel-2 satellite data into OUT_DIR for ODC indexing. 
 
@@ -386,7 +386,7 @@ def prepareS2(in_scene, out_dir, inter_dir, prodlevel, source):
     - maybe something to do with gcloud storage log in? Not sure...
     - etc.... tbd
     """
-    
+
     s3_bucket = "public-eo-data"
     s3_dir = "fiji/Sentinel_2_test/"
     
@@ -459,18 +459,9 @@ def prepareS2(in_scene, out_dir, inter_dir, prodlevel, source):
         cmd = 'rm -frv {}'.format(inter_dir)
         p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
         out = p.stdout.read()
-
-      
-
-    
-    
-    
-    
-    
-    
     
         
-if __name__ == '__main__':
+# if __name__ == '__main__':
 
-    prepareS2()
+#     prepareS2()
 
