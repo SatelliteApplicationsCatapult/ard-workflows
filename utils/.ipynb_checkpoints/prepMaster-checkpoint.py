@@ -1,21 +1,29 @@
-from .prepS2 import *
-from utils.yamlUtils import *
+try:
+    from .prepS2 import *
+except:
+    from prepS2 import *
+try:
+    from .yamlUtils import *
+except:
+    from yamlUtils import *
 
 import os
 from subprocess import Popen, PIPE, STDOUT
 
+import click
 
-def prepare_S2(in_scene_list, output_dir):
-    
+
+def prepareS2(scenelist, outputdir, prodlevel='L1C', source='GCloud', tidyup=True):
     """
-    Prepare S2 ARD
-    - Assumes output_dir already exists...
+    Prepare Sentinel-2 datasets for DC ingestion.
+    :param scenelist:  List of S2 scene names to be processed (inc. .SAFE extension for now)
+    :param outputdir:  Directory into which downloaded and processed sub-dirs will be created
+    :param prodlevel:  Desired Sentinel-2 product level. Defaults to 'L1C'. Use 'L2A' for ARD equivalent
+    :param source:     Api source to be used for downloading scenes. Defaults to 'GCloud' for L1C products. (If L2A prodlevel specified then defaults to esa.)
+    :return: nothing but data...
     """
 
-    non_cogs_dir = output_dir + 'temp/'
-    cogs_dir = output_dir
-    
-    log_file = output_dir + 'log_file.csv'
+
     
     with open(log_file, 'a') as log:
         
@@ -50,14 +58,36 @@ def prepare_S2(in_scene_list, output_dir):
 
             log.write("{},{},{}".format(des_scene, 'Yaml', str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))))
             log.write("\n")
-
+            
             cmd = 'rm -frv {}'.format(down_dir)
-            p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
-            out = p.stdout.read()
-
+            try:
+                p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
+                out = p.stdout.read()
+            except:
+                print('error removing processing directory, will try again once queue complete: {}'.format(out))
+            
             log.write("{},{},{}".format(des_scene, 'Finish', str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))))
             log.write("\n")
             
     cmd = 'rm -frv {}'.format(cogs_dir + 'temp/')
     p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
     out = p.stdout.read()
+    
+    
+@click.command()
+@click.option('--scene_name', help='Input scene name')
+@click.option('--out_dir', default=False, help='Output directory')
+def main(scene_name, out_dir):
+
+    print('Processing {} into {}'.format(scene_name, out_dir))
+
+        non_cogs_dir = output_dir + 'temp/'
+    cogs_dir = output_dir
+    
+    log_file = output_dir + 'log_file.csv'
+        
+        
+if __name__ == '__main__':
+
+    main()
+

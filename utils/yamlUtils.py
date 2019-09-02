@@ -83,7 +83,7 @@ def band_name_s2(prod_path):
     prod_name = str(os.path.basename(prod_path))
     # print ( "Product name is: {}".format(prod_name) )
 
-    print(prod_name.split('_'))
+#     print(prod_name.split('_'))
     if prod_name.split('_')[1] == 'MSIL1C':
         print(prod_name)
         prod_name = prod_name.split('_')[-1][:-4]
@@ -232,7 +232,7 @@ def yaml_prep_s2(scene_dir):
             'path': str(prod_path.split('/')[-1])
         } for prod_path in prod_paths
     }
-    # print ( images )
+#     print ( images )
     
     # trusting bands coaligned, use one to generate spatial bounds for all
     projection, extent = get_geometry('/'.join([str(scene_dir), images['blue']['path']]))
@@ -245,7 +245,7 @@ def yaml_prep_s2(scene_dir):
         scene_genesis = ' '
     
     new_id = str(uuid.uuid5(uuid.NAMESPACE_URL, scene_name))
-    print ('New uuid: {}'.format(new_id))
+#     print ('New uuid: {}'.format(new_id))
     
     return {
         'id': new_id,
