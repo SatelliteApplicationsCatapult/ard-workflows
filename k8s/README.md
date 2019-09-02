@@ -20,7 +20,7 @@ helm upgrade --install $RELEASEREDIS stable/redis \
 ### Redis master server testing
 To sanity check the master server issue the following: 
 ```
-$ kubectl run --namespace redis redis-client --rm --tty -i --restart='Never' \
+$ kubectl run --namespace $NAMESPACEREDIS redis-client --rm --tty -i --restart='Never' \
   --image docker.io/bitnami/redis:5.0.5-debian-9-r104 -- bash
 
 I have no name!@redis-client:/$ redis-cli -h redis-master
