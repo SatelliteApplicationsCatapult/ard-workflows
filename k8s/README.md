@@ -7,13 +7,21 @@ We use Redis as storage service to hold the work queue and store our work items.
 
 ## Redis master server deployment
 In order to deploy the master issue the following:
-```helm install stable/redis --namespace redis --name redis --values 04-config-redis.yaml```
+```
+RELEASE=redis
+NAMESPACE=redis
+
+helm upgrade --install $RELEASE stable/redis \
+  --namespace $NAMESPACE \
+  -- version=9.1.3 \
+  --values 04-config-redis.yaml
+```
 
 ### Redis master server testing
 To sanity check the master server issue the following: 
 ```
 $ kubectl run --namespace redis redis-client --rm --tty -i --restart='Never' \
-            --image docker.io/bitnami/redis:5.0.5-debian-9-r104 -- bash
+  --image docker.io/bitnami/redis:5.0.5-debian-9-r104 -- bash
 
 I have no name!@redis-client:/$ redis-cli -h redis-master
 ```
