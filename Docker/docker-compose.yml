@@ -13,13 +13,12 @@ services:
   
   jupyter-worker:
     build: .
-    #image: ard-workflows
-    container_name: worker1
+    #image: ard-workflow-s2
     environment:
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_KEY}
     ports:
-      - "8888:8888"
+      - "8888-8900:8888"
     volumes:
       - ./data:/data
     restart: always

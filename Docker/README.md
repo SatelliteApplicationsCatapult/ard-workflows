@@ -6,9 +6,9 @@ The provided [Dockerfile](Dockerfile) creates a Docker image with an ARD workflo
 
 ## Docker Compose
 A [Docker Compose](docker-compose.yml) example file is provided to set up a fully functional ARD workflow instance.\
-To use it you can issue:
+To use it you can issue, for example for 3 worker containers:
 
-```docker-compose up &```
+```docker-compose up --scale jupyter-worker=3 -d```
 
 Once the above completes, the job queue is ready to be filled in with scene names by issuing:
 
@@ -29,7 +29,7 @@ Environment variables can be set in a `.env` file for Docker Compose. You might 
 In order to be able to get/put data from/to S3, you need to ensure that the environment variables `AWS_ACCESS_KEY` and `AWS_SECRET_KEY` are set.
 
 ## Jupyter Notebook
-Jupyter Notebook can be accessed at the URL: http://{Serve's IP Address}:8888\
+Jupyter Notebook can be accessed at the URL: http://{Serve's IP Address}:8888 for the first replica, 8889 for the second one if present, and so on.\
 For the access token, check the CMD statement within the [Dockerfile](Dockerfile).
 
 ## TODO
@@ -37,5 +37,5 @@ The `process_scene()` method will be generalised for multiple satellites and sou
 Consequently, jobs will be defined by means of JSON entries, such as:
 
 ```
-'{"in_scene": "S2A_MSIL1C_20180820T223011_N0206_R072_T60KWE_20180821T013410.SAFE", "out_dir": "public-eo-data", "inter_dir": "/data/inter", "prod_level": "L2A", "source": "gcloud"}'
+'{"in_scene": "S2A_MSIL1C_20180820T223011_N0206_R072_T60KWE_20180821T013410.SAFE", "out_dir": "public-eo-data", "inter_dir": "/data/inter", "prodlevel": "L2A", "source": "gcloud"}'
 ```
