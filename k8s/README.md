@@ -25,11 +25,11 @@ $ kubectl run --namespace $NAMESPACEREDIS redis-client --rm --tty -i --restart='
 
 I have no name!@redis-client:/$ redis-cli -h redis-master
 ```
-The list with key `job2` will be our work queue:
+The list with key `jobS2` will be our work queue:
 ```
-redis-master:6379> rpush job2 "S2A_MSIL1C_20180820T223011_N0206_R072_T60KWE_20180821T013410.SAFE"
+redis-master:6379> rpush jobS2 "S2A_MSIL1C_20180820T223011_N0206_R072_T60KWE_20180821T013410.SAFE"
 (integer) 1
-redis-master:6379> lrange job2 0 -1
+redis-master:6379> lrange jobS2 0 -1
 1) "S2A_MSIL1C_20180820T223011_N0206_R072_T60KWE_20180821T013410.SAFE"
 redis-master:6379>
 ```
