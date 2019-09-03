@@ -399,17 +399,15 @@ def prepareS2(in_scene, out_dir=['public-eo-data', 'fiji/Sentinel_2_test/'], int
     # Need to handle inputs with and without .SAFE extension
     if not in_scene.endswith('.SAFE'):
         in_scene = in_scene + '.SAFE'
-
     # shorten scene name
     scene_name = in_scene[:-21]
     scene_name = scene_name[:-17] + scene_name.split('_')[-1] 
 
-    # Confirm temp directory
+    # Create unique inter_dir
     inter_dir = inter_dir + scene_name +'_tmp/'
         
-    # these dirs only used for accessing files - all will be removed
+    # sub-dirs only used for accessing files - all will be removed
     down_dir = inter_dir + in_scene + '/' 
-#     os.makedirs(down_dir, exist_ok=True)
     cog_dir = inter_dir + scene_name + '/'
     os.makedirs(cog_dir, exist_ok=True)
     l2a_dir = inter_dir + '/'
@@ -438,7 +436,7 @@ def prepareS2(in_scene, out_dir=['public-eo-data', 'fiji/Sentinel_2_test/'], int
 
         log.write("{},{},{}".format(in_scene, 'Downloaded', str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))))
         log.write("\n")
-        
+
 #         # [CREATE L2A WITHIN TEMP DIRECTORY]
 #         if (scene_name.split('_')[1] == 'MSIL1C') & (prodlevel == 'L2A'):
 #             sen2cor_correction(sen2cor8, down_dir, l2a_dir)
@@ -446,7 +444,7 @@ def prepareS2(in_scene, out_dir=['public-eo-data', 'fiji/Sentinel_2_test/'], int
         # CONVERT TO COGS TO TEMP COG DIRECTORY**
         conv_s2scene_cogs(down_dir, cog_dir, scene_name)
 
-        log.write("{},{},{}".format(in_scene, 'Yaml', str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))))
+        log.write("{},{},{}".format(in_scene, 'COGS', str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))))
         log.write("\n")
 
         # PARSE METADATA TO TEMP COG DIRECTORY**
@@ -454,7 +452,10 @@ def prepareS2(in_scene, out_dir=['public-eo-data', 'fiji/Sentinel_2_test/'], int
         
         # GENERATE YAML WITHIN TEMP COG DIRECTORY**
         create_yaml(cog_dir, 's2')
-    
+        
+        log.write("{},{},{}".format(in_scene, 'Yaml', str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))))
+        log.write("\n")
+        
     log.close()
 
     # MOVE COG DIRECTORY TO OUTPUT DIRECTORY
