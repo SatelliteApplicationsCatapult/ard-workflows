@@ -9,7 +9,8 @@ from utils.prepS2 import prepareS2
 
 def process_scene(json_data):
     loaded_json = json.loads(json_data)
-    prepareS2(loaded_json["in_scene"], loaded_json["out_dir"], inter_dir=loaded_json["inter_dir"], prodlevel=loaded_json["prodlevel"], source=loaded_json["source"])
+    #prepareS2(loaded_json["in_scene"], loaded_json["out_dir"], inter_dir=loaded_json["inter_dir"], prodlevel=loaded_json["prodlevel"], source=loaded_json["source"])
+    prepareS2(loaded_json["in_scene"], inter_dir=loaded_json["inter_dir"])
 
 ##################
 # Job processing #
