@@ -218,14 +218,15 @@ def conv_sgl_cog(in_path, out_path):
     )
     
     ds = gdal.Open(in_path, gdal.GA_Update)
-    if ds is None:
+    if ds is not None:
+        b = ds.GetRasterBand(1)
+        b.SetNoDataValue(0)
+        b.FlushCache()
+        b = None
+        ds = None 
+    else:
         print ('not updated nodata')
 
-    b = ds.GetRasterBand(1)
-    b.SetNoDataValue(0)
-    b.FlushCache()
-    b = None
-    ds = None 
 
 
 def copy_s2_metadata(original_scene_dir, cog_scene_dir, scene_name):
@@ -366,12 +367,12 @@ def s3_upload_cogs(in_paths, s3_bucket, s3_dir):
 # @click.option("--prodlevel", default="L1C", help="Desired Sentinel-2 product level. Defaults to 'L1C'. Use 'L2A' for ARD equivalent")
 # @click.option("--source", default="gcloud", help="Api source to be used for downloading scenes.")
 
-def prepareS2(in_scene, out_dir, inter_dir='out_dir', prodlevel='L2A', source='gcloud'):
+def prepareS2(in_scene, out_dir=['public-eo-data', 'fiji/Sentinel_2_test/'], inter_dir='/intermediate/', prodlevel='L2A', source='gcloud'):
     """
     Prepare IN_SCENE of Sentinel-2 satellite data into OUT_DIR for ODC indexing. 
 
     :param in_scene: input Sentinel-2 scene name (either L1C or L2A) i.e. "S2A_MSIL1C_20180820T223011_N0206_R072_T60KWE_20180821T013410.SAFE"
-    :param out_dir: output directory to drop COGs into. Can be local dir or cloud bucket. CURRENTLY ASSUMES A RELATIVE S3 BUCKET LOCATION WITHIN public-eo-data.
+    :param out_dir: output directory to drop COGs into.
     :param --inter: optional intermediary directory to be used for processing. If not specified then sub-dir within out_dir is used. Ought to be specified if out_dir is Cloud Bucket.
     :param --prodlevel: Desired Sentinel-2 product level. Defaults to 'L1C'. Use 'L2A' for ARD equivalent
     :param --source: Api source to be used for downloading scenes. Defaults to gcloud. Options inc. 'gcloud', 'esahub', 'sedas' COMING SOON
@@ -383,12 +384,17 @@ def prepareS2(in_scene, out_dir, inter_dir='out_dir', prodlevel='L2A', source='g
     - env set COPERNICUS_PWD
     - env set AWS_ACCESS
     - env set AWS_SECRET
-    - maybe something to do with gcloud storage log in? Not sure...
+    - maybe something to do with gcloud storage log in? Not sure if needed...
     - etc.... tbd
     """
-
-    s3_bucket = "public-eo-data"
-    s3_dir = "fiji/Sentinel_2_test/"
+    
+    if isinstance(out_dir, list):
+        s3_bucket = "public-eo-data"
+        s3_dir = "fiji/Sentinel_2_test/"
+        print('Will upload to S3 bucket: {}'.format(out_dir))
+    elif os.path.exists(out_dir):
+        print('Will move to: {}'.format(out_dir))
+        
     
     # Need to handle inputs with and without .SAFE extension
     if not in_scene.endswith('.SAFE'):
@@ -397,10 +403,11 @@ def prepareS2(in_scene, out_dir, inter_dir='out_dir', prodlevel='L2A', source='g
     # shorten scene name
     scene_name = in_scene[:-21]
     scene_name = scene_name[:-17] + scene_name.split('_')[-1] 
+    
+    log_file = os.path.join(inter_dir + 'log_file.csv') # Create log somewhere more sensible - assumes exists
 
     # Confirm temp directory
-    if inter_dir == "out_dir": 
-        inter_dir = out_dir + scene_name +'_tmp/'
+    inter_dir = inter_dir + scene_name +'_tmp/'
         
     # these dirs only used for accessing files - all will be removed
     down_dir = inter_dir + in_scene + '/' 
@@ -408,14 +415,13 @@ def prepareS2(in_scene, out_dir, inter_dir='out_dir', prodlevel='L2A', source='g
     cog_dir = inter_dir + scene_name + '/'
     l2a_dir = inter_dir + '/'
     
-    sen2cor8 = os.getenv("SEN2COR_8")
+#     sen2cor8 = os.getenv("SEN2COR_8")
 
     print('in_scene: ', in_scene)
     print('scene name: ', scene_name)
     print('tmp: ', inter_dir)
     print('final out: ', out_dir)
     
-    log_file = os.path.join(out_dir + 'log_file.csv') # Create log somewhere more sensible - assumes exists
     with open(log_file, 'a') as log:
 
         log.write("{},{},{}".format(in_scene, 'Start', str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))))
@@ -426,7 +432,6 @@ def prepareS2(in_scene, out_dir, inter_dir='out_dir', prodlevel='L2A', source='g
             s2id = find_s2_uuid(in_scene)
             download_extract_s2_esa(s2id, inter_dir, down_dir)
         elif source == "gcloud":
-            print('already')
             download_s2_granule_gcloud(in_scene, inter_dir)
 
         log.write("{},{},{}".format(in_scene, 'Downloaded', str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))))
@@ -435,7 +440,6 @@ def prepareS2(in_scene, out_dir, inter_dir='out_dir', prodlevel='L2A', source='g
 #         # [CREATE L2A WITHIN TEMP DIRECTORY]
 #         if (scene_name.split('_')[1] == 'MSIL1C') & (prodlevel == 'L2A'):
 #             sen2cor_correction(sen2cor8, down_dir, l2a_dir)
-
 
         # CONVERT TO COGS TO TEMP COG DIRECTORY**
         conv_s2scene_cogs(down_dir, cog_dir, scene_name)
@@ -449,17 +453,14 @@ def prepareS2(in_scene, out_dir, inter_dir='out_dir', prodlevel='L2A', source='g
         # GENERATE YAML WITHIN TEMP COG DIRECTORY**
         create_yaml(cog_dir, 's2')
         
-#         # MOVE COG DIRECTORY TO OUTPUT DIRECTORY
+        # MOVE COG DIRECTORY TO OUTPUT DIRECTORY
         s3_upload_cogs(glob.glob(cog_dir + '*'), s3_bucket, s3_dir)
-
-
-#         shutil.move(cog_dir, out_dir)
         
         # DELETE ANYTHING WITIN TEH TEMP DIRECTORY
         cmd = 'rm -frv {}'.format(inter_dir)
         p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
         out = p.stdout.read()
-    
+
         
 # if __name__ == '__main__':
 
