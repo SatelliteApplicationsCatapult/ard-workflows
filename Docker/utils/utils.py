@@ -1,4 +1,7 @@
 from osgeo import ogr, osr
+from shapely import wkt
+import geopandas as gpd
+
 
 def reproject_wkt_4326_3460(wkt):
     """
@@ -23,3 +26,18 @@ def reproject_wkt_4326_3460(wkt):
 
     return polygon.ExportToWkt()
 
+
+def reproFijiGDF(in_gdf):
+    """
+    Reproject gdf from wgs84 into Fiji local coordinate system
+
+    :param bands: input geodataframe with geometry set as geometry
+    :return:
+    
+    TO DO:UPDATE PARAMS
+    """
+    in_gdf['repro'] = in_gdf['geometry'].apply(lambda x: reproject_wkt_4326_3460(str(x)))
+    in_gdf['repro'] = in_gdf['repro'].apply(wkt.loads)
+    in_gdf = gpd.GeoDataFrame(in_gdf, geometry='repro', crs=('epsg:3460'))
+
+    return in_gdf

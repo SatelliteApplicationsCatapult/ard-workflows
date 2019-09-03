@@ -8,10 +8,22 @@ import zipfile
 import shutil
 import rasterio
 import numpy
+from subprocess import Popen, PIPE, STDOUT
+import click
+import multiprocessing
+import boto3
 
-from .cogeo import *
 
-
+try:
+    from .cogeo import *
+except:
+    from cogeo import *
+try:
+    from .yamlUtils import *
+except:
+    from yamlUtils import *
+    
+    
 def find_s2_uuid(s2_filename):
     """
     Finds uuid required for download based upon an input S2 file/scene name. 
@@ -29,7 +41,7 @@ def find_s2_uuid(s2_filename):
 
 def download_s2_granule_gcloud(s2_id, download_dir, safe_form=True, bands=False):
     """
-    Downloads RGBNIR bands of single Sentinel-2 acquisition from GCloud bucket into new S2ID directory
+    Downloads RGBNIR bands of single Sentinel-2 (L1C or L2A) acquisition from GCloud bucket into new S2ID directory
 
     :param s2_id: ID for Sentinel Tile (i.e. "S2B_MSIL1C_20190815T110629_N0208_R137_T30UWB_20190815T135651")
     :param download_dir: path to directory for downloaded S2 granules
@@ -40,11 +52,15 @@ def download_s2_granule_gcloud(s2_id, download_dir, safe_form=True, bands=False)
     
     TO DO:UPDATE PARAMS
     """
-
+    
+    if s2_id.endswith('.SAFE'):
+        s2_id = s2_id[:-5]
+    
     client = storage.Client.create_anonymous_client()
     bucket = client.bucket(bucket_name="gcp-public-data-sentinel-2", user_project=None)
     
-    dir_name = os.path.join(download_dir, s2_id)
+#     dir_name = os.path.join(download_dir, s2_id)
+    dir_name = download_dir
     if (not safe_form) & (not os.path.exists(dir_name)):
         os.makedirs(dir_name)
 
@@ -53,7 +69,10 @@ def download_s2_granule_gcloud(s2_id, download_dir, safe_form=True, bands=False)
     dir2 = identifiers[3]
     dir3 = identifiers[4:6]
     
-    prefix = "tiles/%s/%s/%s/%s.SAFE" % (str(dir1), str(dir2), str(dir3), str(s2_id))
+    if 'MSIL1C' in s2_id:
+        prefix = "tiles/%s/%s/%s/%s.SAFE" % (str(dir1), str(dir2), str(dir3), str(s2_id))
+    elif 'MSIL2A' in s2_id:
+        prefix = "L2/tiles/%s/%s/%s/%s.SAFE" % (str(dir1), str(dir2), str(dir3), str(s2_id))
     blobs = bucket.list_blobs(prefix=prefix)  # Get list of files
     
     # filter bands if needed
@@ -74,15 +93,14 @@ def download_s2_granule_gcloud(s2_id, download_dir, safe_form=True, bands=False)
                 name = os.path.join(dir_name, os.path.basename(blob.name))
 
             else:
-                interdir = os.path.join(dir_name +'.SAFE', '/'.join(blob.name.split('/')[5:-1]))
+                interdir = os.path.join(dir_name,'/'.join(blob.name.split('/')[5:-1]))
 
                 if not os.path.exists(interdir):
                     os.makedirs(interdir)
+                name = os.path.join(dir_name + '/'.join(blob.name.split('/')[5:]))
 
-                name = os.path.join(dir_name +'.SAFE', '/'.join(blob.name.split('/')[5:]))
             blob.download_to_filename(name)
 
-            
             
 def download_extract_s2_esa(scene_uuid, down_dir, original_scene_dir):
     """
@@ -96,7 +114,9 @@ def download_extract_s2_esa(scene_uuid, down_dir, original_scene_dir):
         # if downloaded .zip file doesn't exist then download it
         if not os.path.exists(original_scene_dir.replace('.SAFE/','.zip')):
             print ( 'Downloading ESA scene zip: {}'.format(os.path.basename(original_scene_dir)) )
-            esa_api = SentinelAPI('tmj21','Welcome12!')            
+
+            copernicus_pwd=os.getenv("COPERNICUS_USERNAME")
+            copernicus_username=os.getenv("COPERNICUS_PWD")
             esa_api.download(scene_uuid, down_dir, checksum=True)
     
         # extract downloaded .zip file
@@ -114,9 +134,10 @@ def download_extract_s2_esa(scene_uuid, down_dir, original_scene_dir):
         os.remove(original_scene_dir.replace('.SAFE/','.zip'))
             
             
+
+
             
-            
-def conv_s2scene_cogs(original_scene_dir, cog_scene_dir, scene_name, des_prods=False, overwrite=False):
+def conv_s2scene_cogs(original_scene_dir, cog_scene_dir, scene_name, overwrite=False):
     """
     Convert S2 scene products to cogs + validate.
     TBD whether consistent for L1C + L2A prcoessing levels.
@@ -135,16 +156,18 @@ def conv_s2scene_cogs(original_scene_dir, cog_scene_dir, scene_name, des_prods=F
     
     cog_val = []
     
-    if not des_prods:
-        des_prods = ["AOT_10m", "B01_60m", "B02_10m", "B03_10m", "B04_10m", "B05_20m", "B06_20m",
-                     "B07_20m", "B08_10m", "B8A_20m", "B09_60m", "B11_20m", "B12_20m", "SCL_20m",
-                     "WVP_10m"]
+    des_prods = ["AOT_10m", "B01_60m", "B02_10m", "B03_10m", "B04_10m", "B05_20m", "B06_20m",
+                 "B07_20m", "B08_10m", "B8A_20m", "B09_60m", "B11_20m", "B12_20m", "SCL_20m",
+                 "WVP_10m"]
     
     # find all individual prods to convert to cog (ignore true colour images (TCI))
-    prod_paths = glob.glob(original_scene_dir + 'GRANULE/*/IMG_DATA/*/*.jp2')
-    prod_paths = [x for x in prod_paths if x[-11:-4] in des_prods]
+    if scene_name.split('_')[1] == 'MSIL1C':
+        prod_paths = glob.glob(original_scene_dir + 'GRANULE/*/IMG_DATA/*.jp2')
     
-#     print(prod_paths)
+    elif scene_name.split('_')[1] == 'MSIL2A':
+        prod_paths = glob.glob(original_scene_dir + 'GRANULE/*/IMG_DATA/*/*.jp2')
+        prod_paths = [x for x in prod_paths if x[-11:-4] in des_prods]
+    
 #     for i in prod_paths: print (i)
     
     proc_list = []
@@ -195,14 +218,15 @@ def conv_sgl_cog(in_path, out_path):
     )
     
     ds = gdal.Open(in_path, gdal.GA_Update)
-    if ds is None:
+    if ds is not None:
+        b = ds.GetRasterBand(1)
+        b.SetNoDataValue(0)
+        b.FlushCache()
+        b = None
+        ds = None 
+    else:
         print ('not updated nodata')
 
-    b = ds.GetRasterBand(1)
-    b.SetNoDataValue(0)
-    b.FlushCache()
-    b = None
-    ds = None 
 
 
 def copy_s2_metadata(original_scene_dir, cog_scene_dir, scene_name):
@@ -236,10 +260,12 @@ def sen2cor_correction(sen2cor, in_dir, out_dir):
     """
     Run sen2cor on input S2 L1C product directory (must be unzipped).
     """
-    cmd = sen2cor + ' ' + '--output_dir ' + out_dir + ' ' + in_dir
+    cmd = '{} {} --output_dir {}'.format(sen2cor, in_dir, out_dir)
     print(cmd)
-    os.system(cmd)
-
+    p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
+    out = p.stdout.read()
+    print(out)
+    
     l2a_dir = glob.glob(in_dir.replace('_MSIL1C', '_MSIL2A')[:-39]+'*')[0] +'/'
     os.rename(l2a_dir, in_dir.replace('_MSIL1C_','_MSIL2A_'))
 
@@ -268,4 +294,180 @@ def s2_ndvi(red_file, nir_file, out_file=False):
     os.remove(inter)
     
     return ndvi
+
+
+def s3_single_upload(in_path, s3_path, s3_bucket):
+    """
+    put a file into S3 from the local file system.
+
+    :param in_path: a path to a file on the local file system
+    :param s3_path: where in S3 to put the file.
+    :return: None
+    """
     
+    # prep session & creds
+    access = os.getenv("AWS_ACCESS")
+    secret = os.getenv("AWS_SECRET")
+    
+    session = boto3.Session(
+        access,
+        secret,
+    )
+    s3 = session.resource('s3',region_name='eu-west-2')
+    client = session.client('s3')
+    bucket = s3.Bucket(s3_bucket)
+    gb = 1024 ** 3
+    s3_client = boto3.client(
+        's3',
+        aws_access_key_id=access,
+        aws_secret_access_key=secret
+    )
+    
+    # Ensure that multipart uploads only happen if the size of a transfer is larger than
+    # S3's size limit for non multipart uploads, which is 5 GB. we copy using multipart 
+    # at anything over 4gb
+    transfer_config = boto3.s3.transfer.TransferConfig(multipart_threshold=2 * gb,
+                                                       max_concurrency=10, 
+                                                       multipart_chunksize=2 * gb,
+                                                       use_threads=True) 
+    
+    print ( 'Local source file: {}'.format(in_path) )
+    print ( 'S3 target file: {}'.format(s3_path) )
+    
+    if not os.path.exists(s3_path): # doesn't work on s3... better function to do this...
+        print ( 'Start: {} {} '.format(in_path, str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))) )
+                
+        transfer = boto3.s3.transfer.S3Transfer(client=s3_client, config=transfer_config)
+        transfer.upload_file(in_path, bucket.name, s3_path)  
+        
+        print ( 'Finish: {} {} '.format(in_path, str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))) )
+        
+    
+
+def s3_upload_cogs(in_paths, s3_bucket, s3_dir):
+
+    # create upload lists for multi-threading
+    out_paths = [ s3_dir + i.split('/')[-2] + '/' + i.split('/')[-1] 
+                 for i in in_paths ]
+        
+    upload_list = [(in_path, out_path, s3_bucket) 
+                   for in_path, out_path in zip(in_paths, out_paths)]
+    
+    for i in upload_list: print ( i )
+    
+    # parallelise upload
+    pool = multiprocessing.Pool(processes=5)
+    pool.starmap(s3_single_upload, upload_list)
+
+
+# @click.command()
+# @click.argument("in_scene")
+# @click.argument("out_dir")
+# @click.option("--inter_dir", default="out_dir", type=click.Path(), help="Optional intermediary directory to be used for processing. If not specified then sub-dir within out_dir is used. Ought to be specified if out_dir is Cloud Bucket.")
+# @click.option("--prodlevel", default="L1C", help="Desired Sentinel-2 product level. Defaults to 'L1C'. Use 'L2A' for ARD equivalent")
+# @click.option("--source", default="gcloud", help="Api source to be used for downloading scenes.")
+
+def prepareS2(in_scene, out_dir=['public-eo-data', 'fiji/Sentinel_2_test/'], inter_dir='/intermediate/', prodlevel='L2A', source='gcloud'):
+    """
+    Prepare IN_SCENE of Sentinel-2 satellite data into OUT_DIR for ODC indexing. 
+
+    :param in_scene: input Sentinel-2 scene name (either L1C or L2A) i.e. "S2A_MSIL1C_20180820T223011_N0206_R072_T60KWE_20180821T013410.SAFE"
+    :param out_dir: output directory to drop COGs into.
+    :param --inter: optional intermediary directory to be used for processing. If not specified then sub-dir within out_dir is used. Ought to be specified if out_dir is Cloud Bucket.
+    :param --prodlevel: Desired Sentinel-2 product level. Defaults to 'L1C'. Use 'L2A' for ARD equivalent
+    :param --source: Api source to be used for downloading scenes. Defaults to gcloud. Options inc. 'gcloud', 'esahub', 'sedas' COMING SOON
+    :return: None
+    
+    Assumptions:
+    - env set at SEN2COR_8: i.e. Sen2Cor-02.08.00-Linux64/bin/L2A_Process"
+    - env set COPERNICUS_USERNAME
+    - env set COPERNICUS_PWD
+    - env set AWS_ACCESS
+    - env set AWS_SECRET
+    - maybe something to do with gcloud storage log in? Not sure if needed...
+    - etc.... tbd
+    """
+    
+    if isinstance(out_dir, list):
+        s3_bucket = "public-eo-data"
+        s3_dir = "fiji/Sentinel_2_test/"
+        print('Will upload to S3 bucket: {}'.format(out_dir))
+    elif os.path.exists(out_dir):
+        print('Will move to: {}'.format(out_dir))
+        
+    
+    # Need to handle inputs with and without .SAFE extension
+    if not in_scene.endswith('.SAFE'):
+        in_scene = in_scene + '.SAFE'
+    # shorten scene name
+    scene_name = in_scene[:-21]
+    scene_name = scene_name[:-17] + scene_name.split('_')[-1] 
+
+    # Create unique inter_dir
+    inter_dir = inter_dir + scene_name +'_tmp/'
+        
+    # sub-dirs only used for accessing files - all will be removed
+    down_dir = inter_dir + in_scene + '/' 
+    cog_dir = inter_dir + scene_name + '/'
+    os.makedirs(cog_dir, exist_ok=True)
+    l2a_dir = inter_dir + '/'
+    
+#     sen2cor8 = os.getenv("SEN2COR_8")
+
+    print('in_scene: ', in_scene)
+    print('scene name: ', scene_name)
+    print('tmp: ', inter_dir)
+    print('final out: ', out_dir)
+
+    log_file = os.path.join(cog_dir + 'log_file.csv') # Create log somewhere more sensible - assumes exists
+    with open(log_file, 'w') as log:
+        log.write("{},{},{}".format('Scene_Name', 'Completed_Stage', 'DateTime'))
+        log.write("\n")    
+        
+        log.write("{},{},{}".format(in_scene, 'Start', str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))))
+        log.write("\n")
+        
+        # DOWNLOAD
+        if source == "esahub":
+            s2id = find_s2_uuid(in_scene)
+            download_extract_s2_esa(s2id, inter_dir, down_dir)
+        elif source == "gcloud":
+            download_s2_granule_gcloud(in_scene, inter_dir)
+
+        log.write("{},{},{}".format(in_scene, 'Downloaded', str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))))
+        log.write("\n")
+
+#         # [CREATE L2A WITHIN TEMP DIRECTORY]
+#         if (scene_name.split('_')[1] == 'MSIL1C') & (prodlevel == 'L2A'):
+#             sen2cor_correction(sen2cor8, down_dir, l2a_dir)
+
+        # CONVERT TO COGS TO TEMP COG DIRECTORY**
+        conv_s2scene_cogs(down_dir, cog_dir, scene_name)
+
+        log.write("{},{},{}".format(in_scene, 'COGS', str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))))
+        log.write("\n")
+
+        # PARSE METADATA TO TEMP COG DIRECTORY**
+        copy_s2_metadata(down_dir, cog_dir, scene_name) 
+        
+        # GENERATE YAML WITHIN TEMP COG DIRECTORY**
+        create_yaml(cog_dir, 's2')
+        
+        log.write("{},{},{}".format(in_scene, 'Yaml', str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))))
+        log.write("\n")
+        
+    log.close()
+
+    # MOVE COG DIRECTORY TO OUTPUT DIRECTORY
+    s3_upload_cogs(glob.glob(cog_dir + '*'), s3_bucket, s3_dir)
+        
+    # DELETE ANYTHING WITIN TEH TEMP DIRECTORY
+    cmd = 'rm -frv {}'.format(inter_dir)
+    p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
+    out = p.stdout.read()
+
+        
+# if __name__ == '__main__':
+
+#     prepareS2()
+
