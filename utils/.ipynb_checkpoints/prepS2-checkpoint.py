@@ -413,9 +413,7 @@ def prepareS2(in_scene, out_dir=['public-eo-data', 'fiji/Sentinel_2_test/'], int
             print('Will upload to S3 bucket: {}'.format(out_dir))
         elif os.path.exists(out_dir):
             print('Will move to: {}'.format(out_dir))
-        
-        s3_dir = 'fiji/Sentinel_2_testmulti/'
-        
+                
         # sub-dirs used only for accessing tmp files
         down_dir = inter_dir + in_scene + '/' 
         cog_dir = inter_dir + scene_name + '/'
