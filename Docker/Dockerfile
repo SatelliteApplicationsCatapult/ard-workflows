@@ -23,6 +23,8 @@ RUN apt-get install -y --no-install-recommends xmlstarlet && \
 
 RUN xmlstarlet edit -L -u "//Downsample_20_to_60" -v "FALSE" $HOME/sen2cor/2.8/cfg/L2A_GIPP.xml
 
+# ------------------------------------------
+
 #COPY utils /utils
 
 #COPY worker.py /worker.py
@@ -30,6 +32,8 @@ RUN xmlstarlet edit -L -u "//Downsample_20_to_60" -v "FALSE" $HOME/sen2cor/2.8/c
 #COPY rediswq.py /rediswq.py
 
 #CMD [ "python", "worker.py" ]
+
+# ------------------------------------------
 
 RUN conda install --quiet --yes \
     jupyter \
