@@ -403,8 +403,6 @@ def prepareS2(in_scene, out_dir=['public-eo-data', 'fiji/Sentinel_2_test/'], int
     # shorten scene name
     scene_name = in_scene[:-21]
     scene_name = scene_name[:-17] + scene_name.split('_')[-1] 
-    
-    log_file = os.path.join(inter_dir + 'log_file.csv') # Create log somewhere more sensible - assumes exists
 
     # Confirm temp directory
     inter_dir = inter_dir + scene_name +'_tmp/'
@@ -413,6 +411,7 @@ def prepareS2(in_scene, out_dir=['public-eo-data', 'fiji/Sentinel_2_test/'], int
     down_dir = inter_dir + in_scene + '/' 
 #     os.makedirs(down_dir, exist_ok=True)
     cog_dir = inter_dir + scene_name + '/'
+    os.makedirs(cog_dir, exist_ok=True)
     l2a_dir = inter_dir + '/'
     
 #     sen2cor8 = os.getenv("SEN2COR_8")
@@ -421,9 +420,12 @@ def prepareS2(in_scene, out_dir=['public-eo-data', 'fiji/Sentinel_2_test/'], int
     print('scene name: ', scene_name)
     print('tmp: ', inter_dir)
     print('final out: ', out_dir)
-    
-    with open(log_file, 'a') as log:
 
+    log_file = os.path.join(cog_dir + 'log_file.csv') # Create log somewhere more sensible - assumes exists
+    with open(log_file, 'w') as log:
+        log.write("{},{},{}".format('Scene_Name', 'Completed_Stage', 'DateTime'))
+        log.write("\n")    
+        
         log.write("{},{},{}".format(in_scene, 'Start', str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))))
         log.write("\n")
         
@@ -452,14 +454,16 @@ def prepareS2(in_scene, out_dir=['public-eo-data', 'fiji/Sentinel_2_test/'], int
         
         # GENERATE YAML WITHIN TEMP COG DIRECTORY**
         create_yaml(cog_dir, 's2')
+    
+    log.close()
+
+    # MOVE COG DIRECTORY TO OUTPUT DIRECTORY
+    s3_upload_cogs(glob.glob(cog_dir + '*'), s3_bucket, s3_dir)
         
-        # MOVE COG DIRECTORY TO OUTPUT DIRECTORY
-        s3_upload_cogs(glob.glob(cog_dir + '*'), s3_bucket, s3_dir)
-        
-        # DELETE ANYTHING WITIN TEH TEMP DIRECTORY
-        cmd = 'rm -frv {}'.format(inter_dir)
-        p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
-        out = p.stdout.read()
+    # DELETE ANYTHING WITIN TEH TEMP DIRECTORY
+    cmd = 'rm -frv {}'.format(inter_dir)
+    p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
+    out = p.stdout.read()
 
         
 # if __name__ == '__main__':
