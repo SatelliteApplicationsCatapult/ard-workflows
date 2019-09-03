@@ -11,6 +11,9 @@ import numpy
 from subprocess import Popen, PIPE, STDOUT
 import click
 import multiprocessing
+from multiprocessing import pool
+from multiprocessing.pool import ThreadPool as Pool
+from itertools import product
 import boto3
 
 
@@ -132,10 +135,7 @@ def download_extract_s2_esa(scene_uuid, down_dir, original_scene_dir):
     if os.path.exists(original_scene_dir) & os.path.exists(original_scene_dir.replace('.SAFE/','.zip')):
         print ( 'Deleting ESA scene zip: {}'.format(original_scene_dir.replace('.SAFE/','.zip')) )
         os.remove(original_scene_dir.replace('.SAFE/','.zip'))
-            
-            
-
-
+    
             
 def conv_s2scene_cogs(original_scene_dir, cog_scene_dir, scene_name, overwrite=False):
     """
@@ -184,13 +184,19 @@ def conv_s2scene_cogs(original_scene_dir, cog_scene_dir, scene_name, overwrite=F
             # ensure output cog doesn't already exist
             if not os.path.exists(out_filename):
                 
-                conv_sgl_cog( in_filename, out_filename )
+                
+                proc_list.append((in_filename, out_filename))
+#                 conv_sgl_cog( in_filename, out_filename )
                 
             else:
                 print ( 'cog already exists: {}'.format(out_filename) )
         else:
             print ( 'cannot find product: {}'.format(in_filename) )
-            
+    n = 3
+    print(proc_list)
+    pool = multiprocessing.Pool(processes=5)
+    pool.starmap(conv_sgl_cog, proc_list)
+    
     # return cog_val
 
 
@@ -227,6 +233,7 @@ def conv_sgl_cog(in_path, out_path):
     else:
         print ('not updated nodata')
 
+    # should inc. cog val...
 
 
 def copy_s2_metadata(original_scene_dir, cog_scene_dir, scene_name):
@@ -342,7 +349,6 @@ def s3_single_upload(in_path, s3_path, s3_bucket):
         
         print ( 'Finish: {} {} '.format(in_path, str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))) )
         
-    
 
 def s3_upload_cogs(in_paths, s3_bucket, s3_dir):
 
@@ -387,84 +393,88 @@ def prepareS2(in_scene, out_dir=['public-eo-data', 'fiji/Sentinel_2_test/'], int
     - maybe something to do with gcloud storage log in? Not sure if needed...
     - etc.... tbd
     """
-    
-    if isinstance(out_dir, list):
-        s3_bucket = "public-eo-data"
-        s3_dir = "fiji/Sentinel_2_test/"
-        print('Will upload to S3 bucket: {}'.format(out_dir))
-    elif os.path.exists(out_dir):
-        print('Will move to: {}'.format(out_dir))
-        
-    
+
     # Need to handle inputs with and without .SAFE extension
     if not in_scene.endswith('.SAFE'):
         in_scene = in_scene + '.SAFE'
-    # shorten scene name
+        # shorten scene name
     scene_name = in_scene[:-21]
     scene_name = scene_name[:-17] + scene_name.split('_')[-1] 
-
-    # Create unique inter_dir
-    inter_dir = inter_dir + scene_name +'_tmp/'
-        
-    # sub-dirs only used for accessing files - all will be removed
-    down_dir = inter_dir + in_scene + '/' 
-    cog_dir = inter_dir + scene_name + '/'
-    os.makedirs(cog_dir, exist_ok=True)
-    l2a_dir = inter_dir + '/'
     
-#     sen2cor8 = os.getenv("SEN2COR_8")
+    # Unique inter_dir needed for clean-up
+    inter_dir = inter_dir + scene_name +'_tmp/'
 
-    print('in_scene: ', in_scene)
-    print('scene name: ', scene_name)
-    print('tmp: ', inter_dir)
-    print('final out: ', out_dir)
+    try:
+#     if 'x' == 'x':
 
-    log_file = os.path.join(cog_dir + 'log_file.csv') # Create log somewhere more sensible - assumes exists
-    with open(log_file, 'w') as log:
-        log.write("{},{},{}".format('Scene_Name', 'Completed_Stage', 'DateTime'))
-        log.write("\n")    
+        if isinstance(out_dir, list):
+            s3_bucket = "public-eo-data"
+            s3_dir = "fiji/Sentinel_2_test/"
+            print('Will upload to S3 bucket: {}'.format(out_dir))
+        elif os.path.exists(out_dir):
+            print('Will move to: {}'.format(out_dir))
         
-        log.write("{},{},{}".format(in_scene, 'Start', str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))))
-        log.write("\n")
+        s3_dir = 'fiji/Sentinel_2_testmulti/'
         
-        # DOWNLOAD
-        if source == "esahub":
-            s2id = find_s2_uuid(in_scene)
-            download_extract_s2_esa(s2id, inter_dir, down_dir)
-        elif source == "gcloud":
-            download_s2_granule_gcloud(in_scene, inter_dir)
-
-        log.write("{},{},{}".format(in_scene, 'Downloaded', str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))))
-        log.write("\n")
-
-#         # [CREATE L2A WITHIN TEMP DIRECTORY]
-#         if (scene_name.split('_')[1] == 'MSIL1C') & (prodlevel == 'L2A'):
-#             sen2cor_correction(sen2cor8, down_dir, l2a_dir)
-
-        # CONVERT TO COGS TO TEMP COG DIRECTORY**
-        conv_s2scene_cogs(down_dir, cog_dir, scene_name)
-
-        log.write("{},{},{}".format(in_scene, 'COGS', str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))))
-        log.write("\n")
-
-        # PARSE METADATA TO TEMP COG DIRECTORY**
-        copy_s2_metadata(down_dir, cog_dir, scene_name) 
+        # sub-dirs used only for accessing tmp files
+        down_dir = inter_dir + in_scene + '/' 
+        cog_dir = inter_dir + scene_name + '/'
+        os.makedirs(cog_dir, exist_ok=True)
+        l2a_dir = inter_dir + '/'
         
-        # GENERATE YAML WITHIN TEMP COG DIRECTORY**
-        create_yaml(cog_dir, 's2')
-        
-        log.write("{},{},{}".format(in_scene, 'Yaml', str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))))
-        log.write("\n")
-        
-    log.close()
+        log_file = os.path.join(cog_dir + 'log_file.csv') # Create log somewhere more sensible - assumes exists
+        with open(log_file, 'w') as log:
+            log.write("{},{},{}".format('Scene_Name', 'Completed_Stage', 'DateTime'))
+            log.write("\n")    
 
-    # MOVE COG DIRECTORY TO OUTPUT DIRECTORY
-    s3_upload_cogs(glob.glob(cog_dir + '*'), s3_bucket, s3_dir)
+            log.write("{},{},{}".format(in_scene, 'Start', str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))))
+            log.write("\n")
+
+            # DOWNLOAD
+            if source == "esahub":
+                s2id = find_s2_uuid(in_scene)
+                download_extract_s2_esa(s2id, inter_dir, down_dir)
+            elif source == "gcloud":
+                download_s2_granule_gcloud(in_scene, inter_dir)
+
+            log.write("{},{},{}".format(in_scene, 'Downloaded', str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))))
+            log.write("\n")
+
+    #         # [CREATE L2A WITHIN TEMP DIRECTORY]
+    #         if (scene_name.split('_')[1] == 'MSIL1C') & (prodlevel == 'L2A'):
+    #             sen2cor_correction(sen2cor8, down_dir, l2a_dir)
+
+            # CONVERT TO COGS TO TEMP COG DIRECTORY**
+            conv_s2scene_cogs(down_dir, cog_dir, scene_name)
+
+            log.write("{},{},{}".format(in_scene, 'COGS', str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))))
+            log.write("\n")
+
+            # PARSE METADATA TO TEMP COG DIRECTORY**
+            copy_s2_metadata(down_dir, cog_dir, scene_name) 
+
+            # GENERATE YAML WITHIN TEMP COG DIRECTORY**
+            create_yaml(cog_dir, 's2')
+
+            log.write("{},{},{}".format(in_scene, 'Yaml', str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))))
+            log.write("\n")
+
+        log.close()
+
+        # MOVE COG DIRECTORY TO OUTPUT DIRECTORY
+        s3_upload_cogs(glob.glob(cog_dir + '*'), s3_bucket, s3_dir)
+
+        # DELETE ANYTHING WITIN TEH TEMP DIRECTORY
+        cmd = 'rm -frv {}'.format(inter_dir)
+        p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
+        out = p.stdout.read()
+    
+    except:
         
-    # DELETE ANYTHING WITIN TEH TEMP DIRECTORY
-    cmd = 'rm -frv {}'.format(inter_dir)
-    p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
-    out = p.stdout.read()
+        # DELETE ANYTHING WITIN TEH TEMP DIRECTORY
+        cmd = 'rm -frv {}'.format(inter_dir)
+        p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
+        out = p.stdout.read()
 
         
 # if __name__ == '__main__':
