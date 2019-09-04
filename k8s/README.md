@@ -43,7 +43,7 @@ I have no name!@redis-client:/$ redis-cli -h redis-master
 redis-master:6379> rpush jobS2 '{"in_scene": "S2A_MSIL2A_20190812T235741_N0213_R030_T56LRR_20190813T014708", "inter_dir": "/data/intermediate/"}'
 (integer) 1
 redis-master:6379> lrange jobS2 0 -1
-1) '{"in_scene": "S2A_MSIL2A_20190812T235741_N0213_R030_T56LRR_20190813T014708", "inter_dir": "/data/intermediate/"}'
+1) "{\"in_scene\": \"S2A_MSIL2A_20190812T235741_N0213_R030_T56LRR_20190813T014708\", \"inter_dir\": \"/data/intermediate/\"}"
 ```
 
 ## Job processor deployment
