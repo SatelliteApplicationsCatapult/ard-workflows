@@ -373,7 +373,7 @@ def s3_upload_cogs(in_paths, s3_bucket, s3_dir):
 # @click.option("--prodlevel", default="L1C", help="Desired Sentinel-2 product level. Defaults to 'L1C'. Use 'L2A' for ARD equivalent")
 # @click.option("--source", default="gcloud", help="Api source to be used for downloading scenes.")
 
-def prepareS2(in_scene, s3_bucket='public-eo-data', s3_dir='fiji/Sentinel_2_test/', inter_dir='/intermediate/', prodlevel='L2A', source='gcloud'):
+def prepareS2(in_scene, s3_bucket='public-eo-data', s3_dir='fiji/Sentinel_2_test/', inter_dir='/data/intermediate/', prodlevel='L2A', source='gcloud'):
     """
     Prepare IN_SCENE of Sentinel-2 satellite data into OUT_DIR for ODC indexing. 
 
@@ -397,7 +397,7 @@ def prepareS2(in_scene, s3_bucket='public-eo-data', s3_dir='fiji/Sentinel_2_test
     # Need to handle inputs with and without .SAFE extension
     if not in_scene.endswith('.SAFE'):
         in_scene = in_scene + '.SAFE'
-        # shorten scene name
+    # shorten scene name
     scene_name = in_scene[:-21]
     scene_name = scene_name[:-17] + scene_name.split('_')[-1] 
     
@@ -454,21 +454,17 @@ def prepareS2(in_scene, s3_bucket='public-eo-data', s3_dir='fiji/Sentinel_2_test
             create_yaml(cog_dir, 's2')
 
             log.write("{},{},{}".format(in_scene, 'Yaml', str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))))
-            log.write("\n")
+            log.write("\n")        
             
-            print('test')
-        
+            log.close()
         
         # MOVE COG DIRECTORY TO OUTPUT DIRECTORY
         s3_upload_cogs(glob.glob(cog_dir + '*'), s3_bucket, s3_dir)
-        
-        os.remove(log_file)
-        
+                
         # DELETE ANYTHING WITIN TEH TEMP DIRECTORY
         cmd = 'rm -frv {}'.format(inter_dir)
         p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
         out = p.stdout.read()
-        print(out)
         
     
     except:
@@ -477,7 +473,7 @@ def prepareS2(in_scene, s3_bucket='public-eo-data', s3_dir='fiji/Sentinel_2_test
         cmd = 'rm -frv {}'.format(inter_dir)
         p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
         out = p.stdout.read()
-        print(out)
+        print("Something didn't work!")
 
 
 # if __name__ == '__main__':
