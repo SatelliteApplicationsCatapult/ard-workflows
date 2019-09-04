@@ -1,4 +1,4 @@
-# ARD workflow deployment with Kubernetes
+# ARD workflow deployment with Kubernetes and Helm
 
 ## Architecture
 We run a Kubernetes `Job` with multiple parallel worker processes in a given pod.\
