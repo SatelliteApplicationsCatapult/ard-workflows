@@ -185,9 +185,8 @@ def conv_s2scene_cogs(original_scene_dir, cog_scene_dir, scene_name, overwrite=F
             # ensure output cog doesn't already exist
             if not os.path.exists(out_filename):
                 
-                
                 proc_list.append((in_filename, out_filename))
-#                 conv_sgl_cog( in_filename, out_filename )
+                conv_sgl_cog( in_filename, out_filename )
                 
             else:
                 print ( 'cog already exists: {}'.format(out_filename) )
@@ -195,8 +194,8 @@ def conv_s2scene_cogs(original_scene_dir, cog_scene_dir, scene_name, overwrite=F
             print ( 'cannot find product: {}'.format(in_filename) )
     n = 3
 #     print(proc_list)
-    pool = multiprocessing.Pool(processes=5)
-    pool.starmap(conv_sgl_cog, proc_list)
+#     pool = multiprocessing.Pool(processes=5)
+#     pool.starmap(conv_sgl_cog, proc_list)
     
     # return cog_val
 
