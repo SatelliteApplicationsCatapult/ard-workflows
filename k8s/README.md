@@ -8,11 +8,11 @@ We use Redis as storage service to hold the work queue and store our work items.
 ## Redis master server deployment
 In order to deploy the master issue the following:
 ```
-RELEASEREDIS=redis
-NAMESPACEREDIS=redis
+RELEASE=redis
+NAMESPACE=redis
 
-helm upgrade --install $RELEASEREDIS stable/redis \
-  --namespace $NAMESPACEREDIS \
+helm upgrade --install $RELEASE stable/redis \
+  --namespace $NAMESPACE \
   --version=9.1.3 \
   --values 04-config-redis.yaml
 ```
@@ -20,12 +20,14 @@ helm upgrade --install $RELEASEREDIS stable/redis \
 ### Redis master server testing
 To sanity check the master server issue the following: 
 ```
-$ kubectl run --namespace $NAMESPACEREDIS redis-client --rm --tty -i --restart='Never' \
+$ kubectl run --namespace $NAMESPACE redis-client --rm --tty -i --restart='Never' \
   --image docker.io/bitnami/redis:5.0.5-debian-9-r104 -- bash
 
 I have no name!@redis-client:/$ redis-cli -h redis-master
 ```
-The list with key `jobS2` will be our work queue:
+
+### Redis job definitions
+The list with key `jobS2` is our work queue. Add jobs with e.g.:
 ```
 redis-master:6379> rpush jobS2 '{"in_scene": "S2A_MSIL2A_20190812T235741_N0213_R030_T56LRR_20190813T014708", "inter_dir": "/data/intermediate/"}'
 (integer) 1
@@ -33,8 +35,9 @@ redis-master:6379> lrange jobS2 0 -1
 1) '{"in_scene": "S2A_MSIL2A_20190812T235741_N0213_R030_T56LRR_20190813T014708", "inter_dir": "/data/intermediate/"}'
 ```
 
-## Running jobs
-Start a job with:
+## Job processor deployment
+Instantiate job processors with:
 ```
-kubectl apply -f 06-job.yaml
+git clone https://github.com/SatelliteApplicationsCatapult/helm-charts.git
+helm install --name s2workflow --namespace $NAMESPACE ./helm-charts/stable/ard-workflow-s2
 ```
