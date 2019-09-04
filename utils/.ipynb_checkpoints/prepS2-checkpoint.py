@@ -432,7 +432,7 @@ def prepareS2(in_scene, s3_bucket='public-eo-data', s3_dir='fiji/Sentinel_2_test
                 download_extract_s2_esa(s2id, inter_dir, down_dir)
             elif source == "gcloud":
                 t = 't'
-#                 download_s2_granule_gcloud(in_scene, inter_dir)
+                download_s2_granule_gcloud(in_scene, inter_dir)
 
             log.write("{},{},{}".format(in_scene, 'Downloaded', str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))))
             log.write("\n")
@@ -442,13 +442,13 @@ def prepareS2(in_scene, s3_bucket='public-eo-data', s3_dir='fiji/Sentinel_2_test
     #             sen2cor_correction(sen2cor8, down_dir, l2a_dir)
 
             # CONVERT TO COGS TO TEMP COG DIRECTORY**
-#             conv_s2scene_cogs(down_dir, cog_dir, scene_name)
+            conv_s2scene_cogs(down_dir, cog_dir, scene_name)
 
             log.write("{},{},{}".format(in_scene, 'COGS', str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))))
             log.write("\n")
 
             # PARSE METADATA TO TEMP COG DIRECTORY**
-#             copy_s2_metadata(down_dir, cog_dir, scene_name) 
+            copy_s2_metadata(down_dir, cog_dir, scene_name) 
 
             # GENERATE YAML WITHIN TEMP COG DIRECTORY**
             create_yaml(cog_dir, 's2')
