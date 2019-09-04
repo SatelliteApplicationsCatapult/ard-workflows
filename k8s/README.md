@@ -27,10 +27,10 @@ I have no name!@redis-client:/$ redis-cli -h redis-master
 ```
 The list with key `jobS2` will be our work queue:
 ```
-redis-master:6379> rpush jobS2 "S2A_MSIL1C_20180820T223011_N0206_R072_T60KWE_20180821T013410.SAFE"
+redis-master:6379> rpush jobS2 '{"in_scene": "S2A_MSIL2A_20190812T235741_N0213_R030_T56LRR_20190813T014708", "inter_dir": "/data/intermediate/"}'
 (integer) 1
 redis-master:6379> lrange jobS2 0 -1
-1) "S2A_MSIL1C_20180820T223011_N0206_R072_T60KWE_20180821T013410.SAFE"
+1) '{"in_scene": "S2A_MSIL2A_20190812T235741_N0213_R030_T56LRR_20190813T014708", "inter_dir": "/data/intermediate/"}'
 ```
 
 ## Running jobs
