@@ -24,11 +24,18 @@ $ kubectl run --namespace $NAMESPACE redis-client --rm --tty -i --restart='Never
   --image docker.io/bitnami/redis:5.0.5-debian-9-r104 -- bash
 
 I have no name!@redis-client:/$ redis-cli -h redis-master
+
+redis-master:6379>
 ```
 
 ### Redis job definitions
 The list with key `jobS2` is our work queue. Add jobs with e.g.:
 ```
+$ kubectl run --namespace $NAMESPACE redis-client --rm --tty -i --restart='Never' \
+  --image docker.io/bitnami/redis:5.0.5-debian-9-r104 -- bash
+
+I have no name!@redis-client:/$ redis-cli -h redis-master
+
 redis-master:6379> rpush jobS2 '{"in_scene": "S2A_MSIL2A_20190812T235741_N0213_R030_T56LRR_20190813T014708", "inter_dir": "/data/intermediate/"}'
 (integer) 1
 redis-master:6379> lrange jobS2 0 -1
