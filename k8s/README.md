@@ -9,7 +9,7 @@ We use Redis as storage service to hold the work queue and store our work items.
 In order to deploy the master issue the following:
 ```
 RELEASEREDIS=redis
-NAMESPACE=redis
+NAMESPACE=ard
 
 helm upgrade --install $RELEASEREDIS stable/redis \
   --namespace $NAMESPACE \
