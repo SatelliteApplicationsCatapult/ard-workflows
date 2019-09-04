@@ -50,9 +50,9 @@ redis-master:6379> lrange jobS2 0 -1
 
 Instantiate job processors with:
 ```bash
-RELEASEARD=s2job
-
 git clone https://github.com/SatelliteApplicationsCatapult/helm-charts.git
+
+RELEASEARD=s2job
 
 helm upgrade --install $RELEASEARD ./helm-charts/stable/ard-workflow-s2 \
   --namespace $NAMESPACE
