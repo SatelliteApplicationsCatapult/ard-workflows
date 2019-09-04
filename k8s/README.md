@@ -8,10 +8,10 @@ We use Redis as storage service to hold the work queue and store our work items.
 ## Redis master server deployment
 In order to deploy the master issue the following:
 ```
-RELEASE=redis
+RELEASEREDIS=redis
 NAMESPACE=redis
 
-helm upgrade --install $RELEASE stable/redis \
+helm upgrade --install $RELEASEREDIS stable/redis \
   --namespace $NAMESPACE \
   --version=9.1.3 \
   --values 04-config-redis.yaml
@@ -45,6 +45,10 @@ redis-master:6379> lrange jobS2 0 -1
 ## Job processor deployment
 Instantiate job processors with:
 ```
+RELEASEARD=s2job
+
 git clone https://github.com/SatelliteApplicationsCatapult/helm-charts.git
-helm install --name s2workflow --namespace $NAMESPACE ./helm-charts/stable/ard-workflow-s2
+
+helm upgrade --install $RELEASEARD ./helm-charts/stable/ard-workflow-s2 \
+  --namespace $NAMESPACE
 ```
