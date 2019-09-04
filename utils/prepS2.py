@@ -15,6 +15,7 @@ from multiprocessing import pool
 from multiprocessing.pool import ThreadPool as Pool
 from itertools import product
 import boto3
+import csv
 
 
 try:
@@ -193,7 +194,7 @@ def conv_s2scene_cogs(original_scene_dir, cog_scene_dir, scene_name, overwrite=F
         else:
             print ( 'cannot find product: {}'.format(in_filename) )
     n = 3
-    print(proc_list)
+#     print(proc_list)
     pool = multiprocessing.Pool(processes=5)
     pool.starmap(conv_sgl_cog, proc_list)
     
@@ -373,7 +374,7 @@ def s3_upload_cogs(in_paths, s3_bucket, s3_dir):
 # @click.option("--prodlevel", default="L1C", help="Desired Sentinel-2 product level. Defaults to 'L1C'. Use 'L2A' for ARD equivalent")
 # @click.option("--source", default="gcloud", help="Api source to be used for downloading scenes.")
 
-def prepareS2(in_scene, out_dir=['public-eo-data', 'fiji/Sentinel_2_test/'], inter_dir='/intermediate/', prodlevel='L2A', source='gcloud'):
+def prepareS2(in_scene, s3_bucket='public-eo-data', s3_dir='fiji/Sentinel_2_test/', inter_dir='/intermediate/', prodlevel='L2A', source='gcloud'):
     """
     Prepare IN_SCENE of Sentinel-2 satellite data into OUT_DIR for ODC indexing. 
 
@@ -406,13 +407,6 @@ def prepareS2(in_scene, out_dir=['public-eo-data', 'fiji/Sentinel_2_test/'], int
 
     try:
 #     if 'x' == 'x':
-
-        if isinstance(out_dir, list):
-            s3_bucket = "public-eo-data"
-            s3_dir = "fiji/Sentinel_2_test/"
-            print('Will upload to S3 bucket: {}'.format(out_dir))
-        elif os.path.exists(out_dir):
-            print('Will move to: {}'.format(out_dir))
                 
         # sub-dirs used only for accessing tmp files
         down_dir = inter_dir + in_scene + '/' 
@@ -421,9 +415,14 @@ def prepareS2(in_scene, out_dir=['public-eo-data', 'fiji/Sentinel_2_test/'], int
         l2a_dir = inter_dir + '/'
         
         log_file = os.path.join(cog_dir + 'log_file.csv') # Create log somewhere more sensible - assumes exists
-        with open(log_file, 'w') as log:
+        
+        with open(log_file, 'w') as foo:
+                pass
+        
+        with open(log_file, 'a') as log:
+            
             log.write("{},{},{}".format('Scene_Name', 'Completed_Stage', 'DateTime'))
-            log.write("\n")    
+            log.write("\n")
 
             log.write("{},{},{}".format(in_scene, 'Start', str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))))
             log.write("\n")
@@ -433,6 +432,7 @@ def prepareS2(in_scene, out_dir=['public-eo-data', 'fiji/Sentinel_2_test/'], int
                 s2id = find_s2_uuid(in_scene)
                 download_extract_s2_esa(s2id, inter_dir, down_dir)
             elif source == "gcloud":
+                t = 't'
                 download_s2_granule_gcloud(in_scene, inter_dir)
 
             log.write("{},{},{}".format(in_scene, 'Downloaded', str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))))
@@ -456,16 +456,21 @@ def prepareS2(in_scene, out_dir=['public-eo-data', 'fiji/Sentinel_2_test/'], int
 
             log.write("{},{},{}".format(in_scene, 'Yaml', str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))))
             log.write("\n")
-
-        log.close()
-
+            
+            print('test')
+        
+        
         # MOVE COG DIRECTORY TO OUTPUT DIRECTORY
         s3_upload_cogs(glob.glob(cog_dir + '*'), s3_bucket, s3_dir)
-
+        
+        os.remove(log_file)
+        
         # DELETE ANYTHING WITIN TEH TEMP DIRECTORY
         cmd = 'rm -frv {}'.format(inter_dir)
         p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
         out = p.stdout.read()
+        print(out)
+        
     
     except:
         
@@ -473,8 +478,9 @@ def prepareS2(in_scene, out_dir=['public-eo-data', 'fiji/Sentinel_2_test/'], int
         cmd = 'rm -frv {}'.format(inter_dir)
         p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
         out = p.stdout.read()
+        print(out)
 
-        
+
 # if __name__ == '__main__':
 
 #     prepareS2()
