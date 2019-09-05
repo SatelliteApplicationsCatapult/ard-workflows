@@ -15,7 +15,7 @@ Once the above completes, the job queue is ready to be filled in with scene name
 ```
 docker exec -it redis /bin/bash
 redis-cli -h redis
-rpush jobS2 "S2A_MSIL1C_20180820T223011_N0206_R072_T60KWE_20180821T013410.SAFE"
+rpush jobS2 '{"in_scene": "S2A_MSIL2A_20190812T235741_N0213_R030_T56LRR_20190813T014708", "inter_dir": "/data/intermediate/"}'
 ...
 lrange jobS2 0 -1
 ```
