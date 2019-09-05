@@ -359,11 +359,12 @@ def s3_upload_cogs(in_paths, s3_bucket, s3_dir):
     upload_list = [(in_path, out_path, s3_bucket) 
                    for in_path, out_path in zip(in_paths, out_paths)]
     
-    for i in upload_list: print ( i )
+    for i in upload_list: 
+        print (s3_single_upload(i[0],i[1],i[2]))
     
     # parallelise upload
-    pool = multiprocessing.Pool(processes=5)
-    pool.starmap(s3_single_upload, upload_list)
+#     pool = multiprocessing.Pool(processes=5)
+#     pool.starmap(s3_single_upload, upload_list)
 
 
 # @click.command()
@@ -413,7 +414,7 @@ def prepareS2(in_scene, s3_bucket='public-eo-data', s3_dir='fiji/Sentinel_2_test
         os.makedirs(cog_dir, exist_ok=True)
         l2a_dir = inter_dir + '/'
         
-        log_file = os.path.join(cog_dir + 'log_file.csv') # Create log somewhere more sensible - assumes exists
+        log_file = os.path.join(inter_dir + 'log_file.csv') # Create log somewhere more sensible - assumes exists
         
         with open(log_file, 'w') as foo:
                 pass
@@ -455,11 +456,17 @@ def prepareS2(in_scene, s3_bucket='public-eo-data', s3_dir='fiji/Sentinel_2_test
 
             log.write("{},{},{}".format(in_scene, 'Yaml', str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))))
             log.write("\n")        
-            
-            log.close()
         
-        # MOVE COG DIRECTORY TO OUTPUT DIRECTORY
-        s3_upload_cogs(glob.glob(cog_dir + '*'), s3_bucket, s3_dir)
+            # AMEND SO THAT LOG INCCLUDES UPLOAD TIME BEFORE BEING UPLOADED ITSELF....
+            # MOVE COG DIRECTORY TO OUTPUT DIRECTORY
+            s3_upload_cogs(glob.glob(cog_dir + '*'), s3_bucket, s3_dir)
+
+            log.write("{},{},{}".format(in_scene, 'Uploaded', str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))))
+            log.write("\n")        
+            
+        shutil.move(log_file, cog_dir + 'log_file.csv')
+        s3_upload_cogs(glob.glob(cog_dir + '*.csv'), s3_bucket, s3_dir)
+        
                 
         # DELETE ANYTHING WITIN TEH TEMP DIRECTORY
         cmd = 'rm -frv {}'.format(inter_dir)
