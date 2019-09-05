@@ -313,8 +313,8 @@ def s3_single_upload(in_path, s3_path, s3_bucket):
     """
     
     # prep session & creds
-    access = os.getenv("AWS_ACCESS_KEY")
-    secret = os.getenv("AWS_SECRET_KEY")
+    access = os.getenv("AWS_ACCESS_KEY_ID")
+    secret = os.getenv("AWS_SECRET_ACCESS_KEY")
     
     session = boto3.Session(
         access,

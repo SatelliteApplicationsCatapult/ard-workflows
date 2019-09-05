@@ -26,7 +26,7 @@ At any time afterwards, the queue can be processed interactively by running the 
 Environment variables can be set in a `.env` file for Docker Compose. You might use [.env.example](./.env.example) as a starting point.
 
 ## AWS access
-In order to be able to get/put data from/to S3, you need to ensure that the environment variables `AWS_ACCESS_KEY` and `AWS_SECRET_KEY` are set.
+In order to be able to get/put data from/to S3, you need to ensure that the environment variables `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` are set.
 
 ## Jupyter Notebook
 Jupyter Notebook can be accessed at the URL: http://{Serve's IP Address}:8888 for the first replica, 8889 for the second one if present, and so on.\
