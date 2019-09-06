@@ -16,6 +16,7 @@ from multiprocessing.pool import ThreadPool as Pool
 from itertools import product
 import boto3
 import csv
+import pandas as pd
 
 
 try:
@@ -27,91 +28,74 @@ try:
 except:
     from yamlUtils import *
     
+
+def get_s1_asfurl(s1_name, download_dir):
+    """
+    Finds Alaska Satellite Facility download url for single S1_NAME Sentinel-1 scene. 
+
+    :param s1_name: Scene ID for Sentinel Tile (i.e. "S1A_IW_SLC__1SDV_20190411T063207_20190411T063242_026738_0300B4_6882")
+    :param download_dir: path to directory for downloaded S1 granule
+    :return s1url:download url
+    :return False: unable to find url
+    """
     
-def find_s2_uuid(s2_filename):
-    """
-    Finds uuid required for download based upon an input S2 file/scene name. 
-    I.e. S2A_MSIL1C_20180820T223011_N0206_R072_T60KWE_20180821T013410
-    """
-    esa_api = SentinelAPI('tmj21','Welcome12!')
-    if s2_filename[-5:] == '.SAFE':
-        res = esa_api.query(filename=s2_filename)
-        res = esa_api.to_geodataframe(res)
-    else:
-        res = esa_api.query(filename=s2_filename+'.SAFE')
-        res = esa_api.to_geodataframe(res)
-    return res.uuid.values[0]
+    if s1_name.endswith('.SAFE'):
+        s1_name = s1_name[:-5]
+    
+    csv_out = download_dir + 'tmpquery.csv'
+    
+    cmd = "curl https://api.daac.asf.alaska.edu/services/search/param?granule_list={}\&output=csv > {}".format(s1_name, csv_out)
+    p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
+    out = p.stdout.read()
+    
+    s1url = pd.read_csv(csv_out).URL.values[0]
+    
+    os.remove(csv_out)
+    
+    return s1url
 
 
-def download_s2_granule_gcloud(s2_id, download_dir, safe_form=True, bands=False):
+def download_s1_scene(s1_name='S1A_IW_SLC__1SDV_20190411T063207_20190411T063242_026738_0300B4_6882', download_dir='../S1_ARD/'):
     """
-    Downloads RGBNIR bands of single Sentinel-2 (L1C or L2A) acquisition from GCloud bucket into new S2ID directory
+    Downloads single S1_NAME Sentinel-1 scene into DOWLOAD_DIR. 
 
-    :param s2_id: ID for Sentinel Tile (i.e. "S2B_MSIL1C_20190815T110629_N0208_R137_T30UWB_20190815T135651")
-    :param download_dir: path to directory for downloaded S2 granules
-    :param bucket: GCloud bucket object containing all Sentinel imagery
-    :param safe_form: download into .SAFE folder structure. default=True
-    :param bands: download only a subset of S2 bands. default is False. input is list i.e. [B02.jp2, B03.jp2]
+    :param s1_name: Scene ID for Sentinel Tile (i.e. "S1A_IW_SLC__1SDV_20190411T063207_20190411T063242_026738_0300B4_6882")
+    :param download_dir: path to directory for downloaded S1 granule
     :return:
-    
-    TO DO:UPDATE PARAMS
     """
     
-    if s2_id.endswith('.SAFE'):
-        s2_id = s2_id[:-5]
+    # Grab url for scene
+    s1_url = get_s1_asfurl(s1_name, download_dir)
     
-    client = storage.Client.create_anonymous_client()
-    bucket = client.bucket(bucket_name="gcp-public-data-sentinel-2", user_project=None)
+    asf_user = os.getenv("ASF_USERNAME")
+    asf_pwd = os.getenv("ASF_PWD")
     
-#     dir_name = os.path.join(download_dir, s2_id)
-    dir_name = download_dir
-    if (not safe_form) & (not os.path.exists(dir_name)):
-        os.makedirs(dir_name)
+    # Extract downloaded .zip file
+    zipped = download_dir + s1_name + '.zip'
 
-    identifiers = s2_id.split('_')[5]
-    dir1 = identifiers[1:3]
-    dir2 = identifiers[3]
-    dir3 = identifiers[4:6]
+#     if not os.path.exists(zipped):
+#         # Download
+#         cmd = "wget -c --http-user={} --http-password='{}' '{}' -P {}".format(asf_user, asf_pwd, s1url, download_dir)        
+#         p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
+#         out = p.stdout.read()    
     
-    if 'MSIL1C' in s2_id:
-        prefix = "tiles/%s/%s/%s/%s.SAFE" % (str(dir1), str(dir2), str(dir3), str(s2_id))
-    elif 'MSIL2A' in s2_id:
-        prefix = "L2/tiles/%s/%s/%s/%s.SAFE" % (str(dir1), str(dir2), str(dir3), str(s2_id))
-    blobs = bucket.list_blobs(prefix=prefix)  # Get list of files
+    print ( 'Extracting ESA scene: {}'.format(zipped) )
+    zip_ref = zipfile.ZipFile(zipped.replace('.SAFE/','.zip'), 'r')
+    zip_ref.extractall(os.path.dirname(download_dir))
+    zip_ref.close()  
     
-    # filter bands if needed
-    if bands:
-        try:
-            des_blobs = []
-            for blob in blobs:
-                if blob.name[-7:] in bands:
-                    des_blobs.append(blob)
-            blobs = des_blobs
-        except:
-            print('Bands either False or list. I.e. [B02.jp2, B03.jp2]')
+#     # Remove zipped scene but onliy if unzipped 
+#     if os.path.exists(zipped) & os.path.exists(zipped.replace('.SAFE/','.zip')):
+#         print ( 'Deleting ESA scene zip: {}'.format(zipped.replace('.SAFE/','.zip')) )
+#         os.remove(zipped.replace('.SAFE/','.zip'))
+
     
-    for blob in blobs:
-        if (not blob.name.endswith("$")): # weird end directory signifier...
-
-            if not safe_form:
-                name = os.path.join(dir_name, os.path.basename(blob.name))
-
-            else:
-                interdir = os.path.join(dir_name,'/'.join(blob.name.split('/')[5:-1]))
-
-                if not os.path.exists(interdir):
-                    os.makedirs(interdir)
-                name = os.path.join(dir_name + '/'.join(blob.name.split('/')[5:]))
-
-            blob.download_to_filename(name)
-
-            
 def download_extract_s2_esa(scene_uuid, down_dir, original_scene_dir):
     """
     Download a single S2 scene from ESA via sentinelsat 
     based upon uuid. 
     """
-
+    
     # if unzipped .SAFE file doesn't exist then we must do something
     if not os.path.exists(original_scene_dir):
         
