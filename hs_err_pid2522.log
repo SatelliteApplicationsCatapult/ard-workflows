@@ -1,0 +1,1355 @@
+#
+# There is insufficient memory for the Java Runtime Environment to continue.
+# Native memory allocation (mmap) failed to map 472383488 bytes for committing reserved memory.
+# Possible reasons:
+#   The system is out of physical RAM or swap space
+#   The process is running with CompressedOops enabled, and the Java Heap may be blocking the growth of the native heap
+# Possible solutions:
+#   Reduce memory load on the system
+#   Increase physical memory or swap space
+#   Check if swap backing store is full
+#   Decrease Java heap size (-Xmx/-Xms)
+#   Decrease number of Java threads
+#   Decrease Java thread stack sizes (-Xss)
+#   Set larger code cache with -XX:ReservedCodeCacheSize=
+#   JVM is running with Zero Based Compressed Oops mode in which the Java heap is
+#     placed in the first 32GB address space. The Java Heap base address is the
+#     maximum limit for the native heap growth. Please use -XX:HeapBaseMinAddress
+#     to set the Java Heap base and to place the Java Heap above 32GB virtual address.
+# This output file may be truncated or incomplete.
+#
+#  Out of Memory Error (os_linux.cpp:2749), pid=2522, tid=0x00007f25b6e8b700
+#
+# JRE version: Java(TM) SE Runtime Environment (8.0_202-b08) (build 1.8.0_202-b08)
+# Java VM: Java HotSpot(TM) 64-Bit Server VM (25.202-b08 mixed mode linux-amd64 compressed oops)
+# Failed to write core dump. Core dumps have been disabled. To enable core dumping, try "ulimit -c unlimited" before starting Java again
+#
+
+---------------  T H R E A D  ---------------
+
+Current thread (0x00007f25d007e000):  VMThread [stack: 0x00007f25b6d8c000,0x00007f25b6e8c000] [id=2563]
+
+Stack: [0x00007f25b6d8c000,0x00007f25b6e8c000],  sp=0x00007f25b6e8a3d0,  free space=1016k
+Native frames: (J=compiled Java code, j=interpreted, Vv=VM code, C=native code)
+V  [libjvm.so+0xad33a5]  VMError::report_and_die()+0x2e5
+V  [libjvm.so+0x4e04c7]  report_vm_out_of_memory(char const*, int, unsigned long, VMErrorType, char const*)+0x67
+V  [libjvm.so+0x910290]  os::pd_commit_memory(char*, unsigned long, unsigned long, bool)+0x100
+V  [libjvm.so+0x9078bf]  os::commit_memory(char*, unsigned long, unsigned long, bool)+0x1f
+V  [libjvm.so+0x98c686]  PSVirtualSpace::expand_by(unsigned long)+0x56
+V  [libjvm.so+0x97b95b]  PSOldGen::expand_by(unsigned long) [clone .part.28]+0x1b
+V  [libjvm.so+0x97bb18]  PSOldGen::expand(unsigned long) [clone .part.29]+0xa8
+V  [libjvm.so+0x97c6c1]  PSOldGen::resize(unsigned long)+0xe1
+V  [libjvm.so+0x9827fc]  PSParallelCompact::invoke_no_policy(bool) [clone .part.118]+0xa2c
+V  [libjvm.so+0x98a615]  PSScavenge::invoke()+0x215
+V  [libjvm.so+0x93a198]  ParallelScavengeHeap::failed_mem_allocate(unsigned long)+0x68
+V  [libjvm.so+0xad4ef3]  VM_ParallelGCFailedAllocation::doit()+0x93
+V  [libjvm.so+0xada116]  VM_Operation::evaluate()+0x46
+V  [libjvm.so+0xad844d]  VMThread::evaluate_operation(VM_Operation*) [clone .constprop.44]+0xcd
+V  [libjvm.so+0xad8a33]  VMThread::loop()+0x3a3
+V  [libjvm.so+0xad8e08]  VMThread::run()+0x78
+V  [libjvm.so+0x90d8c2]  java_start(Thread*)+0x102
+
+VM_Operation (0x00007f25acce0820): ParallelGCFailedAllocation, mode: safepoint, requested by thread 0x00007f25500b5000
+
+
+---------------  P R O C E S S  ---------------
+
+Java Threads: ( => current thread )
+  0x00007f25d36f6000 JavaThread "SunTileScheduler0Standard5" daemon [_thread_blocked, id=2580, stack(0x00007f25ac7e0000,0x00007f25ac8e1000)]
+  0x00007f25d36f5800 JavaThread "SunTileScheduler0Standard4" daemon [_thread_blocked, id=2579, stack(0x00007f25ac8e1000,0x00007f25ac9e2000)]
+  0x00007f25d382d000 JavaThread "SunTileScheduler0Standard3" daemon [_thread_blocked, id=2578, stack(0x00007f25ac9e2000,0x00007f25acae3000)]
+  0x00007f25d382c800 JavaThread "SunTileScheduler0Standard2" daemon [_thread_blocked, id=2577, stack(0x00007f25acae3000,0x00007f25acbe4000)]
+  0x00007f25500b5000 JavaThread "SunTileScheduler0Standard1" daemon [_thread_blocked, id=2576, stack(0x00007f25acbe4000,0x00007f25acce5000)]
+  0x00007f25500ba000 JavaThread "SunTileScheduler0Standard0" daemon [_thread_blocked, id=2575, stack(0x00007f25acce5000,0x00007f25acde6000)]
+  0x00007f25d3f28800 JavaThread "GT authority factory disposer" daemon [_thread_blocked, id=2574, stack(0x00007f25ad1e6000,0x00007f25ad2e7000)]
+  0x00007f25d3e74800 JavaThread "WeakCollectionCleaner" daemon [_thread_blocked, id=2573, stack(0x00007f25ad4e7000,0x00007f25ad5e8000)]
+  0x00007f25d3c9a000 JavaThread "Java2D Disposer" daemon [_thread_blocked, id=2572, stack(0x00007f25b4060000,0x00007f25b4161000)]
+  0x00007f25d00e1000 JavaThread "Service Thread" daemon [_thread_blocked, id=2570, stack(0x00007f25b5cb5000,0x00007f25b5db6000)]
+  0x00007f25d00c3800 JavaThread "C1 CompilerThread2" daemon [_thread_blocked, id=2569, stack(0x00007f25b5db7000,0x00007f25b5eb7000)]
+  0x00007f25d00c2000 JavaThread "C2 CompilerThread1" daemon [_thread_blocked, id=2568, stack(0x00007f25b5eb8000,0x00007f25b5fb8000)]
+  0x00007f25d00bf000 JavaThread "C2 CompilerThread0" daemon [_thread_blocked, id=2567, stack(0x00007f25b5fb9000,0x00007f25b60b9000)]
+  0x00007f25d00bd800 JavaThread "Signal Dispatcher" daemon [_thread_blocked, id=2566, stack(0x00007f25b60b9000,0x00007f25b61ba000)]
+  0x00007f25d008a000 JavaThread "Finalizer" daemon [_thread_blocked, id=2565, stack(0x00007f25b6b89000,0x00007f25b6c8a000)]
+  0x00007f25d0087800 JavaThread "Reference Handler" daemon [_thread_blocked, id=2564, stack(0x00007f25b6c8a000,0x00007f25b6d8b000)]
+  0x00007f25d000c000 JavaThread "main" [_thread_blocked, id=2556, stack(0x00007f25d6e4d000,0x00007f25d6f4d000)]
+
+Other Threads:
+=>0x00007f25d007e000 VMThread [stack: 0x00007f25b6d8c000,0x00007f25b6e8c000] [id=2563]
+  0x00007f25d00e3800 WatcherThread [stack: 0x00007f25b5bb5000,0x00007f25b5cb5000] [id=2571]
+
+VM state:at safepoint (normal execution)
+
+VM Mutex/Monitor currently owned by a thread:  ([mutex/lock_event])
+[0x00007f25d00080f0] ExpandHeap_lock - owner thread: 0x00007f25d007e000
+[0x00007f25d0008770] Threads_lock - owner thread: 0x00007f25d007e000
+[0x00007f25d0008c70] Heap_lock - owner thread: 0x00007f25500b5000
+
+heap address: 0x0000000540000000, size: 10240 MB, Compressed Oops mode: Zero based, Oop shift amount: 3
+Narrow klass base: 0x0000000000000000, Narrow klass shift: 3
+Compressed class space size: 1073741824 Address: 0x00000007c0000000
+
+Heap:
+ PSYoungGen      total 2211840K, used 463222K [0x00000006eab00000, 0x00000007bb400000, 0x00000007c0000000)
+  eden space 1047040K, 0% used [0x00000006eab00000,0x00000006eab00000,0x000000072a980000)
+  from space 1164800K, 39% used [0x0000000771b00000,0x000000078df5dbe0,0x00000007b8c80000)
+  to   space 1164800K, 0% used [0x000000072a980000,0x000000072a980000,0x0000000771b00000)
+ ParOldGen       total 6529536K, used 6529217K [0x0000000540000000, 0x00000006ce880000, 0x00000006eab00000)
+  object space 6529536K, 99% used [0x0000000540000000,0x00000006ce8304f8,0x00000006ce880000)
+ Metaspace       used 55465K, capacity 56698K, committed 56960K, reserved 1097728K
+  class space    used 9085K, capacity 9284K, committed 9344K, reserved 1048576K
+
+Card table byte_map: [0x00007f25bf623000,0x00007f25c0a24000] byte_map_base: 0x00007f25bcc23000
+
+Marking Bits: (ParMarkBitMap*) 0x00007f25d62f3d80
+ Begin Bits: [0x00007f257c000000, 0x00007f2586000000)
+ End Bits:   [0x00007f2586000000, 0x00007f2590000000)
+
+Polling page: 0x00007f25d6f63000
+
+CodeCache: size=245760Kb used=16250Kb max_used=16421Kb free=229509Kb
+ bounds [0x00007f25c0de4000, 0x00007f25c1e44000, 0x00007f25cfde4000]
+ total_blobs=5275 nmethods=4447 adapters=740
+ compilation: enabled
+
+Compilation events (10 events):
+Event: 75.284 Thread 0x00007f25d00bf000 5598       4       org.esa.s1tbx.sentinel1.gpf.TOPSARDeburstOp::getSampleIndexInSourceProduct (57 bytes)
+Event: 75.285 Thread 0x00007f25d00bf000 nmethod 5598 0x00007f25c0f07690 code [0x00007f25c0f07800, 0x00007f25c0f078f8]
+Event: 75.301 Thread 0x00007f25d00c3800 5600       3       org.esa.s1tbx.sentinel1.gpf.TOPSARDeburstOp::getSubSwathIndex (212 bytes)
+Event: 75.301 Thread 0x00007f25d00c3800 nmethod 5600 0x00007f25c0f06090 code [0x00007f25c0f06240, 0x00007f25c0f067b0]
+Event: 75.307 Thread 0x00007f25d00bf000 5601       4       org.esa.s1tbx.sentinel1.gpf.TOPSARDeburstOp::getSubSwathIndex (212 bytes)
+Event: 75.310 Thread 0x00007f25d00bf000 nmethod 5601 0x00007f25c0f05990 code [0x00007f25c0f05b20, 0x00007f25c0f05e18]
+Event: 75.318 Thread 0x00007f25d00c2000 5602 %     4       org.esa.s1tbx.sentinel1.gpf.TOPSARDeburstOp::computeMultipleSubSwathsFloat @ 166 (510 bytes)
+Event: 75.352 Thread 0x00007f25d00c2000 nmethod 5602% 0x00007f25c1369450 code [0x00007f25c13696e0, 0x00007f25c136c098]
+Event: 75.352 Thread 0x00007f25d00c2000 5603       4       org.esa.s1tbx.sentinel1.gpf.TOPSARDeburstOp::computeMultipleSubSwathsFloat (510 bytes)
+Event: 75.404 Thread 0x00007f25d00c2000 nmethod 5603 0x00007f25c1d799d0 code [0x00007f25c1d79d00, 0x00007f25c1d7c8f0]
+
+GC Heap History (10 events):
+Event: 70.729 GC heap after
+Heap after GC invocations=32 (full 10):
+ PSYoungGen      total 1890816K, used 1025513K [0x00000006eab00000, 0x00000007b6a80000, 0x00000007c0000000)
+  eden space 865280K, 0% used [0x00000006eab00000,0x00000006eab00000,0x000000071f800000)
+  from space 1025536K, 99% used [0x0000000766980000,0x00000007a52fa798,0x00000007a5300000)
+  to   space 1164800K, 0% used [0x000000071f800000,0x000000071f800000,0x0000000766980000)
+ ParOldGen       total 4551680K, used 4549296K [0x0000000540000000, 0x0000000655d00000, 0x00000006eab00000)
+  object space 4551680K, 99% used [0x0000000540000000,0x0000000655aac300,0x0000000655d00000)
+ Metaspace       used 55463K, capacity 56698K, committed 56960K, reserved 1097728K
+  class space    used 9085K, capacity 9284K, committed 9344K, reserved 1048576K
+}
+Event: 70.729 GC heap before
+{Heap before GC invocations=33 (full 11):
+ PSYoungGen      total 1890816K, used 1025513K [0x00000006eab00000, 0x00000007b6a80000, 0x00000007c0000000)
+  eden space 865280K, 0% used [0x00000006eab00000,0x00000006eab00000,0x000000071f800000)
+  from space 1025536K, 99% used [0x0000000766980000,0x00000007a52fa798,0x00000007a5300000)
+  to   space 1164800K, 0% used [0x000000071f800000,0x000000071f800000,0x0000000766980000)
+ ParOldGen       total 4551680K, used 4549296K [0x0000000540000000, 0x0000000655d00000, 0x00000006eab00000)
+  object space 4551680K, 99% used [0x0000000540000000,0x0000000655aac300,0x0000000655d00000)
+ Metaspace       used 55463K, capacity 56698K, committed 56960K, reserved 1097728K
+  class space    used 9085K, capacity 9284K, committed 9344K, reserved 1048576K
+Event: 71.796 GC heap after
+Heap after GC invocations=33 (full 11):
+ PSYoungGen      total 1890816K, used 726383K [0x00000006eab00000, 0x00000007b6a80000, 0x00000007c0000000)
+  eden space 865280K, 0% used [0x00000006eab00000,0x00000006eab00000,0x000000071f800000)
+  from space 1025536K, 70% used [0x0000000766980000,0x0000000792edbfd0,0x00000007a5300000)
+  to   space 1164800K, 0% used [0x000000071f800000,0x000000071f800000,0x0000000766980000)
+ ParOldGen       total 5454336K, used 4551453K [0x0000000540000000, 0x000000068ce80000, 0x00000006eab00000)
+  object space 5454336K, 83% used [0x0000000540000000,0x0000000655cc76c0,0x000000068ce80000)
+ Metaspace       used 55463K, capacity 56698K, committed 56960K, reserved 1097728K
+  class space    used 9085K, capacity 9284K, committed 9344K, reserved 1048576K
+}
+Event: 79.655 GC heap before
+{Heap before GC invocations=34 (full 11):
+ PSYoungGen      total 1890816K, used 1591663K [0x00000006eab00000, 0x00000007b6a80000, 0x00000007c0000000)
+  eden space 865280K, 100% used [0x00000006eab00000,0x000000071f800000,0x000000071f800000)
+  from space 1025536K, 70% used [0x0000000766980000,0x0000000792edbfd0,0x00000007a5300000)
+  to   space 1164800K, 0% used [0x000000071f800000,0x000000071f800000,0x0000000766980000)
+ ParOldGen       total 5454336K, used 4551453K [0x0000000540000000, 0x000000068ce80000, 0x00000006eab00000)
+  object space 5454336K, 83% used [0x0000000540000000,0x0000000655cc76c0,0x000000068ce80000)
+ Metaspace       used 55465K, capacity 56698K, committed 56960K, reserved 1097728K
+  class space    used 9085K, capacity 9284K, committed 9344K, reserved 1048576K
+Event: 79.962 GC heap after
+Heap after GC invocations=34 (full 11):
+ PSYoungGen      total 2030080K, used 1134215K [0x00000006eab00000, 0x00000007b8c80000, 0x00000007c0000000)
+  eden space 865280K, 0% used [0x00000006eab00000,0x00000006eab00000,0x000000071f800000)
+  from space 1164800K, 97% used [0x000000071f800000,0x0000000764ba1e10,0x0000000766980000)
+  to   space 1164800K, 0% used [0x0000000771b00000,0x0000000771b00000,0x00000007b8c80000)
+ ParOldGen       total 5454336K, used 5277837K [0x0000000540000000, 0x000000068ce80000, 0x00000006eab00000)
+  object space 5454336K, 96% used [0x0000000540000000,0x0000000682223690,0x000000068ce80000)
+ Metaspace       used 55465K, capacity 56698K, committed 56960K, reserved 1097728K
+  class space    used 9085K, capacity 9284K, committed 9344K, reserved 1048576K
+}
+Event: 79.962 GC heap before
+{Heap before GC invocations=35 (full 12):
+ PSYoungGen      total 2030080K, used 1134215K [0x00000006eab00000, 0x00000007b8c80000, 0x00000007c0000000)
+  eden space 865280K, 0% used [0x00000006eab00000,0x00000006eab00000,0x000000071f800000)
+  from space 1164800K, 97% used [0x000000071f800000,0x0000000764ba1e10,0x0000000766980000)
+  to   space 1164800K, 0% used [0x0000000771b00000,0x0000000771b00000,0x00000007b8c80000)
+ ParOldGen       total 5454336K, used 5277837K [0x0000000540000000, 0x000000068ce80000, 0x00000006eab00000)
+  object space 5454336K, 96% used [0x0000000540000000,0x0000000682223690,0x000000068ce80000)
+ Metaspace       used 55465K, capacity 56698K, committed 56960K, reserved 1097728K
+  class space    used 9085K, capacity 9284K, committed 9344K, reserved 1048576K
+Event: 80.825 GC heap after
+Heap after GC invocations=35 (full 12):
+ PSYoungGen      total 2030080K, used 674875K [0x00000006eab00000, 0x00000007b8c80000, 0x00000007c0000000)
+  eden space 865280K, 0% used [0x00000006eab00000,0x00000006eab00000,0x000000071f800000)
+  from space 1164800K, 57% used [0x000000071f800000,0x0000000748b0ee80,0x0000000766980000)
+  to   space 1164800K, 0% used [0x0000000771b00000,0x0000000771b00000,0x00000007b8c80000)
+ ParOldGen       total 6529536K, used 5454238K [0x0000000540000000, 0x00000006ce880000, 0x00000006eab00000)
+  object space 6529536K, 83% used [0x0000000540000000,0x000000068ce67bf0,0x00000006ce880000)
+ Metaspace       used 55465K, capacity 56698K, committed 56960K, reserved 1097728K
+  class space    used 9085K, capacity 9284K, committed 9344K, reserved 1048576K
+}
+Event: 89.635 GC heap before
+{Heap before GC invocations=36 (full 12):
+ PSYoungGen      total 2030080K, used 1540155K [0x00000006eab00000, 0x00000007b8c80000, 0x00000007c0000000)
+  eden space 865280K, 100% used [0x00000006eab00000,0x000000071f800000,0x000000071f800000)
+  from space 1164800K, 57% used [0x000000071f800000,0x0000000748b0ee80,0x0000000766980000)
+  to   space 1164800K, 0% used [0x0000000771b00000,0x0000000771b00000,0x00000007b8c80000)
+ ParOldGen       total 6529536K, used 5454238K [0x0000000540000000, 0x00000006ce880000, 0x00000006eab00000)
+  object space 6529536K, 83% used [0x0000000540000000,0x000000068ce67bf0,0x00000006ce880000)
+ Metaspace       used 55465K, capacity 56698K, committed 56960K, reserved 1097728K
+  class space    used 9085K, capacity 9284K, committed 9344K, reserved 1048576K
+Event: 97.890 GC heap after
+Heap after GC invocations=36 (full 12):
+ PSYoungGen      total 2211840K, used 1149001K [0x00000006eab00000, 0x00000007bb400000, 0x00000007c0000000)
+  eden space 1047040K, 0% used [0x00000006eab00000,0x00000006eab00000,0x000000072a980000)
+  from space 1164800K, 98% used [0x0000000771b00000,0x00000007b7d12798,0x00000007b8c80000)
+  to   space 1164800K, 0% used [0x000000072a980000,0x000000072a980000,0x0000000771b00000)
+ ParOldGen       total 6529536K, used 6129138K [0x0000000540000000, 0x00000006ce880000, 0x00000006eab00000)
+  object space 6529536K, 93% used [0x0000000540000000,0x00000006b617ca30,0x00000006ce880000)
+ Metaspace       used 55465K, capacity 56698K, committed 56960K, reserved 1097728K
+  class space    used 9085K, capacity 9284K, committed 9344K, reserved 1048576K
+}
+Event: 97.894 GC heap before
+{Heap before GC invocations=37 (full 13):
+ PSYoungGen      total 2211840K, used 1149001K [0x00000006eab00000, 0x00000007bb400000, 0x00000007c0000000)
+  eden space 1047040K, 0% used [0x00000006eab00000,0x00000006eab00000,0x000000072a980000)
+  from space 1164800K, 98% used [0x0000000771b00000,0x00000007b7d12798,0x00000007b8c80000)
+  to   space 1164800K, 0% used [0x000000072a980000,0x000000072a980000,0x0000000771b00000)
+ ParOldGen       total 6529536K, used 6129138K [0x0000000540000000, 0x00000006ce880000, 0x00000006eab00000)
+  object space 6529536K, 93% used [0x0000000540000000,0x00000006b617ca30,0x00000006ce880000)
+ Metaspace       used 55465K, capacity 56698K, committed 56960K, reserved 1097728K
+  class space    used 9085K, capacity 9284K, committed 9344K, reserved 1048576K
+
+Deoptimization events (10 events):
+Event: 48.577 Thread 0x00007f25500b5000 Uncommon trap: reason=unstable_if action=reinterpret pc=0x00007f25c1dc53c0 method=it.geosolutions.imageio.plugins.tiff.TIFFDirectory.getTIFFField(I)Lit/geosolutions/imageio/plugins/tiff/TIFFField; @ 8
+Event: 50.708 Thread 0x00007f25d382d000 Uncommon trap: reason=unstable_if action=reinterpret pc=0x00007f25c1155318 method=org.esa.s1tbx.sar.gpf.MultilookOp.computeTile(Lorg/esa/snap/core/datamodel/Band;Lorg/esa/snap/core/gpf/Tile;Lcom/bc/ceres/core/ProgressMonitor;)V @ 544
+Event: 50.708 Thread 0x00007f25500ba000 Uncommon trap: reason=unstable_if action=reinterpret pc=0x00007f25c1155318 method=org.esa.s1tbx.sar.gpf.MultilookOp.computeTile(Lorg/esa/snap/core/datamodel/Band;Lorg/esa/snap/core/gpf/Tile;Lcom/bc/ceres/core/ProgressMonitor;)V @ 544
+Event: 50.715 Thread 0x00007f25d382c800 Uncommon trap: reason=unstable_if action=reinterpret pc=0x00007f25c1155318 method=org.esa.s1tbx.sar.gpf.MultilookOp.computeTile(Lorg/esa/snap/core/datamodel/Band;Lorg/esa/snap/core/gpf/Tile;Lcom/bc/ceres/core/ProgressMonitor;)V @ 544
+Event: 50.716 Thread 0x00007f25d382c800 Uncommon trap: reason=predicate action=maybe_recompile pc=0x00007f25c12900d8 method=javax.media.jai.PlanarImage.cobbleFloat(Ljava/awt/Rectangle;Ljava/awt/image/Raster;)V @ 129
+Event: 51.805 Thread 0x00007f25d000c000 Uncommon trap: reason=class_check action=maybe_recompile pc=0x00007f25c1d3520c method=java.io.PrintWriter.write(Ljava/lang/String;II)V @ 19
+Event: 51.814 Thread 0x00007f25500ba000 Uncommon trap: reason=unstable_if action=reinterpret pc=0x00007f25c1cdba88 method=javax.media.jai.PlanarImage.cobbleFloat(Ljava/awt/Rectangle;Ljava/awt/image/Raster;)V @ 214
+Event: 54.344 Thread 0x00007f25d382c800 Uncommon trap: reason=unstable_if action=reinterpret pc=0x00007f25c180ffd8 method=org.esa.s1tbx.sentinel1.gpf.TOPSARDeburstOp.getLineIndicesInSourceProduct(ILorg/esa/s1tbx/commons/Sentinel1Utils$SubSwathInfo;Lorg/esa/s1tbx/sentinel1/gpf/TOPSARDeburstOp$Bu
+Event: 75.300 Thread 0x00007f25500ba000 Uncommon trap: reason=unstable_if action=reinterpret pc=0x00007f25c0f29190 method=org.esa.s1tbx.sentinel1.gpf.TOPSARDeburstOp.getSubSwathIndex(IIIILorg/esa/s1tbx/sentinel1/gpf/TOPSARDeburstOp$BurstInfo;)I @ 98
+Event: 75.353 Thread 0x00007f25500ba000 Uncommon trap: reason=unstable_if action=reinterpret pc=0x00007f25c136a50c method=org.esa.s1tbx.sentinel1.gpf.TOPSARDeburstOp.computeMultipleSubSwathsFloat(IIIIII[Ljava/awt/Rectangle;Ljava/lang/String;Lorg/esa/snap/core/gpf/Tile;Lorg/esa/s1tbx/sentinel1/g
+
+Classes redefined (0 events):
+No events
+
+Internal exceptions (10 events):
+Event: 9.315 Thread 0x00007f25d382c800 Exception <a 'java/security/PrivilegedActionException'> (0x00000006f6afa070) thrown at [/HUDSON/workspace/8-2-build-linux-amd64/jdk8u202/12319/hotspot/src/share/vm/prims/jvm.cpp, line 1502]
+Event: 9.315 Thread 0x00007f25d382c800 Exception <a 'java/security/PrivilegedActionException'> (0x00000006f6afa468) thrown at [/HUDSON/workspace/8-2-build-linux-amd64/jdk8u202/12319/hotspot/src/share/vm/prims/jvm.cpp, line 1502]
+Event: 9.315 Thread 0x00007f25d382c800 Exception <a 'java/security/PrivilegedActionException'> (0x00000006f6afba38) thrown at [/HUDSON/workspace/8-2-build-linux-amd64/jdk8u202/12319/hotspot/src/share/vm/prims/jvm.cpp, line 1502]
+Event: 9.315 Thread 0x00007f25d382c800 Exception <a 'java/security/PrivilegedActionException'> (0x00000006f6afbe30) thrown at [/HUDSON/workspace/8-2-build-linux-amd64/jdk8u202/12319/hotspot/src/share/vm/prims/jvm.cpp, line 1502]
+Event: 9.316 Thread 0x00007f25d382c800 Exception <a 'java/security/PrivilegedActionException'> (0x00000006f6b57268) thrown at [/HUDSON/workspace/8-2-build-linux-amd64/jdk8u202/12319/hotspot/src/share/vm/prims/jvm.cpp, line 1502]
+Event: 9.317 Thread 0x00007f25d382c800 Exception <a 'java/security/PrivilegedActionException'> (0x00000006f6b57660) thrown at [/HUDSON/workspace/8-2-build-linux-amd64/jdk8u202/12319/hotspot/src/share/vm/prims/jvm.cpp, line 1502]
+Event: 9.317 Thread 0x00007f25d382c800 Exception <a 'java/security/PrivilegedActionException'> (0x00000006f6b58d80) thrown at [/HUDSON/workspace/8-2-build-linux-amd64/jdk8u202/12319/hotspot/src/share/vm/prims/jvm.cpp, line 1502]
+Event: 9.317 Thread 0x00007f25d382c800 Exception <a 'java/security/PrivilegedActionException'> (0x00000006f6b59178) thrown at [/HUDSON/workspace/8-2-build-linux-amd64/jdk8u202/12319/hotspot/src/share/vm/prims/jvm.cpp, line 1502]
+Event: 9.717 Thread 0x00007f25d382c800 Implicit null exception at 0x00007f25c1d6f8d0 to 0x00007f25c1d74b85
+Event: 27.352 Thread 0x00007f25d36f6000 Implicit null exception at 0x00007f25c1982c0b to 0x00007f25c19838fd
+
+Events (10 events):
+Event: 75.353 Thread 0x00007f25500ba000 DEOPT PACKING pc=0x00007f25c136a50c sp=0x00007f25acde32b0
+Event: 75.353 Thread 0x00007f25500ba000 DEOPT UNPACKING pc=0x00007f25c0e2973a sp=0x00007f25acde3218 mode 2
+Event: 75.404 Thread 0x00007f25d00c2000 flushing nmethod 0x00007f25c1a77710
+Event: 75.404 Thread 0x00007f25d00c2000 flushing nmethod 0x00007f25c1a77f10
+Event: 75.404 Thread 0x00007f25d00c2000 flushing nmethod 0x00007f25c1a9ac10
+Event: 75.404 Thread 0x00007f25d00c2000 flushing nmethod 0x00007f25c1a9e5d0
+Event: 75.405 Thread 0x00007f25d00c2000 flushing nmethod 0x00007f25c1adcf50
+Event: 79.655 Executing VM operation: ParallelGCFailedAllocation
+Event: 80.825 Executing VM operation: ParallelGCFailedAllocation done
+Event: 89.635 Executing VM operation: ParallelGCFailedAllocation
+
+
+Dynamic libraries:
+00400000-00401000 r-xp 00000000 08:01 131746                             /home/tj/snap/jre/bin/java
+00600000-00601000 r--p 00000000 08:01 131746                             /home/tj/snap/jre/bin/java
+00601000-00602000 rw-p 00001000 08:01 131746                             /home/tj/snap/jre/bin/java
+00d7c000-00d9d000 rw-p 00000000 00:00 0                                  [heap]
+540000000-6ce880000 rw-p 00000000 00:00 0 
+6eab00000-7bb400000 rw-p 00000000 00:00 0 
+7bb400000-7c0000000 ---p 00000000 00:00 0 
+7c0000000-7c0920000 rw-p 00000000 00:00 0 
+7c0920000-800000000 ---p 00000000 00:00 0 
+7f2534000000-7f2534021000 rw-p 00000000 00:00 0 
+7f2534021000-7f2538000000 ---p 00000000 00:00 0 
+7f2538000000-7f253805d000 rw-p 00000000 00:00 0 
+7f253805d000-7f253c000000 ---p 00000000 00:00 0 
+7f253c000000-7f253c079000 rw-p 00000000 00:00 0 
+7f253c079000-7f2540000000 ---p 00000000 00:00 0 
+7f2540000000-7f2540021000 rw-p 00000000 00:00 0 
+7f2540021000-7f2544000000 ---p 00000000 00:00 0 
+7f2544000000-7f2544021000 rw-p 00000000 00:00 0 
+7f2544021000-7f2548000000 ---p 00000000 00:00 0 
+7f2548000000-7f2548023000 rw-p 00000000 00:00 0 
+7f2548023000-7f254c000000 ---p 00000000 00:00 0 
+7f254c000000-7f254c021000 rw-p 00000000 00:00 0 
+7f254c021000-7f2550000000 ---p 00000000 00:00 0 
+7f2550000000-7f25500e3000 rw-p 00000000 00:00 0 
+7f25500e3000-7f2554000000 ---p 00000000 00:00 0 
+7f2554000000-7f2554021000 rw-p 00000000 00:00 0 
+7f2554021000-7f2558000000 ---p 00000000 00:00 0 
+7f2558000000-7f2558021000 rw-p 00000000 00:00 0 
+7f2558021000-7f255c000000 ---p 00000000 00:00 0 
+7f255c000000-7f255c021000 rw-p 00000000 00:00 0 
+7f255c021000-7f2560000000 ---p 00000000 00:00 0 
+7f2560000000-7f2560021000 rw-p 00000000 00:00 0 
+7f2560021000-7f2564000000 ---p 00000000 00:00 0 
+7f2564000000-7f2566b64000 rw-p 00000000 00:00 0 
+7f2566b64000-7f2568000000 ---p 00000000 00:00 0 
+7f2568000000-7f2568934000 rw-p 00000000 00:00 0 
+7f2568934000-7f256c000000 ---p 00000000 00:00 0 
+7f256c000000-7f256c021000 rw-p 00000000 00:00 0 
+7f256c021000-7f2570000000 ---p 00000000 00:00 0 
+7f2570000000-7f2571b91000 rw-p 00000000 00:00 0 
+7f2571b91000-7f2574000000 ---p 00000000 00:00 0 
+7f2574000000-7f2574021000 rw-p 00000000 00:00 0 
+7f2574021000-7f2578000000 ---p 00000000 00:00 0 
+7f2578000000-7f2578021000 rw-p 00000000 00:00 0 
+7f2578021000-7f257c000000 ---p 00000000 00:00 0 
+7f257c000000-7f2590000000 rw-p 00000000 00:00 0 
+7f2590000000-7f2590021000 rw-p 00000000 00:00 0 
+7f2590021000-7f2594000000 ---p 00000000 00:00 0 
+7f2594000000-7f2594374000 rw-p 00000000 00:00 0 
+7f2594374000-7f2598000000 ---p 00000000 00:00 0 
+7f2598000000-7f2598024000 rw-p 00000000 00:00 0 
+7f2598024000-7f259c000000 ---p 00000000 00:00 0 
+7f25a0000000-7f25a0021000 rw-p 00000000 00:00 0 
+7f25a0021000-7f25a4000000 ---p 00000000 00:00 0 
+7f25a7000000-7f25a8000000 r--s 00000000 08:01 158440                     /home/tj/.snap/epsg-database/v8.6.0.0/EPSG.data
+7f25a8000000-7f25a8021000 rw-p 00000000 00:00 0 
+7f25a8021000-7f25ac000000 ---p 00000000 00:00 0 
+7f25ac5e0000-7f25ac660000 rw-p 00000000 00:00 0 
+7f25ac660000-7f25ac7e0000 ---p 00000000 00:00 0 
+7f25ac7e0000-7f25ac7e3000 ---p 00000000 00:00 0 
+7f25ac7e3000-7f25ac8e1000 rw-p 00000000 00:00 0 
+7f25ac8e1000-7f25ac8e4000 ---p 00000000 00:00 0 
+7f25ac8e4000-7f25ac9e2000 rw-p 00000000 00:00 0 
+7f25ac9e2000-7f25ac9e5000 ---p 00000000 00:00 0 
+7f25ac9e5000-7f25acae3000 rw-p 00000000 00:00 0 
+7f25acae3000-7f25acae6000 ---p 00000000 00:00 0 
+7f25acae6000-7f25acbe4000 rw-p 00000000 00:00 0 
+7f25acbe4000-7f25acbe7000 ---p 00000000 00:00 0 
+7f25acbe7000-7f25acce5000 rw-p 00000000 00:00 0 
+7f25acce5000-7f25acce8000 ---p 00000000 00:00 0 
+7f25acce8000-7f25acfe6000 rw-p 00000000 00:00 0 
+7f25acfe6000-7f25ad1e6000 rw-p 00000000 00:00 0 
+7f25ad1e6000-7f25ad1e9000 ---p 00000000 00:00 0 
+7f25ad1e9000-7f25ad4e7000 rw-p 00000000 00:00 0 
+7f25ad4e7000-7f25ad4ea000 ---p 00000000 00:00 0 
+7f25ad4ea000-7f25ad7e8000 rw-p 00000000 00:00 0 
+7f25ad7e8000-7f25ad9e8000 rw-p 00000000 00:00 0 
+7f25ad9e8000-7f25adbe8000 rw-p 00000000 00:00 0 
+7f25adbe8000-7f25adec7000 r-xp 00000000 08:01 150106                     /home/tj/snap/snap/modules/lib/amd64/libjhdf5.so
+7f25adec7000-7f25ae0c7000 ---p 002df000 08:01 150106                     /home/tj/snap/snap/modules/lib/amd64/libjhdf5.so
+7f25ae0c7000-7f25ae0d2000 rw-p 002df000 08:01 150106                     /home/tj/snap/snap/modules/lib/amd64/libjhdf5.so
+7f25ae0d2000-7f25ae2dc000 rw-p 00000000 00:00 0 
+7f25ae2dc000-7f25ae4dc000 rw-p 00000000 00:00 0 
+7f25ae4dc000-7f25ae4e3000 r-xp 00000000 08:01 147890                     /home/tj/snap/jre/lib/amd64/libawt_headless.so
+7f25ae4e3000-7f25ae6e2000 ---p 00007000 08:01 147890                     /home/tj/snap/jre/lib/amd64/libawt_headless.so
+7f25ae6e2000-7f25ae6e3000 r--p 00006000 08:01 147890                     /home/tj/snap/jre/lib/amd64/libawt_headless.so
+7f25ae6e3000-7f25ae6e4000 rw-p 00007000 08:01 147890                     /home/tj/snap/jre/lib/amd64/libawt_headless.so
+7f25ae6e4000-7f25ae784000 r-xp 00000000 08:01 147859                     /home/tj/snap/jre/lib/amd64/libawt.so
+7f25ae784000-7f25ae983000 ---p 000a0000 08:01 147859                     /home/tj/snap/jre/lib/amd64/libawt.so
+7f25ae983000-7f25ae984000 r--p 0009f000 08:01 147859                     /home/tj/snap/jre/lib/amd64/libawt.so
+7f25ae984000-7f25ae98f000 rw-p 000a0000 08:01 147859                     /home/tj/snap/jre/lib/amd64/libawt.so
+7f25ae98f000-7f25aebb4000 rw-p 00000000 00:00 0 
+7f25aebb4000-7f25aebb5000 r-xp 00000000 08:01 150440                     /home/tj/.snap/auxdata/gdal/libenvironment-variables.so
+7f25aebb5000-7f25aedb4000 ---p 00001000 08:01 150440                     /home/tj/.snap/auxdata/gdal/libenvironment-variables.so
+7f25aedb4000-7f25aedb5000 r--p 00000000 08:01 150440                     /home/tj/.snap/auxdata/gdal/libenvironment-variables.so
+7f25aedb5000-7f25aedb6000 rw-p 00001000 08:01 150440                     /home/tj/.snap/auxdata/gdal/libenvironment-variables.so
+7f25aedb6000-7f25aefb6000 rw-p 00000000 00:00 0 
+7f25aefb6000-7f25aefbf000 r-xp 00000000 08:01 1185779                    /lib/x86_64-linux-gnu/libcrypt-2.27.so
+7f25aefbf000-7f25af1be000 ---p 00009000 08:01 1185779                    /lib/x86_64-linux-gnu/libcrypt-2.27.so
+7f25af1be000-7f25af1bf000 r--p 00008000 08:01 1185779                    /lib/x86_64-linux-gnu/libcrypt-2.27.so
+7f25af1bf000-7f25af1c0000 rw-p 00009000 08:01 1185779                    /lib/x86_64-linux-gnu/libcrypt-2.27.so
+7f25af1c0000-7f25af3ee000 rw-p 00000000 00:00 0 
+7f25af3ee000-7f25af400000 r-xp 00000000 08:01 702445                     /tmp/jffi8168086177673710976.tmp
+7f25af400000-7f25af5ff000 ---p 00012000 08:01 702445                     /tmp/jffi8168086177673710976.tmp
+7f25af5ff000-7f25af600000 rw-p 00011000 08:01 702445                     /tmp/jffi8168086177673710976.tmp
+7f25af600000-7f25af800000 rw-p 00000000 00:00 0 
+7f25af800000-7f25afa00000 rw-p 00000000 00:00 0 
+7f25afa00000-7f25afc00000 rw-p 00000000 00:00 0 
+7f25afc00000-7f25afe00000 rw-p 00000000 00:00 0 
+7f25afe00000-7f25b0000000 rw-p 00000000 00:00 0 
+7f25b0000000-7f25b0021000 rw-p 00000000 00:00 0 
+7f25b0021000-7f25b4000000 ---p 00000000 00:00 0 
+7f25b403a000-7f25b4055000 r--s 0038e000 08:01 148090                     /home/tj/snap/jre/lib/ext/cldrdata.jar
+7f25b4055000-7f25b4060000 r--s 00114000 08:01 148088                     /home/tj/snap/jre/lib/ext/localedata.jar
+7f25b4060000-7f25b4063000 ---p 00000000 00:00 0 
+7f25b4063000-7f25b4161000 rw-p 00000000 00:00 0 
+7f25b4161000-7f25b4162000 r--p 00000000 08:01 1057182                    /usr/share/locale-langpack/en_GB/LC_MESSAGES/libc.mo
+7f25b4162000-7f25b4169000 r--s 00000000 08:01 922893                     /usr/lib/x86_64-linux-gnu/gconv/gconv-modules.cache
+7f25b4169000-7f25b416e000 r--s 000a0000 08:01 148093                     /home/tj/snap/jre/lib/jsse.jar
+7f25b416e000-7f25b436e000 rw-p 00000000 00:00 0 
+7f25b436e000-7f25b456e000 rw-p 00000000 00:00 0 
+7f25b456e000-7f25b476e000 rw-p 00000000 00:00 0 
+7f25b476e000-7f25b4770000 r--s 0000f000 08:01 148084                     /home/tj/snap/jre/lib/ext/zipfs.jar
+7f25b4770000-7f25b4772000 r--s 00002000 08:01 148113                     /home/tj/snap/rstb/modules/docs/org-csa-rstb-rstb-io.jar
+7f25b4772000-7f25b4799000 r--s 001f6000 08:01 148117                     /home/tj/snap/rstb/modules/ext/org.csa.rstb.rstb-io/org-apache-commons/commons-math3.jar
+7f25b4799000-7f25b479b000 r--s 00016000 08:01 148118                     /home/tj/snap/rstb/modules/org-csa-rstb-rstb-io.jar
+7f25b479b000-7f25b479c000 r--s 00070000 08:01 148119                     /home/tj/snap/rstb/modules/org-csa-rstb-rstb-kit.jar
+7f25b479c000-7f25b47a0000 r--s 00031000 08:01 148123                     /home/tj/snap/rstb/modules/org-csa-rstb-rstb-op-polarimetric-tools.jar
+7f25b47a0000-7f25b47a3000 r--s 0009c000 08:01 148120                     /home/tj/snap/rstb/modules/org-csa-rstb-rstb-op-classification-ui.jar
+7f25b47a3000-7f25b47a5000 r--s 00013000 08:01 148121                     /home/tj/snap/rstb/modules/org-csa-rstb-rstb-op-classification.jar
+7f25b47a5000-7f25b47aa000 r--s 00094000 08:01 148122                     /home/tj/snap/rstb/modules/org-csa-rstb-rstb-op-polarimetric-tools-ui.jar
+7f25b47aa000-7f25b47ac000 r--s 0000e000 08:01 148187                     /home/tj/snap/s3tbx/modules/docs/org-esa-s3tbx-s3tbx-ppe-operator.jar
+7f25b47ac000-7f25b47ad000 r--s 00002000 08:01 148302                     /home/tj/snap/s3tbx/modules/org-esa-s3tbx-s3tbx-ppe-operator.jar
+7f25b47ad000-7f25b47ae000 r--s 0004d000 08:01 148275                     /home/tj/snap/s3tbx/modules/org-esa-s3tbx-s3tbx-arc.jar
+7f25b47ae000-7f25b47b0000 r--s 0001b000 08:01 148303                     /home/tj/snap/s3tbx/modules/org-esa-s3tbx-s3tbx-rad2refl-ui.jar
+7f25b47b0000-7f25b47b5000 r--s 00034000 08:01 148200                     /home/tj/snap/s3tbx/modules/ext/org.esa.s3tbx.s3tbx-insitu-client-ui/com-google-code-gson/gson.jar
+7f25b47b5000-7f25b47b9000 r--s 000b6000 08:01 148285                     /home/tj/snap/s3tbx/modules/org-esa-s3tbx-s3tbx-insitu-client-ui.jar
+7f25b47b9000-7f25b47bb000 r--s 00054000 08:01 148185                     /home/tj/snap/s3tbx/modules/docs/org-esa-s3tbx-s3tbx-olci-radiometry.jar
+7f25b47bb000-7f25b47bc000 r--s 00000000 08:01 148264                     /home/tj/snap/s3tbx/modules/ext/org.esa.s3tbx.s3tbx-olci-radiometry/org-codehaus-mojo/animal-sniffer-annotations.jar
+7f25b47bc000-7f25b47be000 r--s 00001000 08:01 148260                     /home/tj/snap/s3tbx/modules/ext/org.esa.s3tbx.s3tbx-olci-radiometry/com-google-j2objc/j2objc-annotations.jar
+7f25b47be000-7f25b47bf000 r--s 00002000 08:01 148255                     /home/tj/snap/s3tbx/modules/ext/org.esa.s3tbx.s3tbx-olci-radiometry/com-google-errorprone/error_prone_annotations.jar
+7f25b47bf000-7f25b47c2000 r--s 00006000 08:01 148253                     /home/tj/snap/s3tbx/modules/ext/org.esa.s3tbx.s3tbx-olci-radiometry/com-google-code-findbugs/jsr305.jar
+7f25b47c2000-7f25b47f2000 r--s 0024f000 08:01 148257                     /home/tj/snap/s3tbx/modules/ext/org.esa.s3tbx.s3tbx-olci-radiometry/com-google-guava/guava.jar
+7f25b47f2000-7f25b47f3000 r--s 00005000 08:01 148262                     /home/tj/snap/s3tbx/modules/ext/org.esa.s3tbx.s3tbx-olci-radiometry/com-googlecode-json-simple/json-simple.jar
+7f25b47f3000-7f25b47f6000 r--s 000e8000 08:01 148300                     /home/tj/snap/s3tbx/modules/org-esa-s3tbx-s3tbx-olci-radiometry.jar
+7f25b47f6000-7f25b47f8000 r--s 00017000 08:01 148182                     /home/tj/snap/s3tbx/modules/docs/org-esa-s3tbx-s3tbx-meris-smac.jar
+7f25b47f8000-7f25b47fd000 r--s 00014000 08:01 148295                     /home/tj/snap/s3tbx/modules/org-esa-s3tbx-s3tbx-meris-smac.jar
+7f25b47fd000-7f25b4800000 r--s 00018000 08:01 148297                     /home/tj/snap/s3tbx/modules/org-esa-s3tbx-s3tbx-modis-reader.jar
+7f25b4800000-7f25b4801000 r--s 00008000 08:01 148180                     /home/tj/snap/s3tbx/modules/docs/org-esa-s3tbx-s3tbx-fu-operator.jar
+7f25b4801000-7f25b4802000 r--s 00008000 08:01 148282                     /home/tj/snap/s3tbx/modules/org-esa-s3tbx-s3tbx-fu-operator.jar
+7f25b4802000-7f25b4803000 r--s 00008000 08:01 148270                     /home/tj/snap/s3tbx/modules/ext/org.esa.s3tbx.s3tbx-sentinel3-reader-ui/org-esa-snap/snap-runtime.jar
+7f25b4803000-7f25b4805000 r--s 00006000 08:01 148305                     /home/tj/snap/s3tbx/modules/org-esa-s3tbx-s3tbx-sentinel3-reader-ui.jar
+7f25b4805000-7f25b4807000 r--s 0000d000 08:01 148283                     /home/tj/snap/s3tbx/modules/org-esa-s3tbx-s3tbx-fub-wew-ui.jar
+7f25b4807000-7f25b4808000 r--s 0000a000 08:01 148188                     /home/tj/snap/s3tbx/modules/docs/org-esa-s3tbx-s3tbx-slstr-regrid.jar
+7f25b4808000-7f25b480a000 r--s 00006000 08:01 148309                     /home/tj/snap/s3tbx/modules/org-esa-s3tbx-s3tbx-slstr-regrid.jar
+7f25b480a000-7f25b480c000 r--s 00017000 08:01 148271                     /home/tj/snap/s3tbx/modules/org-esa-s3tbx-s3tbx-aatsr-sst-ui.jar
+7f25b480c000-7f25b480f000 r--s 0009f000 08:01 148179                     /home/tj/snap/s3tbx/modules/docs/org-esa-s3tbx-s3tbx-c2rcc.jar
+7f25b480f000-7f25b4816000 r--s 0003a000 08:01 148192                     /home/tj/snap/s3tbx/modules/ext/org.esa.s3tbx.s3tbx-c2rcc/commons-codec/commons-codec.jar
+7f25b4816000-7f25b481d000 r--s 00048000 08:01 148195                     /home/tj/snap/s3tbx/modules/ext/org.esa.s3tbx.s3tbx-c2rcc/org-apache-httpcomponents/httpcore.jar
+7f25b481d000-7f25b482a000 r--s 000a5000 08:01 148194                     /home/tj/snap/s3tbx/modules/ext/org.esa.s3tbx.s3tbx-c2rcc/org-apache-httpcomponents/httpclient.jar
+7f25b482a000-7f25b482b000 r--s 00008000 08:01 148197                     /home/tj/snap/s3tbx/modules/ext/org.esa.s3tbx.s3tbx-c2rcc/org-esa-snap/snap-runtime.jar
+7f25b482b000-7f25b4834000 r--s 00378000 08:01 148278                     /home/tj/snap/s3tbx/modules/org-esa-s3tbx-s3tbx-c2rcc.jar
+7f25b4834000-7f25b4836000 r--s 0002d000 08:01 148290                     /home/tj/snap/s3tbx/modules/org-esa-s3tbx-s3tbx-meris-l2auxdata.jar
+7f25b4836000-7f25b4838000 r--s 00022000 08:01 148280                     /home/tj/snap/s3tbx/modules/org-esa-s3tbx-s3tbx-flhmci-ui.jar
+7f25b4838000-7f25b483a000 r--s 00006000 08:01 148310                     /home/tj/snap/s3tbx/modules/org-esa-s3tbx-s3tbx-spot-vgt-reader.jar
+7f25b483a000-7f25b483c000 r--s 0000c000 08:01 148274                     /home/tj/snap/s3tbx/modules/org-esa-s3tbx-s3tbx-arc-ui.jar
+7f25b483c000-7f25b483d000 r--s 00012000 08:01 148286                     /home/tj/snap/s3tbx/modules/org-esa-s3tbx-s3tbx-kit.jar
+7f25b483d000-7f25b483e000 r--s 0000a000 08:01 148276                     /home/tj/snap/s3tbx/modules/org-esa-s3tbx-s3tbx-atsr-reader.jar
+7f25b483e000-7f25b4842000 r--s 00028000 08:01 148306                     /home/tj/snap/s3tbx/modules/org-esa-s3tbx-s3tbx-sentinel3-reader.jar
+7f25b4842000-7f25b4843000 r--s 0000a000 08:01 148288                     /home/tj/snap/s3tbx/modules/org-esa-s3tbx-s3tbx-meris-brr.jar
+7f25b4843000-7f25b4845000 r--s 00004000 08:01 148291                     /home/tj/snap/s3tbx/modules/org-esa-s3tbx-s3tbx-meris-ops.jar
+7f25b4845000-7f25b4849000 r--s 0006a000 08:01 148294                     /home/tj/snap/s3tbx/modules/org-esa-s3tbx-s3tbx-meris-sdr.jar
+7f25b4849000-7f25b484b000 r--s 00007000 08:01 148279                     /home/tj/snap/s3tbx/modules/org-esa-s3tbx-s3tbx-chris-reader.jar
+7f25b484b000-7f25b484d000 r--s 00009000 08:01 148311                     /home/tj/snap/s3tbx/modules/org-esa-snap-seadas-seadas-reader-ui.jar
+7f25b484d000-7f25b4851000 r--s 010b6000 08:01 148293                     /home/tj/snap/s3tbx/modules/org-esa-s3tbx-s3tbx-meris-radiometry.jar
+7f25b4851000-7f25b4852000 r--s 00017000 08:01 148181                     /home/tj/snap/s3tbx/modules/docs/org-esa-s3tbx-s3tbx-meris-cloud.jar
+7f25b4852000-7f25b4854000 r--s 00009000 08:01 148289                     /home/tj/snap/s3tbx/modules/org-esa-s3tbx-s3tbx-meris-cloud.jar
+7f25b4854000-7f25b4855000 r--s 00080000 08:01 148304                     /home/tj/snap/s3tbx/modules/org-esa-s3tbx-s3tbx-rad2refl.jar
+7f25b4855000-7f25b4858000 r--s 0001e000 08:01 148277                     /home/tj/snap/s3tbx/modules/org-esa-s3tbx-s3tbx-avhrr-reader.jar
+7f25b4858000-7f25b485a000 r--s 00012000 08:01 148308                     /home/tj/snap/s3tbx/modules/org-esa-s3tbx-s3tbx-slstr-pdu-stitching.jar
+7f25b485a000-7f25b485c000 r--s 00002000 08:01 148228                     /home/tj/snap/s3tbx/modules/ext/org.esa.s3tbx.s3tbx-landsat-reader/org-xeustechnologies/jtar.jar
+7f25b485c000-7f25b4878000 r--s 001ed000 08:01 148207                     /home/tj/snap/s3tbx/modules/ext/org.esa.s3tbx.s3tbx-landsat-reader/com-sleepycat/je.jar
+7f25b4878000-7f25b4893000 r--s 0012c000 08:01 148222                     /home/tj/snap/s3tbx/modules/ext/org.esa.s3tbx.s3tbx-landsat-reader/net-sf-ehcache/ehcache-core.jar
+7f25b4893000-7f25b489b000 r--s 0007b000 08:01 148205                     /home/tj/snap/s3tbx/modules/ext/org.esa.s3tbx.s3tbx-landsat-reader/com-google-protobuf/protobuf-java.jar
+7f25b489b000-7f25b48a6000 r--s 0008a000 08:01 148203                     /home/tj/snap/s3tbx/modules/ext/org.esa.s3tbx.s3tbx-landsat-reader/c3p0/c3p0.jar
+7f25b48a6000-7f25b48af000 r--s 0007f000 08:01 148224                     /home/tj/snap/s3tbx/modules/ext/org.esa.s3tbx.s3tbx-landsat-reader/org-quartz-scheduler/quartz.jar
+7f25b48af000-7f25b48b2000 r--s 000c0000 08:01 148209                     /home/tj/snap/s3tbx/modules/ext/org.esa.s3tbx.s3tbx-landsat-reader/com-sun-jna/jna.jar
+7f25b48b2000-7f25b48b3000 r--s 00000000 08:01 148220                     /home/tj/snap/s3tbx/modules/ext/org.esa.s3tbx.s3tbx-landsat-reader/net-jcip/jcip-annotations.jar
+7f25b48b3000-7f25b48b5000 r--s 00005000 08:01 148226                     /home/tj/snap/s3tbx/modules/ext/org.esa.s3tbx.s3tbx-landsat-reader/org-slf4j/slf4j-api.jar
+7f25b48b5000-7f25b48c5000 r--s 0007d000 08:01 148218                     /home/tj/snap/s3tbx/modules/ext/org.esa.s3tbx.s3tbx-landsat-reader/joda-time/joda-time.jar
+7f25b48c5000-7f25b48c7000 r--s 00006000 08:01 148211                     /home/tj/snap/s3tbx/modules/ext/org.esa.s3tbx.s3tbx-landsat-reader/commons-codec/commons-codec.jar
+7f25b48c7000-7f25b48cd000 r--s 00045000 08:01 148213                     /home/tj/snap/s3tbx/modules/ext/org.esa.s3tbx.s3tbx-landsat-reader/commons-httpclient/commons-httpclient.jar
+7f25b48cd000-7f25b48cf000 r--s 0001d000 08:01 148216                     /home/tj/snap/s3tbx/modules/ext/org.esa.s3tbx.s3tbx-landsat-reader/edu-ucar/udunits.jar
+7f25b48cf000-7f25b4901000 r--s 0042f000 08:01 148215                     /home/tj/snap/s3tbx/modules/ext/org.esa.s3tbx.s3tbx-landsat-reader/edu-ucar/netcdf.jar
+7f25b4901000-7f25b4905000 r--s 0002b000 08:01 148287                     /home/tj/snap/s3tbx/modules/org-esa-s3tbx-s3tbx-landsat-reader.jar
+7f25b4905000-7f25b4907000 r--s 00037000 08:01 148183                     /home/tj/snap/s3tbx/modules/docs/org-esa-s3tbx-s3tbx-mphchl.jar
+7f25b4907000-7f25b4909000 r--s 00005000 08:01 148298                     /home/tj/snap/s3tbx/modules/org-esa-s3tbx-s3tbx-mphchl.jar
+7f25b4909000-7f25b490a000 r--s 00002000 08:01 148281                     /home/tj/snap/s3tbx/modules/org-esa-s3tbx-s3tbx-flhmci.jar
+7f25b490a000-7f25b490b000 r--s 0004b000 08:01 148186                     /home/tj/snap/s3tbx/modules/docs/org-esa-s3tbx-s3tbx-owt-classification.jar
+7f25b490b000-7f25b490d000 r--s 0001a000 08:01 148267                     /home/tj/snap/s3tbx/modules/ext/org.esa.s3tbx.s3tbx-owt-classification/Jama/Jama.jar
+7f25b490d000-7f25b490f000 r--s 00215000 08:01 148301                     /home/tj/snap/s3tbx/modules/org-esa-s3tbx-s3tbx-owt-classification.jar
+7f25b490f000-7f25b4912000 r--s 00046000 08:01 148292                     /home/tj/snap/s3tbx/modules/org-esa-s3tbx-s3tbx-meris-radiometry-ui.jar
+7f25b4912000-7f25b4913000 r--s 0001c000 08:01 148284                     /home/tj/snap/s3tbx/modules/org-esa-s3tbx-s3tbx-fub-wew.jar
+7f25b4913000-7f25b4916000 r--s 00017000 08:01 148273                     /home/tj/snap/s3tbx/modules/org-esa-s3tbx-s3tbx-alos-reader.jar
+7f25b4916000-7f25b4918000 r--s 0000d000 08:01 148184                     /home/tj/snap/s3tbx/modules/docs/org-esa-s3tbx-s3tbx-o2a-harmonisation.jar
+7f25b4918000-7f25b4919000 r--s 00003000 08:01 148233                     /home/tj/snap/s3tbx/modules/ext/org.esa.s3tbx.s3tbx-o2a-harmonisation/com-github-haifengl/smile-graph.jar
+7f25b4919000-7f25b491b000 r--s 00009000 08:01 148250                     /home/tj/snap/s3tbx/modules/ext/org.esa.s3tbx.s3tbx-o2a-harmonisation/org-slf4j/slf4j-api.jar
+7f25b491b000-7f25b4920000 r--s 00045000 08:01 148234                     /home/tj/snap/s3tbx/modules/ext/org.esa.s3tbx.s3tbx-o2a-harmonisation/com-github-haifengl/smile-math.jar
+7f25b4920000-7f25b4922000 r--s 0000c000 08:01 148232                     /home/tj/snap/s3tbx/modules/ext/org.esa.s3tbx.s3tbx-o2a-harmonisation/com-github-haifengl/smile-data.jar
+7f25b4922000-7f25b492a000 r--s 0007f000 08:01 148231                     /home/tj/snap/s3tbx/modules/ext/org.esa.s3tbx.s3tbx-o2a-harmonisation/com-github-haifengl/smile-core.jar
+7f25b492a000-7f25b492b000 r--s 00000000 08:01 148246                     /home/tj/snap/s3tbx/modules/ext/org.esa.s3tbx.s3tbx-o2a-harmonisation/org-codehaus-mojo/animal-sniffer-annotations.jar
+7f25b492b000-7f25b492d000 r--s 00001000 08:01 148242                     /home/tj/snap/s3tbx/modules/ext/org.esa.s3tbx.s3tbx-o2a-harmonisation/com-google-j2objc/j2objc-annotations.jar
+7f25b492d000-7f25b492e000 r--s 00002000 08:01 148238                     /home/tj/snap/s3tbx/modules/ext/org.esa.s3tbx.s3tbx-o2a-harmonisation/com-google-errorprone/error_prone_annotations.jar
+7f25b492e000-7f25b4931000 r--s 00006000 08:01 148236                     /home/tj/snap/s3tbx/modules/ext/org.esa.s3tbx.s3tbx-o2a-harmonisation/com-google-code-findbugs/jsr305.jar
+7f25b4931000-7f25b4961000 r--s 0024f000 08:01 148240                     /home/tj/snap/s3tbx/modules/ext/org.esa.s3tbx.s3tbx-o2a-harmonisation/com-google-guava/guava.jar
+7f25b4961000-7f25b4962000 r--s 00005000 08:01 148244                     /home/tj/snap/s3tbx/modules/ext/org.esa.s3tbx.s3tbx-o2a-harmonisation/com-googlecode-json-simple/json-simple.jar
+7f25b4962000-7f25b4963000 r--s 00008000 08:01 148248                     /home/tj/snap/s3tbx/modules/ext/org.esa.s3tbx.s3tbx-o2a-harmonisation/org-esa-snap/snap-runtime.jar
+7f25b4963000-7f25b4964000 r--s 003e2000 08:01 148299                     /home/tj/snap/s3tbx/modules/org-esa-s3tbx-s3tbx-o2a-harmonisation.jar
+7f25b4964000-7f25b4967000 r--s 0002c000 08:01 148312                     /home/tj/snap/s3tbx/modules/org-esa-snap-seadas-seadas-reader.jar
+7f25b4967000-7f25b4969000 r--s 00009000 08:01 148272                     /home/tj/snap/s3tbx/modules/org-esa-s3tbx-s3tbx-aatsr-sst.jar
+7f25b4969000-7f25b496b000 r--s 00069000 08:01 148307                     /home/tj/snap/s3tbx/modules/org-esa-s3tbx-s3tbx-slstr-pdu-stitching-ui.jar
+7f25b496b000-7f25b496c000 r--s 00004000 08:01 148296                     /home/tj/snap/s3tbx/modules/org-esa-s3tbx-s3tbx-merisl3-reader.jar
+7f25b496c000-7f25b496e000 r--s 00010000 08:01 148512                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-kit/org-esa-s2tbx/s2tbx-mosaic.jar
+7f25b496e000-7f25b4971000 r--s 00092000 08:01 148511                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-kit/org-esa-s2tbx/s2tbx-mosaic-ui.jar
+7f25b4971000-7f25b4972000 r--s 00025000 08:01 148652                     /home/tj/snap/s2tbx/modules/org-esa-s2tbx-s2tbx-kit.jar
+7f25b4972000-7f25b4977000 r--s 00041000 08:01 148496                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-ikonos-reader/commons-lang/commons-lang.jar
+7f25b4977000-7f25b497e000 r--s 0002f000 08:01 148498                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-ikonos-reader/javax-xml-parsers/jaxp-api.jar
+7f25b497e000-7f25b497f000 r--s 00003000 08:01 148492                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-ikonos-reader/com-github-relaxng/relaxngDatatype.jar
+7f25b497f000-7f25b4980000 r--s 00004000 08:01 148500                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-ikonos-reader/relaxngDatatype/relaxngDatatype.jar
+7f25b4980000-7f25b4987000 r--s 0005e000 08:01 148494                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-ikonos-reader/com-sun-xsom/xsom.jar
+7f25b4987000-7f25b4989000 r--s 00006000 08:01 148649                     /home/tj/snap/s2tbx/modules/org-esa-s2tbx-s2tbx-ikonos-reader.jar
+7f25b4989000-7f25b4a97000 r--s 00cdb000 08:01 148476                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-forest-cover-change/it-unimi-dsi/fastutil.jar
+7f25b4a97000-7f25b4a9c000 r--s 00041000 08:01 148474                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-forest-cover-change/commons-lang/commons-lang.jar
+7f25b4a9c000-7f25b4a9e000 r--s 0000e000 08:01 148644                     /home/tj/snap/s2tbx/modules/org-esa-s2tbx-s2tbx-forest-cover-change.jar
+7f25b4a9e000-7f25b4aa3000 r--s 00041000 08:01 148482                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-gdal-reader/commons-lang/commons-lang.jar
+7f25b4aa3000-7f25b4aa5000 r--s 00020000 08:01 148484                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-gdal-reader/org-esa-s2tbx-gdal/gdal.jar
+7f25b4aa5000-7f25b4aa8000 r--s 0000f000 08:01 148646                     /home/tj/snap/s2tbx/modules/org-esa-s2tbx-s2tbx-gdal-reader.jar
+7f25b4aa8000-7f25b4aad000 r--s 00041000 08:01 148519                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-kompsat2-reader/commons-lang/commons-lang.jar
+7f25b4aad000-7f25b4ab4000 r--s 0002f000 08:01 148521                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-kompsat2-reader/javax-xml-parsers/jaxp-api.jar
+7f25b4ab4000-7f25b4ab5000 r--s 00003000 08:01 148515                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-kompsat2-reader/com-github-relaxng/relaxngDatatype.jar
+7f25b4ab5000-7f25b4ab6000 r--s 00004000 08:01 148523                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-kompsat2-reader/relaxngDatatype/relaxngDatatype.jar
+7f25b4ab6000-7f25b4abd000 r--s 0005e000 08:01 148517                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-kompsat2-reader/com-sun-xsom/xsom.jar
+7f25b4abd000-7f25b4abf000 r--s 00009000 08:01 148653                     /home/tj/snap/s2tbx/modules/org-esa-s2tbx-s2tbx-kompsat2-reader.jar
+7f25b4abf000-7f25b4ac1000 r--s 00003000 08:01 148629                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-worldview2esa-reader/org-jetbrains/annotations.jar
+7f25b4ac1000-7f25b4ac6000 r--s 00041000 08:01 148625                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-worldview2esa-reader/commons-lang/commons-lang.jar
+7f25b4ac6000-7f25b4acd000 r--s 0002f000 08:01 148627                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-worldview2esa-reader/javax-xml-parsers/jaxp-api.jar
+7f25b4acd000-7f25b4ace000 r--s 00003000 08:01 148621                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-worldview2esa-reader/com-github-relaxng/relaxngDatatype.jar
+7f25b4ace000-7f25b4acf000 r--s 00004000 08:01 148631                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-worldview2esa-reader/relaxngDatatype/relaxngDatatype.jar
+7f25b4acf000-7f25b4ad6000 r--s 0005e000 08:01 148623                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-worldview2esa-reader/com-sun-xsom/xsom.jar
+7f25b4ad6000-7f25b4ad8000 r--s 00007000 08:01 148674                     /home/tj/snap/s2tbx/modules/org-esa-s2tbx-s2tbx-worldview2esa-reader.jar
+7f25b4ad8000-7f25b4add000 r--s 00041000 08:01 148411                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.lib-gdal/commons-lang/commons-lang.jar
+7f25b4add000-7f25b4ade000 r--s 04ebd000 08:01 148632                     /home/tj/snap/s2tbx/modules/org-esa-s2tbx-lib-gdal.jar
+7f25b4ade000-7f25b4ae3000 r--s 00041000 08:01 148588                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-spot-reader/commons-lang/commons-lang.jar
+7f25b4ae3000-7f25b4aea000 r--s 0002f000 08:01 148590                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-spot-reader/javax-xml-parsers/jaxp-api.jar
+7f25b4aea000-7f25b4aeb000 r--s 00003000 08:01 148584                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-spot-reader/com-github-relaxng/relaxngDatatype.jar
+7f25b4aeb000-7f25b4aec000 r--s 00004000 08:01 148594                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-spot-reader/relaxngDatatype/relaxngDatatype.jar
+7f25b4aec000-7f25b4af3000 r--s 0005e000 08:01 148586                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-spot-reader/com-sun-xsom/xsom.jar
+7f25b4af3000-7f25b4af7000 r--s 00112000 08:01 148592                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-spot-reader/net-java-dev-jna/jna.jar
+7f25b4af7000-7f25b4afb000 r--s 0002c000 08:01 148670                     /home/tj/snap/s2tbx/modules/org-esa-s2tbx-s2tbx-spot-reader.jar
+7f25b4afb000-7f25b4afc000 r--s 00008000 08:01 148445                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-cache-ui/org-esa-snap/snap-runtime.jar
+7f25b4afc000-7f25b4afe000 r--s 00001000 08:01 148637                     /home/tj/snap/s2tbx/modules/org-esa-s2tbx-s2tbx-cache-ui.jar
+7f25b4afe000-7f25b4aff000 r--s 00004000 08:01 148672                     /home/tj/snap/s2tbx/modules/org-esa-s2tbx-s2tbx-sta-adapters-help.jar
+7f25b4aff000-7f25b4b01000 r--s 0000b000 08:01 148647                     /home/tj/snap/s2tbx/modules/org-esa-s2tbx-s2tbx-grm-ui.jar
+7f25b4b01000-7f25b4b12000 r--s 00106000 08:01 148464                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-coregistration/javax-media/jai_imageio.jar
+7f25b4b12000-7f25b4b16000 r--s 0003c000 08:01 148462                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-coregistration/javax-media/jai_codec.jar
+7f25b4b16000-7f25b4b2a000 r--s 001bd000 08:01 148463                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-coregistration/javax-media/jai_core.jar
+7f25b4b2a000-7f25b4b2b000 r--s 00005000 08:01 148458                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-coregistration/it-geosolutions-jaiext-iterators/jt-iterators.jar
+7f25b4b2b000-7f25b4b2e000 r--s 0001e000 08:01 148460                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-coregistration/it-geosolutions-jaiext-utilities/jt-utilities.jar
+7f25b4b2e000-7f25b4b32000 r--s 03eb1000 08:01 148466                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-coregistration/org-openpnp/opencv.jar
+7f25b4b32000-7f25b4b33000 r--s 0000a000 08:01 148641                     /home/tj/snap/s2tbx/modules/org-esa-s2tbx-s2tbx-coregistration.jar
+7f25b4b33000-7f25b4b38000 r--s 00041000 08:01 148414                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.lib-openjpeg/commons-lang/commons-lang.jar
+7f25b4b38000-7f25b4b4d000 r--s 001b0000 08:01 148416                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.lib-openjpeg/net-java-dev-jna/jna-platform.jar
+7f25b4b4d000-7f25b4b51000 r--s 00112000 08:01 148417                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.lib-openjpeg/net-java-dev-jna/jna.jar
+7f25b4b51000-7f25b4b58000 r--s 00708000 08:01 148633                     /home/tj/snap/s2tbx/modules/org-esa-s2tbx-lib-openjpeg.jar
+7f25b4b58000-7f25b4b5a000 r--s 00015000 08:01 148659                     /home/tj/snap/s2tbx/modules/org-esa-s2tbx-s2tbx-radiometric-indices.jar
+7f25b4b5a000-7f25b4b5f000 r--s 00041000 08:01 148503                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-jp2-reader/commons-lang/commons-lang.jar
+7f25b4b5f000-7f25b4b61000 r--s 0000b000 08:01 148650                     /home/tj/snap/s2tbx/modules/org-esa-s2tbx-s2tbx-jp2-reader.jar
+7f25b4b61000-7f25b4b64000 r--s 0000c000 08:01 148530                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-land-cover/org-codehaus-plexus/plexus-io.jar
+7f25b4b64000-7f25b4b68000 r--s 00035000 08:01 148531                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-land-cover/org-codehaus-plexus/plexus-utils.jar
+7f25b4b68000-7f25b4b6a000 r--s 00008000 08:01 148526                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-land-cover/classworlds/classworlds.jar
+7f25b4b6a000-7f25b4b71000 r--s 00029000 08:01 148529                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-land-cover/org-codehaus-plexus/plexus-container-default.jar
+7f25b4b71000-7f25b4b76000 r--s 00029000 08:01 148528                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-land-cover/org-codehaus-plexus/plexus-archiver.jar
+7f25b4b76000-7f25b4b77000 r--s 00003000 08:01 148654                     /home/tj/snap/s2tbx/modules/org-esa-s2tbx-s2tbx-land-cover.jar
+7f25b4b77000-7f25b4b79000 r--s 0002a000 08:01 148668                     /home/tj/snap/s2tbx/modules/org-esa-s2tbx-s2tbx-spectral-angle-mapper-ui.jar
+7f25b4b79000-7f25b4b7a000 r--s 00001000 08:01 148657                     /home/tj/snap/s2tbx/modules/org-esa-s2tbx-s2tbx-preferences-ui.jar
+7f25b4b7a000-7f25b4b7b000 r--s 00002000 08:01 148662                     /home/tj/snap/s2tbx/modules/org-esa-s2tbx-s2tbx-reflectance-to-radiance.jar
+7f25b4b7b000-7f25b4b7e000 r--s 00023000 08:01 148658                     /home/tj/snap/s2tbx/modules/org-esa-s2tbx-s2tbx-radiometric-indices-ui.jar
+7f25b4b7e000-7f25b4b83000 r--s 00041000 08:01 148487                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-grm/commons-lang/commons-lang.jar
+7f25b4b83000-7f25b4c91000 r--s 00cdb000 08:01 148489                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-grm/it-unimi-dsi/fastutil.jar
+7f25b4c91000-7f25b4c94000 r--s 00015000 08:01 148648                     /home/tj/snap/s2tbx/modules/org-esa-s2tbx-s2tbx-grm.jar
+7f25b4c94000-7f25b4c99000 r--s 00041000 08:01 148543                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-pleiades-reader/commons-lang/commons-lang.jar
+7f25b4c99000-7f25b4ca0000 r--s 0002f000 08:01 148545                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-pleiades-reader/javax-xml-parsers/jaxp-api.jar
+7f25b4ca0000-7f25b4ca1000 r--s 00003000 08:01 148539                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-pleiades-reader/com-github-relaxng/relaxngDatatype.jar
+7f25b4ca1000-7f25b4ca2000 r--s 00004000 08:01 148547                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-pleiades-reader/relaxngDatatype/relaxngDatatype.jar
+7f25b4ca2000-7f25b4ca9000 r--s 0005e000 08:01 148541                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-pleiades-reader/com-sun-xsom/xsom.jar
+7f25b4ca9000-7f25b4cab000 r--s 0000a000 08:01 148656                     /home/tj/snap/s2tbx/modules/org-esa-s2tbx-s2tbx-pleiades-reader.jar
+7f25b4cab000-7f25b4cac000 r--s 00050000 08:01 148406                     /home/tj/snap/s2tbx/modules/docs/org-esa-s2tbx-s2tbx-s2msi-reader.jar
+7f25b4cac000-7f25b4cb1000 r--s 00041000 08:01 148572                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-s2msi-reader/commons-lang/commons-lang.jar
+7f25b4cb1000-7f25b4cb5000 r--s 0002a000 08:01 148570                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-s2msi-reader/commons-io/commons-io.jar
+7f25b4cb5000-7f25b4cbc000 r--s 0002f000 08:01 148574                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-s2msi-reader/javax-xml-parsers/jaxp-api.jar
+7f25b4cbc000-7f25b4cbd000 r--s 00004000 08:01 148578                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-s2msi-reader/relaxngDatatype/relaxngDatatype.jar
+7f25b4cbd000-7f25b4cc4000 r--s 0005e000 08:01 148568                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-s2msi-reader/com-sun-xsom/xsom.jar
+7f25b4cc4000-7f25b4cc9000 r--s 0054d000 08:01 148576                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-s2msi-reader/org-xerial/sqlite-jdbc.jar
+7f25b4cc9000-7f25b4cdf000 r--s 00160000 08:01 148666                     /home/tj/snap/s2tbx/modules/org-esa-s2tbx-s2tbx-s2msi-reader.jar
+7f25b4cdf000-7f25b4ded000 r--s 00cdb000 08:01 148581                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-spectral-angle-mapper/it-unimi-dsi/fastutil.jar
+7f25b4ded000-7f25b4dee000 r--s 00006000 08:01 148669                     /home/tj/snap/s2tbx/modules/org-esa-s2tbx-s2tbx-spectral-angle-mapper.jar
+7f25b4dee000-7f25b4df5000 r--s 0002f000 08:01 148536                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-muscate-reader/javax-xml-parsers/jaxp-api.jar
+7f25b4df5000-7f25b4dfa000 r--s 00041000 08:01 148534                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-muscate-reader/commons-lang/commons-lang.jar
+7f25b4dfa000-7f25b4dfb000 r--s 00009000 08:01 148655                     /home/tj/snap/s2tbx/modules/org-esa-s2tbx-s2tbx-muscate-reader.jar
+7f25b4dfb000-7f25b4dfc000 r--s 00008000 08:01 148565                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-s2msi-reader-ui/org-esa-snap/snap-runtime.jar
+7f25b4dfc000-7f25b4dfe000 r--s 00001000 08:01 148665                     /home/tj/snap/s2tbx/modules/org-esa-s2tbx-s2tbx-s2msi-reader-ui.jar
+7f25b4dfe000-7f25b4dff000 r--s 0001e000 08:01 148407                     /home/tj/snap/s2tbx/modules/docs/org-esa-s2tbx-s2tbx-s2msi-resampler.jar
+7f25b4dff000-7f25b4e01000 r--s 00004000 08:01 148667                     /home/tj/snap/s2tbx/modules/org-esa-s2tbx-s2tbx-s2msi-resampler.jar
+7f25b4e01000-7f25b4e0d000 r--s 00178000 08:01 148452                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-commons/org-jvnet-ogc/gml-v_3_1_1-schema.jar
+7f25b4e0d000-7f25b4e0f000 r--s 00009000 08:01 148450                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-commons/org-jvnet-jaxb2_commons/jaxb2-basics-runtime.jar
+7f25b4e0f000-7f25b4e12000 r--s 0000d000 08:01 148453                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-commons/org-jvnet-ogc/ogc-tools-gml-jts.jar
+7f25b4e12000-7f25b4e16000 r--s 0002a000 08:01 148448                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-commons/commons-io/commons-io.jar
+7f25b4e16000-7f25b4e18000 r--s 00002000 08:01 148455                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-commons/org-xeustechnologies/jtar.jar
+7f25b4e18000-7f25b4e1b000 r--s 00021000 08:01 148639                     /home/tj/snap/s2tbx/modules/org-esa-s2tbx-s2tbx-commons.jar
+7f25b4e1b000-7f25b4e1d000 r--s 00010000 08:01 148643                     /home/tj/snap/s2tbx/modules/org-esa-s2tbx-s2tbx-forest-cover-change-ui.jar
+7f25b4e1d000-7f25b4e1f000 r--s 000a6000 08:01 148640                     /home/tj/snap/s2tbx/modules/org-esa-s2tbx-s2tbx-coregistration-ui.jar
+7f25b4e1f000-7f25b4e21000 r--s 00020000 08:01 148479                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-gdal-reader-ui/org-esa-s2tbx-gdal/gdal.jar
+7f25b4e21000-7f25b4e23000 r--s 00006000 08:01 148645                     /home/tj/snap/s2tbx/modules/org-esa-s2tbx-s2tbx-gdal-reader-ui.jar
+7f25b4e23000-7f25b4e25000 r--s 00003000 08:01 148616                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-worldview2-reader/org-jetbrains/annotations.jar
+7f25b4e25000-7f25b4e2a000 r--s 00041000 08:01 148612                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-worldview2-reader/commons-lang/commons-lang.jar
+7f25b4e2a000-7f25b4e31000 r--s 0002f000 08:01 148614                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-worldview2-reader/javax-xml-parsers/jaxp-api.jar
+7f25b4e31000-7f25b4e32000 r--s 00003000 08:01 148608                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-worldview2-reader/com-github-relaxng/relaxngDatatype.jar
+7f25b4e32000-7f25b4e33000 r--s 00004000 08:01 148618                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-worldview2-reader/relaxngDatatype/relaxngDatatype.jar
+7f25b4e33000-7f25b4e3a000 r--s 0005e000 08:01 148610                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-worldview2-reader/com-sun-xsom/xsom.jar
+7f25b4e3a000-7f25b4e3c000 r--s 0000a000 08:01 148673                     /home/tj/snap/s2tbx/modules/org-esa-s2tbx-s2tbx-worldview2-reader.jar
+7f25b4e3c000-7f25b4e3e000 r--s 00004000 08:01 148661                     /home/tj/snap/s2tbx/modules/org-esa-s2tbx-s2tbx-reflectance-to-radiance-ui.jar
+7f25b4e3e000-7f25b4e43000 r--s 00041000 08:01 148424                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-alosAV2-reader/commons-lang/commons-lang.jar
+7f25b4e43000-7f25b4e4a000 r--s 0002f000 08:01 148426                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-alosAV2-reader/javax-xml-parsers/jaxp-api.jar
+7f25b4e4a000-7f25b4e4b000 r--s 00003000 08:01 148420                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-alosAV2-reader/com-github-relaxng/relaxngDatatype.jar
+7f25b4e4b000-7f25b4e4c000 r--s 00004000 08:01 148428                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-alosAV2-reader/relaxngDatatype/relaxngDatatype.jar
+7f25b4e4c000-7f25b4e53000 r--s 0005e000 08:01 148422                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-alosAV2-reader/com-sun-xsom/xsom.jar
+7f25b4e53000-7f25b4e55000 r--s 00003000 08:01 148634                     /home/tj/snap/s2tbx/modules/org-esa-s2tbx-s2tbx-alosAV2-reader.jar
+7f25b4e55000-7f25b4e59000 r--s 0002a000 08:01 148554                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-rapideye-reader/commons-io/commons-io.jar
+7f25b4e59000-7f25b4e5e000 r--s 00041000 08:01 148556                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-rapideye-reader/commons-lang/commons-lang.jar
+7f25b4e5e000-7f25b4e65000 r--s 0002f000 08:01 148558                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-rapideye-reader/javax-xml-parsers/jaxp-api.jar
+7f25b4e65000-7f25b4e66000 r--s 00003000 08:01 148550                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-rapideye-reader/com-github-relaxng/relaxngDatatype.jar
+7f25b4e66000-7f25b4e67000 r--s 00004000 08:01 148562                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-rapideye-reader/relaxngDatatype/relaxngDatatype.jar
+7f25b4e67000-7f25b4e6e000 r--s 0005e000 08:01 148552                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-rapideye-reader/com-sun-xsom/xsom.jar
+7f25b4e6e000-7f25b4e72000 r--s 00112000 08:01 148560                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-rapideye-reader/net-java-dev-jna/jna.jar
+7f25b4e72000-7f25b4e76000 r--s 00091000 08:01 148660                     /home/tj/snap/s2tbx/modules/org-esa-s2tbx-s2tbx-rapideye-reader.jar
+7f25b4e76000-7f25b4e7a000 r--s 00112000 08:01 148508                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-jp2-writer/net-java-dev-jna/jna.jar
+7f25b4e7a000-7f25b4e7f000 r--s 00041000 08:01 148506                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-jp2-writer/commons-lang/commons-lang.jar
+7f25b4e7f000-7f25b4e81000 r--s 00008000 08:01 148651                     /home/tj/snap/s2tbx/modules/org-esa-s2tbx-s2tbx-jp2-writer.jar
+7f25b4e81000-7f25b4e83000 r--s 00019000 08:01 148663                     /home/tj/snap/s2tbx/modules/org-esa-s2tbx-s2tbx-s2msi-mci-ui.jar
+7f25b4e83000-7f25b4e88000 r--s 00041000 08:01 148469                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-deimos-reader/commons-lang/commons-lang.jar
+7f25b4e88000-7f25b4e8c000 r--s 00112000 08:01 148471                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-deimos-reader/net-java-dev-jna/jna.jar
+7f25b4e8c000-7f25b4e8e000 r--s 00007000 08:01 148642                     /home/tj/snap/s2tbx/modules/org-esa-s2tbx-s2tbx-deimos-reader.jar
+7f25b4e8e000-7f25b4e93000 r--s 00041000 08:01 148435                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-alosPRI-reader/commons-lang/commons-lang.jar
+7f25b4e93000-7f25b4e9a000 r--s 0002f000 08:01 148437                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-alosPRI-reader/javax-xml-parsers/jaxp-api.jar
+7f25b4e9a000-7f25b4e9b000 r--s 00003000 08:01 148431                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-alosPRI-reader/com-github-relaxng/relaxngDatatype.jar
+7f25b4e9b000-7f25b4e9c000 r--s 00004000 08:01 148439                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-alosPRI-reader/relaxngDatatype/relaxngDatatype.jar
+7f25b4e9c000-7f25b4ea3000 r--s 0005e000 08:01 148433                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-alosPRI-reader/com-sun-xsom/xsom.jar
+7f25b4ea3000-7f25b4ea5000 r--s 00007000 08:01 148635                     /home/tj/snap/s2tbx/modules/org-esa-s2tbx-s2tbx-alosPRI-reader.jar
+7f25b4ea5000-7f25b4ea6000 r--s 00001000 08:01 148638                     /home/tj/snap/s2tbx/modules/org-esa-s2tbx-s2tbx-cache.jar
+7f25b4ea6000-7f25b4ea7000 r--s 00002000 08:01 148664                     /home/tj/snap/s2tbx/modules/org-esa-s2tbx-s2tbx-s2msi-mci.jar
+7f25b4ea7000-7f25b4ea8000 r--s 00004000 08:01 148405                     /home/tj/snap/s2tbx/modules/docs/org-esa-s2tbx-s2tbx-biophysical.jar
+7f25b4ea8000-7f25b4eaa000 r--s 00009000 08:01 148442                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-biophysical/com-bc-jnn/jnn.jar
+7f25b4eaa000-7f25b4eac000 r--s 00148000 08:01 148636                     /home/tj/snap/s2tbx/modules/org-esa-s2tbx-s2tbx-biophysical.jar
+7f25b4eac000-7f25b4eb1000 r--s 00041000 08:01 148601                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-spot6-reader/commons-lang/commons-lang.jar
+7f25b4eb1000-7f25b4eb8000 r--s 0002f000 08:01 148603                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-spot6-reader/javax-xml-parsers/jaxp-api.jar
+7f25b4eb8000-7f25b4eb9000 r--s 00003000 08:01 148597                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-spot6-reader/com-github-relaxng/relaxngDatatype.jar
+7f25b4eb9000-7f25b4eba000 r--s 00004000 08:01 148605                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-spot6-reader/relaxngDatatype/relaxngDatatype.jar
+7f25b4eba000-7f25b4ec1000 r--s 0005e000 08:01 148599                     /home/tj/snap/s2tbx/modules/ext/org.esa.s2tbx.s2tbx-spot6-reader/com-sun-xsom/xsom.jar
+7f25b4ec1000-7f25b4ec3000 r--s 0000a000 08:01 148671                     /home/tj/snap/s2tbx/modules/org-esa-s2tbx-s2tbx-spot6-reader.jar
+7f25b4ec3000-7f25b4ec6000 r--s 00039000 08:01 148837                     /home/tj/snap/s1tbx/modules/org-esa-s1tbx-s1tbx-op-sar-processing.jar
+7f25b4ec6000-7f25b4ec7000 r--s 00068000 08:01 148827                     /home/tj/snap/s1tbx/modules/org-esa-s1tbx-s1tbx-kit.jar
+7f25b4ec7000-7f25b4ecd000 r--s 00066000 08:01 148833                     /home/tj/snap/s1tbx/modules/org-esa-s1tbx-s1tbx-op-insar-ui.jar
+7f25b4ecd000-7f25b4ed4000 r--s 00049000 08:01 148795                     /home/tj/snap/s1tbx/modules/ext/org.esa.s1tbx.s1tbx-op-sentinel1-ui/lucene/lucene.jar
+7f25b4ed4000-7f25b4ee0000 r--s 000b2000 08:01 148793                     /home/tj/snap/s1tbx/modules/ext/org.esa.s1tbx.s1tbx-op-sentinel1-ui/de-sciss/prefuse-core.jar
+7f25b4ee0000-7f25b4ee3000 r--s 00057000 08:01 148838                     /home/tj/snap/s1tbx/modules/org-esa-s1tbx-s1tbx-op-sentinel1-ui.jar
+7f25b4ee3000-7f25b4ee8000 r--s 001ac000 08:01 148836                     /home/tj/snap/s1tbx/modules/org-esa-s1tbx-s1tbx-op-sar-processing-ui.jar
+7f25b4ee8000-7f25b4ee9000 r--s 00006000 08:01 148749                     /home/tj/snap/s1tbx/modules/docs/com-iceye-esa-snap-iceye-slc-reader.jar
+7f25b4ee9000-7f25b4eea000 r--s 00004000 08:01 148747                     /home/tj/snap/s1tbx/modules/com-iceye-esa-snap-iceye-slc-reader.jar
+7f25b4eea000-7f25b4eed000 r--s 0002c000 08:01 148829                     /home/tj/snap/s1tbx/modules/org-esa-s1tbx-s1tbx-op-calibration-ui.jar
+7f25b4eed000-7f25b4ef0000 r--s 0002b000 08:01 148830                     /home/tj/snap/s1tbx/modules/org-esa-s1tbx-s1tbx-op-calibration.jar
+7f25b4ef0000-7f25b4ef3000 r--s 0003a000 08:01 148834                     /home/tj/snap/s1tbx/modules/org-esa-s1tbx-s1tbx-op-insar.jar
+7f25b4ef3000-7f25b4ef7000 r--s 00a1b000 08:01 148823                     /home/tj/snap/s1tbx/modules/ext/org.jlinda.jlinda-nest/org-jblas/jblas.jar
+7f25b4ef7000-7f25b4ef8000 r--s 00015000 08:01 148845                     /home/tj/snap/s1tbx/modules/org-jlinda-jlinda-nest.jar
+7f25b4ef8000-7f25b4efb000 r--s 00033000 08:01 148840                     /home/tj/snap/s1tbx/modules/org-esa-s1tbx-s1tbx-op-utilities-ui.jar
+7f25b4efb000-7f25b4f00000 r--s 0004f000 08:01 148812                     /home/tj/snap/s1tbx/modules/ext/org.jlinda.jlinda-core/com-googlecode-efficient-java-matrix-library/core.jar
+7f25b4f00000-7f25b4f07000 r--s 00064000 08:01 148818                     /home/tj/snap/s1tbx/modules/ext/org.jlinda.jlinda-core/org-apache-commons/commons-lang3.jar
+7f25b4f07000-7f25b4f2f000 r--s 00241000 08:01 148816                     /home/tj/snap/s1tbx/modules/ext/org.jlinda.jlinda-core/net-sf-trove4j/trove4j.jar
+7f25b4f2f000-7f25b4f3a000 r--s 00068000 08:01 148814                     /home/tj/snap/s1tbx/modules/ext/org.jlinda.jlinda-core/edu-emory-mathcs/jtransforms.jar
+7f25b4f3a000-7f25b4f3e000 r--s 00a1b000 08:01 148820                     /home/tj/snap/s1tbx/modules/ext/org.jlinda.jlinda-core/org-jblas/jblas.jar
+7f25b4f3e000-7f25b4f41000 r--s 0002e000 08:01 148843                     /home/tj/snap/s1tbx/modules/org-jlinda-jlinda-core.jar
+7f25b4f41000-7f25b4f42000 r--s 00000000 08:01 148806                     /home/tj/snap/s1tbx/modules/ext/org.esa.s1tbx.s1tbx-op-sentinel1/org-codehaus-mojo/animal-sniffer-annotations.jar
+7f25b4f42000-7f25b4f44000 r--s 00001000 08:01 148804                     /home/tj/snap/s1tbx/modules/ext/org.esa.s1tbx.s1tbx-op-sentinel1/com-google-j2objc/j2objc-annotations.jar
+7f25b4f44000-7f25b4f45000 r--s 00002000 08:01 148800                     /home/tj/snap/s1tbx/modules/ext/org.esa.s1tbx.s1tbx-op-sentinel1/com-google-errorprone/error_prone_annotations.jar
+7f25b4f45000-7f25b4f48000 r--s 00006000 08:01 148798                     /home/tj/snap/s1tbx/modules/ext/org.esa.s1tbx.s1tbx-op-sentinel1/com-google-code-findbugs/jsr305.jar
+7f25b4f48000-7f25b4f78000 r--s 0024f000 08:01 148802                     /home/tj/snap/s1tbx/modules/ext/org.esa.s1tbx.s1tbx-op-sentinel1/com-google-guava/guava.jar
+7f25b4f78000-7f25b4f7a000 r--s 00031000 08:01 148839                     /home/tj/snap/s1tbx/modules/org-esa-s1tbx-s1tbx-op-sentinel1.jar
+7f25b4f7a000-7f25b4f7c000 r--s 00021000 08:01 148844                     /home/tj/snap/s1tbx/modules/org-jlinda-jlinda-nest-ui.jar
+7f25b4f7c000-7f25b4f87000 r--s 00068000 08:01 148809                     /home/tj/snap/s1tbx/modules/ext/org.esa.s1tbx.s1tbx-op-utilities/edu-emory-mathcs/jtransforms.jar
+7f25b4f87000-7f25b4f89000 r--s 0000c000 08:01 148841                     /home/tj/snap/s1tbx/modules/org-esa-s1tbx-s1tbx-op-utilities.jar
+7f25b4f89000-7f25b4f8b000 r--s 0000b000 08:01 148750                     /home/tj/snap/s1tbx/modules/docs/org-esa-s1tbx-s1tbx-io.jar
+7f25b4f8b000-7f25b4f8c000 r--s 00005000 08:01 148787                     /home/tj/snap/s1tbx/modules/ext/org.esa.s1tbx.s1tbx-io/uk-me-jstott/jcoord.jar
+7f25b4f8c000-7f25b4f8d000 r--s 00000000 08:01 148785                     /home/tj/snap/s1tbx/modules/ext/org.esa.s1tbx.s1tbx-io/org-codehaus-mojo/animal-sniffer-annotations.jar
+7f25b4f8d000-7f25b4f8f000 r--s 00001000 08:01 148781                     /home/tj/snap/s1tbx/modules/ext/org.esa.s1tbx.s1tbx-io/com-google-j2objc/j2objc-annotations.jar
+7f25b4f8f000-7f25b4f90000 r--s 00002000 08:01 148777                     /home/tj/snap/s1tbx/modules/ext/org.esa.s1tbx.s1tbx-io/com-google-errorprone/error_prone_annotations.jar
+7f25b4f90000-7f25b4f93000 r--s 00006000 08:01 148775                     /home/tj/snap/s1tbx/modules/ext/org.esa.s1tbx.s1tbx-io/com-google-code-findbugs/jsr305.jar
+7f25b4f93000-7f25b4fc3000 r--s 0024f000 08:01 148779                     /home/tj/snap/s1tbx/modules/ext/org.esa.s1tbx.s1tbx-io/com-google-guava/guava.jar
+7f25b4fc3000-7f25b4fea000 r--s 001f6000 08:01 148783                     /home/tj/snap/s1tbx/modules/ext/org.esa.s1tbx.s1tbx-io/org-apache-commons/commons-math3.jar
+7f25b4fea000-7f25b4ff2000 r--s 00086000 08:01 148826                     /home/tj/snap/s1tbx/modules/org-esa-s1tbx-s1tbx-io.jar
+7f25b4ff2000-7f25b4ff5000 r--s 0004e000 08:01 148828                     /home/tj/snap/s1tbx/modules/org-esa-s1tbx-s1tbx-op-analysis-ui.jar
+7f25b4ff5000-7f25b4ffb000 r--s 001c3000 08:01 148842                     /home/tj/snap/s1tbx/modules/org-esa-s1tbx-s1tbx-rcp.jar
+7f25b4ffb000-7f25b4ffe000 r--s 00043000 08:01 148835                     /home/tj/snap/s1tbx/modules/org-esa-s1tbx-s1tbx-op-ocean-ui.jar
+7f25b4ffe000-7f25b4fff000 r--s 00005000 08:01 148754                     /home/tj/snap/s1tbx/modules/ext/org.esa.s1tbx.s1tbx-commons/com-googlecode-json-simple/json-simple.jar
+7f25b4fff000-7f25b5001000 r--s 00017000 08:01 148824                     /home/tj/snap/s1tbx/modules/org-esa-s1tbx-s1tbx-commons.jar
+7f25b5001000-7f25b500c000 r--s 00068000 08:01 148790                     /home/tj/snap/s1tbx/modules/ext/org.esa.s1tbx.s1tbx-op-feature-extraction/edu-emory-mathcs/jtransforms.jar
+7f25b500c000-7f25b500f000 r--s 0001b000 08:01 148832                     /home/tj/snap/s1tbx/modules/org-esa-s1tbx-s1tbx-op-feature-extraction.jar
+7f25b500f000-7f25b5016000 r--s 0003f000 08:01 148765                     /home/tj/snap/s1tbx/modules/ext/org.esa.s1tbx.s1tbx-io-ephemeris/commons-codec/commons-codec.jar
+7f25b5016000-7f25b501d000 r--s 00048000 08:01 148768                     /home/tj/snap/s1tbx/modules/ext/org.esa.s1tbx.s1tbx-io-ephemeris/org-apache-httpcomponents/httpcore.jar
+7f25b501d000-7f25b502a000 r--s 000a5000 08:01 148767                     /home/tj/snap/s1tbx/modules/ext/org.esa.s1tbx.s1tbx-io-ephemeris/org-apache-httpcomponents/httpclient.jar
+7f25b502a000-7f25b5030000 r--s 00047000 08:01 148772                     /home/tj/snap/s1tbx/modules/ext/org.esa.s1tbx.s1tbx-io-ephemeris/org-jsoup/jsoup.jar
+7f25b5030000-7f25b5031000 r--s 00000000 08:01 148770                     /home/tj/snap/s1tbx/modules/ext/org.esa.s1tbx.s1tbx-io-ephemeris/org-codehaus-mojo/animal-sniffer-annotations.jar
+7f25b5031000-7f25b5033000 r--s 00001000 08:01 148763                     /home/tj/snap/s1tbx/modules/ext/org.esa.s1tbx.s1tbx-io-ephemeris/com-google-j2objc/j2objc-annotations.jar
+7f25b5033000-7f25b5034000 r--s 00002000 08:01 148759                     /home/tj/snap/s1tbx/modules/ext/org.esa.s1tbx.s1tbx-io-ephemeris/com-google-errorprone/error_prone_annotations.jar
+7f25b5034000-7f25b5037000 r--s 00006000 08:01 148757                     /home/tj/snap/s1tbx/modules/ext/org.esa.s1tbx.s1tbx-io-ephemeris/com-google-code-findbugs/jsr305.jar
+7f25b5037000-7f25b5067000 r--s 0024f000 08:01 148761                     /home/tj/snap/s1tbx/modules/ext/org.esa.s1tbx.s1tbx-io-ephemeris/com-google-guava/guava.jar
+7f25b5067000-7f25b5069000 r--s 0000e000 08:01 148825                     /home/tj/snap/s1tbx/modules/org-esa-s1tbx-s1tbx-io-ephemeris.jar
+7f25b5069000-7f25b506d000 r--s 0006b000 08:01 148831                     /home/tj/snap/s1tbx/modules/org-esa-s1tbx-s1tbx-op-feature-extraction-ui.jar
+7f25b506d000-7f25b5070000 r--s 00017000 08:01 150129                     /home/tj/snap/snap/modules/org-esa-snap-ceres-binio.jar
+7f25b5070000-7f25b5072000 r--s 0000b000 08:01 149719                     /home/tj/snap/snap/modules/docs/org-esa-snap-snap-ndvi.jar
+7f25b5072000-7f25b5073000 r--s 00002000 08:01 150166                     /home/tj/snap/snap/modules/org-esa-snap-snap-ndvi.jar
+7f25b5073000-7f25b5079000 r--s 00044000 08:01 150141                     /home/tj/snap/snap/modules/org-esa-snap-snap-binning.jar
+7f25b5079000-7f25b507b000 r--s 00002000 08:01 149717                     /home/tj/snap/snap/modules/docs/org-esa-snap-snap-envi-reader.jar
+7f25b507b000-7f25b507d000 r--s 0000c000 08:01 150154                     /home/tj/snap/snap/modules/org-esa-snap-snap-envi-reader.jar
+7f25b507d000-7f25b5082000 r--s 00041000 08:01 150046                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-remote-execution/commons-lang/commons-lang.jar
+7f25b5082000-7f25b5083000 r--s 00005000 08:01 150042                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-remote-execution/com-googlecode-json-simple/json-simple.jar
+7f25b5083000-7f25b5088000 r--s 00040000 08:01 150044                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-remote-execution/com-jcraft/jsch.jar
+7f25b5088000-7f25b508b000 r--s 00011000 08:01 150179                     /home/tj/snap/snap/modules/org-esa-snap-snap-remote-execution.jar
+7f25b508b000-7f25b508d000 r--s 0000d000 08:01 149973                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-netcdf/commons-logging/commons-logging.jar
+7f25b508d000-7f25b508e000 r--s 00002000 08:01 149988                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-netcdf/org-slf4j/slf4j-simple.jar
+7f25b508e000-7f25b5090000 r--s 00005000 08:01 149987                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-netcdf/org-slf4j/slf4j-api.jar
+7f25b5090000-7f25b5092000 r--s 0001d000 08:01 149977                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-netcdf/edu-ucar/udunits.jar
+7f25b5092000-7f25b5094000 r--s 0001d000 08:01 149976                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-netcdf/edu-ucar/nujan.jar
+7f25b5094000-7f25b50b0000 r--s 001ed000 08:01 149965                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-netcdf/com-sleepycat/je.jar
+7f25b50b0000-7f25b50cb000 r--s 0012c000 08:01 149983                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-netcdf/net-sf-ehcache/ehcache-core.jar
+7f25b50cb000-7f25b50d3000 r--s 0007b000 08:01 149963                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-netcdf/com-google-protobuf/protobuf-java.jar
+7f25b50d3000-7f25b50de000 r--s 0008a000 08:01 149961                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-netcdf/c3p0/c3p0.jar
+7f25b50de000-7f25b50e7000 r--s 0007f000 08:01 149985                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-netcdf/org-quartz-scheduler/quartz.jar
+7f25b50e7000-7f25b50ea000 r--s 000c0000 08:01 149967                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-netcdf/com-sun-jna/jna.jar
+7f25b50ea000-7f25b50eb000 r--s 00000000 08:01 149981                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-netcdf/net-jcip/jcip-annotations.jar
+7f25b50eb000-7f25b50fb000 r--s 0007d000 08:01 149979                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-netcdf/joda-time/joda-time.jar
+7f25b50fb000-7f25b50fd000 r--s 00006000 08:01 149969                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-netcdf/commons-codec/commons-codec.jar
+7f25b50fd000-7f25b5103000 r--s 00045000 08:01 149971                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-netcdf/commons-httpclient/commons-httpclient.jar
+7f25b5103000-7f25b5135000 r--s 0042f000 08:01 149975                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-netcdf/edu-ucar/netcdf.jar
+7f25b5135000-7f25b5139000 r--s 0002a000 08:01 150167                     /home/tj/snap/snap/modules/org-esa-snap-snap-netcdf.jar
+7f25b5139000-7f25b513a000 r--s 00003000 08:01 150168                     /home/tj/snap/snap/modules/org-esa-snap-snap-pconvert.jar
+7f25b513a000-7f25b5144000 r--s 00074000 08:01 150159                     /home/tj/snap/snap/modules/org-esa-snap-snap-gpf.jar
+7f25b5144000-7f25b5145000 r--s 00003000 08:01 149718                     /home/tj/snap/snap/modules/docs/org-esa-snap-snap-geotiff.jar
+7f25b5145000-7f25b5147000 r--s 0000f000 08:01 150156                     /home/tj/snap/snap/modules/org-esa-snap-snap-geotiff.jar
+7f25b5147000-7f25b5156000 r--s 000c0000 08:01 150185                     /home/tj/snap/snap/modules/org-esa-snap-snap-tango.jar
+7f25b5156000-7f25b5158000 r--s 00002000 08:01 150189                     /home/tj/snap/snap/modules/org-esa-snap-snap-unmix.jar
+7f25b5158000-7f25b515a000 r--s 00011000 08:01 150171                     /home/tj/snap/snap/modules/org-esa-snap-snap-pixel-extraction.jar
+7f25b515a000-7f25b516e000 r--s 01141000 08:01 150162                     /home/tj/snap/snap/modules/org-esa-snap-snap-help.jar
+7f25b516e000-7f25b532c000 r--s 02191000 08:01 149955                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-jython/org-python/jython-standalone.jar
+7f25b532c000-7f25b532d000 r--s 00001000 08:01 150163                     /home/tj/snap/snap/modules/org-esa-snap-snap-jython.jar
+7f25b532d000-7f25b5332000 r--s 00041000 08:01 150039                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-remote-execution-ui/commons-lang/commons-lang.jar
+7f25b5332000-7f25b5333000 r--s 00005000 08:01 150037                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-remote-execution-ui/com-googlecode-json-simple/json-simple.jar
+7f25b5333000-7f25b5336000 r--s 00024000 08:01 150178                     /home/tj/snap/snap/modules/org-esa-snap-snap-remote-execution-ui.jar
+7f25b5336000-7f25b5337000 r--s 00005000 08:01 149958                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-land-cover/uk-me-jstott/jcoord.jar
+7f25b5337000-7f25b533a000 r--s 0001c000 08:01 150165                     /home/tj/snap/snap/modules/org-esa-snap-snap-land-cover.jar
+7f25b533a000-7f25b533d000 r--s 0000b000 08:01 149780                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-bigtiff/it-geosolutions-imageio-ext/imageio-ext-streams.jar
+7f25b533d000-7f25b533e000 r--s 00005000 08:01 149779                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-bigtiff/it-geosolutions-imageio-ext/imageio-ext-geocore.jar
+7f25b533e000-7f25b5340000 r--s 00009000 08:01 149782                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-bigtiff/it-geosolutions-imageio-ext/imageio-ext-utilities.jar
+7f25b5340000-7f25b5349000 r--s 0004e000 08:01 149781                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-bigtiff/it-geosolutions-imageio-ext/imageio-ext-tiff.jar
+7f25b5349000-7f25b534b000 r--s 0000f000 08:01 150139                     /home/tj/snap/snap/modules/org-esa-snap-snap-bigtiff.jar
+7f25b534b000-7f25b534f000 r--s 00015000 08:01 149899                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/net-coobird/thumbnailator.jar
+7f25b534f000-7f25b5360000 r--s 000b2000 08:01 149818                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/com-vividsolutions/jts.jar
+7f25b5360000-7f25b5366000 r--s 0003f000 08:01 149828                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/commons-net/commons-net.jar
+7f25b5366000-7f25b5369000 r--s 0000b000 08:01 149833                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/it-geosolutions-imageio-ext/imageio-ext-streams.jar
+7f25b5369000-7f25b536a000 r--s 00005000 08:01 149832                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/it-geosolutions-imageio-ext/imageio-ext-geocore.jar
+7f25b536a000-7f25b536c000 r--s 00009000 08:01 149835                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/it-geosolutions-imageio-ext/imageio-ext-utilities.jar
+7f25b536c000-7f25b5375000 r--s 0004e000 08:01 149834                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/it-geosolutions-imageio-ext/imageio-ext-tiff.jar
+7f25b5375000-7f25b537a000 r--s 0004f000 08:01 149816                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/com-googlecode-efficient-java-matrix-library/core.jar
+7f25b537a000-7f25b537d000 r--s 0001a000 08:01 149915                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/org-geotools-xsd/gt-xsd-gml2.jar
+7f25b537d000-7f25b5384000 r--s 000ec000 08:01 149910                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/org-eclipse-xsd/xsd.jar
+7f25b5384000-7f25b5394000 r--s 0011d000 08:01 149908                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/org-eclipse-emf/ecore.jar
+7f25b5394000-7f25b5398000 r--s 00030000 08:01 149907                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/org-eclipse-emf/common.jar
+7f25b5398000-7f25b539e000 r--s 00044000 08:01 149826                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/commons-jxpath/commons-jxpath.jar
+7f25b539e000-7f25b53a2000 r--s 00018000 08:01 149941                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/picocontainer/picocontainer.jar
+7f25b53a2000-7f25b53a7000 r--s 00025000 08:01 149924                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/org-geotools/gt-graph.jar
+7f25b53a7000-7f25b53ad000 r--s 00047000 08:01 149914                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/org-geotools-xsd/gt-xsd-core.jar
+7f25b53ad000-7f25b53c6000 r--s 00163000 08:01 149916                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/org-geotools-xsd/gt-xsd-gml3.jar
+7f25b53c6000-7f25b53ce000 r--s 00088000 08:01 149929                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/org-geotools/gt-render.jar
+7f25b53ce000-7f25b53d1000 r--s 00025000 08:01 149824                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/commons-io/commons-io.jar
+7f25b53d1000-7f25b53d3000 r--s 00013000 08:01 149905                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/org-apache-xml/xml-commons-resolver.jar
+7f25b53d3000-7f25b53dd000 r--s 00096000 08:01 149932                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/org-geotools/gt-xml.jar
+7f25b53dd000-7f25b53df000 r--s 00006000 08:01 149820                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/commons-codec/commons-codec.jar
+7f25b53df000-7f25b53e5000 r--s 00045000 08:01 149822                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/commons-httpclient/commons-httpclient.jar
+7f25b53e5000-7f25b53ea000 r--s 00034000 08:01 149931                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/org-geotools/gt-wms.jar
+7f25b53ea000-7f25b53ed000 r--s 0002e000 08:01 149920                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/org-geotools/gt-cql.jar
+7f25b53ed000-7f25b53ef000 r--s 00015000 08:01 149921                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/org-geotools/gt-data.jar
+7f25b53ef000-7f25b53f3000 r--s 00032000 08:01 149930                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/org-geotools/gt-shapefile.jar
+7f25b53f3000-7f25b5402000 r--s 00158000 08:01 149934                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/org-hsqldb/hsqldb.jar
+7f25b5402000-7f25b5403000 r--s 00238000 08:01 149922                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/org-geotools/gt-epsg-hsql.jar
+7f25b5403000-7f25b5405000 r--s 00003000 08:01 149891                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/it-geosolutions-jaiext-vectorbin/jt-vectorbin.jar
+7f25b5405000-7f25b5406000 r--s 00004000 08:01 149881                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/it-geosolutions-jaiext-rlookup/jt-rlookup.jar
+7f25b5406000-7f25b5407000 r--s 00004000 08:01 149853                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/it-geosolutions-jaiext-classifier/jt-classifier.jar
+7f25b5407000-7f25b5408000 r--s 00008000 08:01 149877                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/it-geosolutions-jaiext-piecewise/jt-piecewise.jar
+7f25b5408000-7f25b540a000 r--s 00002000 08:01 149865                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/it-geosolutions-jaiext-imagefunction/jt-imagefunction.jar
+7f25b540a000-7f25b540c000 r--s 00008000 08:01 149857                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/it-geosolutions-jaiext-colorindexer/jt-colorindexer.jar
+7f25b540c000-7f25b540e000 r--s 00005000 08:01 149875                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/it-geosolutions-jaiext-orderdither/jt-orderdither.jar
+7f25b540e000-7f25b540f000 r--s 00004000 08:01 149861                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/it-geosolutions-jaiext-errordiffusion/jt-errordiffusion.jar
+7f25b540f000-7f25b5410000 r--s 0000f000 08:01 149855                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/it-geosolutions-jaiext-colorconvert/jt-colorconvert.jar
+7f25b5410000-7f25b5411000 r--s 00001000 08:01 149863                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/it-geosolutions-jaiext-format/jt-format.jar
+7f25b5411000-7f25b5412000 r--s 00003000 08:01 149847                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/it-geosolutions-jaiext-binarize/jt-binarize.jar
+7f25b5412000-7f25b5414000 r--s 00007000 08:01 149895                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/it-geosolutions-jaiext-zonal/jt-zonal.jar
+7f25b5414000-7f25b5415000 r--s 0000f000 08:01 149893                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/it-geosolutions-jaiext-warp/jt-warp.jar
+7f25b5415000-7f25b5418000 r--s 0001e000 08:01 149889                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/it-geosolutions-jaiext-utilities/jt-utilities.jar
+7f25b5418000-7f25b5419000 r--s 00002000 08:01 149887                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/it-geosolutions-jaiext-translate/jt-translate.jar
+7f25b5419000-7f25b541b000 r--s 00007000 08:01 149885                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/it-geosolutions-jaiext-stats/jt-stats.jar
+7f25b541b000-7f25b541c000 r--s 00015000 08:01 149883                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/it-geosolutions-jaiext-scale/jt-scale.jar
+7f25b541c000-7f25b541d000 r--s 00004000 08:01 149879                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/it-geosolutions-jaiext-rescale/jt-rescale.jar
+7f25b541d000-7f25b541e000 r--s 00001000 08:01 149873                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/it-geosolutions-jaiext-nullop/jt-nullop.jar
+7f25b541e000-7f25b541f000 r--s 00007000 08:01 149871                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/it-geosolutions-jaiext-mosaic/jt-mosaic.jar
+7f25b541f000-7f25b5420000 r--s 00009000 08:01 149869                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/it-geosolutions-jaiext-lookup/jt-lookup.jar
+7f25b5420000-7f25b5421000 r--s 00005000 08:01 149867                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/it-geosolutions-jaiext-iterators/jt-iterators.jar
+7f25b5421000-7f25b5422000 r--s 00002000 08:01 149859                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/it-geosolutions-jaiext-crop/jt-crop.jar
+7f25b5422000-7f25b5423000 r--s 00004000 08:01 149851                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/it-geosolutions-jaiext-buffer/jt-buffer.jar
+7f25b5423000-7f25b5424000 r--s 00003000 08:01 149849                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/it-geosolutions-jaiext-border/jt-border.jar
+7f25b5424000-7f25b5425000 r--s 00003000 08:01 149841                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/it-geosolutions-jaiext-bandcombine/jt-bandcombine.jar
+7f25b5425000-7f25b5427000 r--s 00001000 08:01 149845                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/it-geosolutions-jaiext-bandselect/jt-bandselect.jar
+7f25b5427000-7f25b5429000 r--s 00007000 08:01 149843                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/it-geosolutions-jaiext-bandmerge/jt-bandmerge.jar
+7f25b5429000-7f25b542b000 r--s 0000b000 08:01 149839                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/it-geosolutions-jaiext-algebra/jt-algebra.jar
+7f25b542b000-7f25b542c000 r--s 0001c000 08:01 149837                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/it-geosolutions-jaiext-affine/jt-affine.jar
+7f25b542c000-7f25b5430000 r--s 0002e000 08:01 149936                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/org-jaitools/jt-utils.jar
+7f25b5430000-7f25b5431000 r--s 00004000 08:01 149937                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/org-jaitools/jt-zonalstats.jar
+7f25b5431000-7f25b5439000 r--s 00089000 08:01 149919                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/org-geotools/gt-coverage.jar
+7f25b5439000-7f25b543a000 r--s 00007000 08:01 149923                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/org-geotools/gt-geotiff.jar
+7f25b543a000-7f25b543b000 r--s 00007000 08:01 149903                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/net-sf-geographiclib/GeographicLib-Java.jar
+7f25b543b000-7f25b543c000 r--s 00002000 08:01 149897                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/jgridshift/jgridshift.jar
+7f25b543c000-7f25b543f000 r--s 00014000 08:01 149901                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/net-java-dev-jsr-275/jsr-275.jar
+7f25b543f000-7f25b544d000 r--s 00048000 08:01 149927                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/org-geotools/gt-opengis.jar
+7f25b544d000-7f25b5456000 r--s 00075000 08:01 149926                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/org-geotools/gt-metadata.jar
+7f25b5456000-7f25b5459000 r--s 00015000 08:01 149830                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/commons-pool/commons-pool.jar
+7f25b5459000-7f25b5469000 r--s 00116000 08:01 149928                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/org-geotools/gt-referencing.jar
+7f25b5469000-7f25b5483000 r--s 0018b000 08:01 149925                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/org-geotools/gt-main.jar
+7f25b5483000-7f25b5489000 r--s 0002e000 08:01 149918                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/org-geotools/gt-api.jar
+7f25b5489000-7f25b548b000 r--s 0001a000 08:01 149812                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/Jama/Jama.jar
+7f25b548b000-7f25b548d000 r--s 00009000 08:01 149814                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/com-bc-jnn/jnn.jar
+7f25b548d000-7f25b5490000 r--s 00023000 08:01 149939                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/org-jdom/jdom.jar
+7f25b5490000-7f25b54a7000 r--s 00165000 08:01 150148                     /home/tj/snap/snap/modules/org-esa-snap-snap-core.jar
+7f25b54a7000-7f25b54af000 r--s 0006e000 08:01 150172                     /home/tj/snap/snap/modules/org-esa-snap-snap-product-library-ui.jar
+7f25b54af000-7f25b54bc000 r--s 00083000 08:01 150052                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-sta-ui/commons-collections/commons-collections.jar
+7f25b54bc000-7f25b54c2000 r--s 000c2000 08:01 150182                     /home/tj/snap/snap/modules/org-esa-snap-snap-sta-ui.jar
+7f25b54c2000-7f25b54c4000 r--s 00001000 08:01 150126                     /home/tj/snap/snap/modules/net-java-html-sound.jar
+7f25b54c4000-7f25b54c5000 r--s 00005000 08:01 150028                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-python/org-jpy/jpy.jar
+7f25b54c5000-7f25b54c9000 r--s 00402000 08:01 150174                     /home/tj/snap/snap/modules/org-esa-snap-snap-python.jar
+7f25b54c9000-7f25b54ca000 r--s 00005000 08:01 149776                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-arcbingrid-reader/uk-me-jstott/jcoord.jar
+7f25b54ca000-7f25b54d6000 r--s 000a6000 08:01 149774                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-arcbingrid-reader/net-sourceforge-jexcelapi/jxl.jar
+7f25b54d6000-7f25b54d8000 r--s 00009000 08:01 150138                     /home/tj/snap/snap/modules/org-esa-snap-snap-arcbingrid-reader.jar
+7f25b54d8000-7f25b54d9000 r--s 00004000 08:01 150147                     /home/tj/snap/snap/modules/org-esa-snap-snap-collocation.jar
+7f25b54d9000-7f25b54db000 r--s 00042000 08:01 149720                     /home/tj/snap/snap/modules/docs/org-esa-snap-snap-smart-configurator-ui.jar
+7f25b54db000-7f25b54dd000 r--s 00007000 08:01 150180                     /home/tj/snap/snap/modules/org-esa-snap-snap-smart-configurator-ui.jar
+7f25b54dd000-7f25b54e1000 r--s 0001c000 08:01 150021                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-product-library/org-jasypt/jasypt.jar
+7f25b54e1000-7f25b54e7000 r--s 00045000 08:01 149995                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-product-library/commons-httpclient/commons-httpclient.jar
+7f25b54e7000-7f25b54fb000 r--s 000e3000 08:01 150023                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-product-library/xerces/xercesImpl.jar
+7f25b54fb000-7f25b5503000 r--s 00028000 08:01 150025                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-product-library/xml-apis/xml-apis.jar
+7f25b5503000-7f25b5509000 r--s 00032000 08:01 149997                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-product-library/jaxen/jaxen.jar
+7f25b5509000-7f25b550d000 r--s 00029000 08:01 150018                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-product-library/org-codehaus-woodstox/stax2-api.jar
+7f25b550d000-7f25b5512000 r--s 00070000 08:01 150019                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-product-library/org-codehaus-woodstox/woodstox-core-asl.jar
+7f25b5512000-7f25b5516000 r--s 00026000 08:01 150016                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-product-library/org-apache-ws-commons-axiom/axiom-impl.jar
+7f25b5516000-7f25b5519000 r--s 00015000 08:01 150010                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-product-library/org-apache-james/apache-mime4j-core.jar
+7f25b5519000-7f25b551e000 r--s 00032000 08:01 150007                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-product-library/org-apache-geronimo-specs/geronimo-javamail_1.4_spec.jar
+7f25b551e000-7f25b5528000 r--s 0005d000 08:01 150015                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-product-library/org-apache-ws-commons-axiom/axiom-api.jar
+7f25b5528000-7f25b552b000 r--s 0014e000 08:01 150002                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-product-library/org-apache-abdera/abdera-parser.jar
+7f25b552b000-7f25b552e000 r--s 0000d000 08:01 149999                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-product-library/org-apache-abdera/abdera-client.jar
+7f25b552e000-7f25b5530000 r--s 00006000 08:01 150008                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-product-library/org-apache-geronimo-specs/geronimo-stax-api_1.0_spec.jar
+7f25b5530000-7f25b5532000 r--s 0000a000 08:01 150006                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-product-library/org-apache-geronimo-specs/geronimo-activation_1.1_spec.jar
+7f25b5532000-7f25b5536000 r--s 00094000 08:01 150001                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-product-library/org-apache-abdera/abdera-i18n.jar
+7f25b5536000-7f25b553a000 r--s 00024000 08:01 150000                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-product-library/org-apache-abdera/abdera-core.jar
+7f25b553a000-7f25b553f000 r--s 0002f000 08:01 149991                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-product-library/com-google-code-gson/gson.jar
+7f25b553f000-7f25b5545000 r--s 00033000 08:01 149993                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-product-library/commons-codec/commons-codec.jar
+7f25b5545000-7f25b554e000 r--s 0008a000 08:01 150013                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-product-library/org-apache-olingo/olingo-odata2-core.jar
+7f25b554e000-7f25b5557000 r--s 00029000 08:01 150012                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-product-library/org-apache-olingo/olingo-odata2-api.jar
+7f25b5557000-7f25b5581000 r--s 002cc000 08:01 150004                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-product-library/org-apache-derby/derby.jar
+7f25b5581000-7f25b5583000 r--s 00013000 08:01 150173                     /home/tj/snap/snap/modules/org-esa-snap-snap-product-library.jar
+7f25b5583000-7f25b5585000 r--s 0000e000 08:01 150176                     /home/tj/snap/snap/modules/org-esa-snap-snap-raster.jar
+7f25b5585000-7f25b5594000 r--s 00064000 08:01 150155                     /home/tj/snap/snap/modules/org-esa-snap-snap-envisat-reader.jar
+7f25b5594000-7f25b5595000 r--s 00002000 08:01 150125                     /home/tj/snap/snap/modules/net-java-html-boot-script.jar
+7f25b5595000-7f25b5596000 r--s 00000000 08:01 150142                     /home/tj/snap/snap/modules/org-esa-snap-snap-branding.jar
+7f25b5596000-7f25b5599000 r--s 00011000 08:01 150184                     /home/tj/snap/snap/modules/org-esa-snap-snap-statistics.jar
+7f25b5599000-7f25b559b000 r--s 00003000 08:01 150100                     /home/tj/snap/snap/modules/jcl-over-slf4j.jar
+7f25b559b000-7f25b559c000 r--s 00002000 08:01 150169                     /home/tj/snap/snap/modules/org-esa-snap-snap-pgx-reader.jar
+7f25b559c000-7f25b559f000 r--s 00010000 08:01 150059                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-sta/werken-xpath/werken-xpath.jar
+7f25b559f000-7f25b55a1000 r--s 0000e000 08:01 150057                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-sta/oro/oro.jar
+7f25b55a1000-7f25b55ae000 r--s 00083000 08:01 150055                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-sta/commons-collections/commons-collections.jar
+7f25b55ae000-7f25b55b1000 r--s 0001c000 08:01 150183                     /home/tj/snap/snap/modules/org-esa-snap-snap-sta.jar
+7f25b55b1000-7f25b55b3000 r--s 0003d000 08:01 149716                     /home/tj/snap/snap/modules/docs/org-esa-snap-snap-cluster-analysis.jar
+7f25b55b3000-7f25b55b8000 r--s 0004f000 08:01 149809                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-cluster-analysis/com-googlecode-efficient-java-matrix-library/core.jar
+7f25b55b8000-7f25b55bb000 r--s 00010000 08:01 150145                     /home/tj/snap/snap/modules/org-esa-snap-snap-cluster-analysis.jar
+7f25b55bb000-7f25b55bc000 r--s 00008000 08:01 150049                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-smart-configurator/org-esa-snap/snap-runtime.jar
+7f25b55bc000-7f25b55bd000 r--s 00007000 08:01 150181                     /home/tj/snap/snap/modules/org-esa-snap-snap-smart-configurator.jar
+7f25b55bd000-7f25b55c4000 r--s 000b2000 08:01 149766                     /home/tj/snap/snap/modules/ext/org.esa.snap.ceres-jai/rhino/js.jar
+7f25b55c4000-7f25b55c7000 r--s 0000b000 08:01 149756                     /home/tj/snap/snap/modules/ext/org.esa.snap.ceres-jai/it-geosolutions-imageio-ext/imageio-ext-streams.jar
+7f25b55c7000-7f25b55c8000 r--s 00005000 08:01 149755                     /home/tj/snap/snap/modules/ext/org.esa.snap.ceres-jai/it-geosolutions-imageio-ext/imageio-ext-geocore.jar
+7f25b55c8000-7f25b55ca000 r--s 00009000 08:01 149758                     /home/tj/snap/snap/modules/ext/org.esa.snap.ceres-jai/it-geosolutions-imageio-ext/imageio-ext-utilities.jar
+7f25b55ca000-7f25b55d3000 r--s 0004e000 08:01 149757                     /home/tj/snap/snap/modules/ext/org.esa.snap.ceres-jai/it-geosolutions-imageio-ext/imageio-ext-tiff.jar
+7f25b55d3000-7f25b55e4000 r--s 000bc000 08:01 149753                     /home/tj/snap/snap/modules/ext/org.esa.snap.ceres-jai/com-sun-media/jai-imageio.jar
+7f25b55e4000-7f25b55e6000 r--s 0000f000 08:01 149752                     /home/tj/snap/snap/modules/ext/org.esa.snap.ceres-jai/com-sun-media/clibwrapper-jiio.jar
+7f25b55e6000-7f25b55e8000 r--s 0000a000 08:01 149762                     /home/tj/snap/snap/modules/ext/org.esa.snap.ceres-jai/javax-media-jai/mlibwrapper-jai.jar
+7f25b55e8000-7f25b55ec000 r--s 0003c000 08:01 149760                     /home/tj/snap/snap/modules/ext/org.esa.snap.ceres-jai/javax-media-jai/jai-codec.jar
+7f25b55ec000-7f25b5600000 r--s 001bd000 08:01 149761                     /home/tj/snap/snap/modules/ext/org.esa.snap.ceres-jai/javax-media-jai/jai-core.jar
+7f25b5600000-7f25b5605000 r--s 00044000 08:01 149764                     /home/tj/snap/snap/modules/ext/org.esa.snap.ceres-jai/org-jdom/jdom2.jar
+7f25b5605000-7f25b5608000 r--s 00016000 08:01 150132                     /home/tj/snap/snap/modules/org-esa-snap-ceres-jai.jar
+7f25b5608000-7f25b560a000 r--s 0000a000 08:01 150186                     /home/tj/snap/snap/modules/org-esa-snap-snap-temporal-percentile.jar
+7f25b560a000-7f25b560c000 r--s 00004000 08:01 150133                     /home/tj/snap/snap/modules/org-esa-snap-ceres-metadata.jar
+7f25b560c000-7f25b560e000 r--s 0004d000 08:01 150193                     /home/tj/snap/snap/modules/org-esa-snap-snap-watermask-ui.jar
+7f25b560e000-7f25b5610000 r--s 00173000 08:01 150194                     /home/tj/snap/snap/modules/org-esa-snap-snap-watermask.jar
+7f25b5610000-7f25b5615000 r--s 00041000 08:01 150062                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-virtual-file-system-ui/commons-lang/commons-lang.jar
+7f25b5615000-7f25b5616000 r--s 00006000 08:01 150191                     /home/tj/snap/snap/modules/org-esa-snap-snap-virtual-file-system-ui.jar
+7f25b5616000-7f25b561f000 r--s 00073000 08:01 149744                     /home/tj/snap/snap/modules/ext/org.esa.snap.ceres-core/org-jfree/jcommon.jar
+7f25b561f000-7f25b562f000 r--s 00155000 08:01 149745                     /home/tj/snap/snap/modules/ext/org.esa.snap.ceres-core/org-jfree/jfreechart.jar
+7f25b562f000-7f25b5637000 r--s 00066000 08:01 149740                     /home/tj/snap/snap/modules/ext/org.esa.snap.ceres-core/org-apache-velocity/velocity.jar
+7f25b5637000-7f25b5644000 r--s 00083000 08:01 149732                     /home/tj/snap/snap/modules/ext/org.esa.snap.ceres-core/commons-collections/commons-collections.jar
+7f25b5644000-7f25b5662000 r--s 00180000 08:01 149738                     /home/tj/snap/snap/modules/ext/org.esa.snap.ceres-core/org-apache-commons/commons-math3.jar
+7f25b5662000-7f25b5664000 r--s 00009000 08:01 149730                     /home/tj/snap/snap/modules/ext/org.esa.snap.ceres-core/commons-cli/commons-cli.jar
+7f25b5664000-7f25b5666000 r--s 0000d000 08:01 149736                     /home/tj/snap/snap/modules/ext/org.esa.snap.ceres-core/commons-logging/commons-logging.jar
+7f25b5666000-7f25b566b000 r--s 00041000 08:01 149734                     /home/tj/snap/snap/modules/ext/org.esa.snap.ceres-core/commons-lang/commons-lang.jar
+7f25b566b000-7f25b5670000 r--s 00044000 08:01 149742                     /home/tj/snap/snap/modules/ext/org.esa.snap.ceres-core/org-jdom/jdom2.jar
+7f25b5670000-7f25b5672000 r--s 00005000 08:01 149749                     /home/tj/snap/snap/modules/ext/org.esa.snap.ceres-core/xpp3/xpp3_min.jar
+7f25b5672000-7f25b5673000 r--s 00001000 08:01 149747                     /home/tj/snap/snap/modules/ext/org.esa.snap.ceres-core/xmlpull/xmlpull.jar
+7f25b5673000-7f25b5680000 r--s 00077000 08:01 149728                     /home/tj/snap/snap/modules/ext/org.esa.snap.ceres-core/com-thoughtworks-xstream/xstream.jar
+7f25b5680000-7f25b5685000 r--s 00036000 08:01 150130                     /home/tj/snap/snap/modules/org-esa-snap-ceres-core.jar
+7f25b5685000-7f25b5687000 r--s 0000d000 08:01 149725                     /home/tj/snap/snap/modules/ext/ncsa.hdf.lib-hdf/ncsa-hdf/jhdf5.jar
+7f25b5687000-7f25b5689000 r--s 00008000 08:01 149724                     /home/tj/snap/snap/modules/ext/ncsa.hdf.lib-hdf/ncsa-hdf/jhdf.jar
+7f25b5689000-7f25b568b000 r--s 009c1000 08:01 150124                     /home/tj/snap/snap/modules/ncsa-hdf-lib-hdf.jar
+7f25b568b000-7f25b568d000 r--s 00005000 08:01 150164                     /home/tj/snap/snap/modules/org-esa-snap-snap-land-cover-ui.jar
+7f25b568d000-7f25b5692000 r--s 00041000 08:01 149952                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-graph-builder/commons-lang/commons-lang.jar
+7f25b5692000-7f25b5699000 r--s 00063000 08:01 150160                     /home/tj/snap/snap/modules/org-esa-snap-snap-graph-builder.jar
+7f25b5699000-7f25b56a7000 r--s 00deb000 08:01 150127                     /home/tj/snap/snap/modules/org-esa-snap-blue-marble-worldmap.jar
+7f25b56a7000-7f25b56a8000 r--s 00004000 08:01 150157                     /home/tj/snap/snap/modules/org-esa-snap-snap-getasse30-dem.jar
+7f25b56a8000-7f25b56ab000 r--s 0000e000 08:01 150143                     /home/tj/snap/snap/modules/org-esa-snap-snap-classification-ui.jar
+7f25b56ab000-7f25b56b9000 r--s 01bdf000 08:01 150135                     /home/tj/snap/snap/modules/org-esa-snap-globcover-worldmap.jar
+7f25b56b9000-7f25b56bc000 r--s 0012c000 08:01 150190                     /home/tj/snap/snap/modules/org-esa-snap-snap-virtual-file-system-preferences-ui.jar
+7f25b56bc000-7f25b56bf000 r--s 00014000 08:01 150128                     /home/tj/snap/snap/modules/org-esa-snap-ceres-binding.jar
+7f25b56bf000-7f25b56c3000 r--s 00022000 08:01 150131                     /home/tj/snap/snap/modules/org-esa-snap-ceres-glayer.jar
+7f25b56c3000-7f25b56c6000 r--s 0003d000 08:01 150175                     /home/tj/snap/snap/modules/org-esa-snap-snap-raster-ui.jar
+7f25b56c6000-7f25b56ca000 r--s 0002a000 08:01 149947                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-engine-utilities/commons-io/commons-io.jar
+7f25b56ca000-7f25b56cd000 r--s 00022000 08:01 150153                     /home/tj/snap/snap/modules/org-esa-snap-snap-engine-utilities.jar
+7f25b56cd000-7f25b56d3000 r--s 00047000 08:01 149944                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-dem/org-jsoup/jsoup.jar
+7f25b56d3000-7f25b5734000 r--s 00873000 08:01 149804                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-classification/nz-ac-waikato-cms-weka/weka-dev.jar
+7f25b5734000-7f25b5763000 r--s 00239000 08:01 149789                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-classification/com-google-guava/guava.jar
+7f25b5763000-7f25b5779000 r-xp 00000000 08:01 147858                     /home/tj/snap/jre/lib/amd64/libnet.so
+7f25b5779000-7f25b5979000 ---p 00016000 08:01 147858                     /home/tj/snap/jre/lib/amd64/libnet.so
+7f25b5979000-7f25b597a000 r--p 00016000 08:01 147858                     /home/tj/snap/jre/lib/amd64/libnet.so
+7f25b597a000-7f25b597b000 rw-p 00017000 08:01 147858                     /home/tj/snap/jre/lib/amd64/libnet.so
+7f25b597b000-7f25b598c000 r-xp 00000000 08:01 147855                     /home/tj/snap/jre/lib/amd64/libnio.so
+7f25b598c000-7f25b5b8b000 ---p 00011000 08:01 147855                     /home/tj/snap/jre/lib/amd64/libnio.so
+7f25b5b8b000-7f25b5b8c000 r--p 00010000 08:01 147855                     /home/tj/snap/jre/lib/amd64/libnio.so
+7f25b5b8c000-7f25b5b8d000 rw-p 00011000 08:01 147855                     /home/tj/snap/jre/lib/amd64/libnio.so
+7f25b5b8d000-7f25b5bb4000 r--s 001b2000 08:01 150272                     /home/tj/snap/.install4j/i4jruntime.jar
+7f25b5bb4000-7f25b5bb5000 ---p 00000000 00:00 0 
+7f25b5bb5000-7f25b5cb5000 rw-p 00000000 00:00 0 
+7f25b5cb5000-7f25b5cb8000 ---p 00000000 00:00 0 
+7f25b5cb8000-7f25b5db6000 rw-p 00000000 00:00 0 
+7f25b5db6000-7f25b5db7000 ---p 00000000 00:00 0 
+7f25b5db7000-7f25b5dba000 ---p 00000000 00:00 0 
+7f25b5dba000-7f25b5eb7000 rw-p 00000000 00:00 0 
+7f25b5eb7000-7f25b5eb8000 ---p 00000000 00:00 0 
+7f25b5eb8000-7f25b5ebb000 ---p 00000000 00:00 0 
+7f25b5ebb000-7f25b5fb8000 rw-p 00000000 00:00 0 
+7f25b5fb8000-7f25b5fb9000 ---p 00000000 00:00 0 
+7f25b5fb9000-7f25b5fbc000 ---p 00000000 00:00 0 
+7f25b5fbc000-7f25b60b9000 rw-p 00000000 00:00 0 
+7f25b60b9000-7f25b60bc000 ---p 00000000 00:00 0 
+7f25b60bc000-7f25b61ba000 rw-p 00000000 00:00 0 
+7f25b61ba000-7f25b6b89000 r--p 00000000 08:01 793268                     /usr/lib/locale/locale-archive
+7f25b6b89000-7f25b6b8c000 ---p 00000000 00:00 0 
+7f25b6b8c000-7f25b6c8a000 rw-p 00000000 00:00 0 
+7f25b6c8a000-7f25b6c8d000 ---p 00000000 00:00 0 
+7f25b6c8d000-7f25b6d8b000 rw-p 00000000 00:00 0 
+7f25b6d8b000-7f25b6d8c000 ---p 00000000 00:00 0 
+7f25b6d8c000-7f25b8000000 rw-p 00000000 00:00 0 
+7f25b8000000-7f25b8021000 rw-p 00000000 00:00 0 
+7f25b8021000-7f25bc000000 ---p 00000000 00:00 0 
+7f25bc000000-7f25bc001000 r--s 00000000 08:01 150152                     /home/tj/snap/snap/modules/org-esa-snap-snap-engine-kit.jar
+7f25bc001000-7f25bc002000 r--s 00004000 08:01 150161                     /home/tj/snap/snap/modules/org-esa-snap-snap-hdf5-writer.jar
+7f25bc002000-7f25bc005000 r--s 00016000 08:01 150151                     /home/tj/snap/snap/modules/org-esa-snap-snap-dem.jar
+7f25bc005000-7f25bc00d000 r--s 00056000 08:01 149795                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-classification/net-sf/javaml.jar
+7f25bc00d000-7f25bc01f000 r--s 00112000 08:01 149797                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-classification/net-sourceforge-f2j/arpack_combined_all.jar
+7f25bc01f000-7f25bc4f6000 rw-p 00000000 00:00 0 
+7f25bc4f6000-7f25bc6cf000 r--s 03d22000 08:01 148091                     /home/tj/snap/jre/lib/rt.jar
+7f25bc6cf000-7f25be3c8000 rw-p 00000000 00:00 0 
+7f25be3c8000-7f25be3c9000 ---p 00000000 00:00 0 
+7f25be3c9000-7f25be4c9000 rw-p 00000000 00:00 0 
+7f25be4c9000-7f25be4ca000 ---p 00000000 00:00 0 
+7f25be4ca000-7f25be5ca000 rw-p 00000000 00:00 0 
+7f25be5ca000-7f25be5cb000 ---p 00000000 00:00 0 
+7f25be5cb000-7f25be6cb000 rw-p 00000000 00:00 0 
+7f25be6cb000-7f25be6cc000 ---p 00000000 00:00 0 
+7f25be6cc000-7f25be7cc000 rw-p 00000000 00:00 0 
+7f25be7cc000-7f25be7cd000 ---p 00000000 00:00 0 
+7f25be7cd000-7f25bf542000 rw-p 00000000 00:00 0 
+7f25bf542000-7f25bf623000 ---p 00000000 00:00 0 
+7f25bf623000-7f25c0298000 rw-p 00000000 00:00 0 
+7f25c0298000-7f25c0378000 ---p 00000000 00:00 0 
+7f25c0378000-7f25c09fd000 rw-p 00000000 00:00 0 
+7f25c09fd000-7f25c0a23000 ---p 00000000 00:00 0 
+7f25c0a23000-7f25c0a66000 rw-p 00000000 00:00 0 
+7f25c0a66000-7f25c0de4000 ---p 00000000 00:00 0 
+7f25c0de4000-7f25c1e44000 rwxp 00000000 00:00 0 
+7f25c1e44000-7f25cfde4000 ---p 00000000 00:00 0 
+7f25cfde4000-7f25cfdff000 r-xp 00000000 08:01 147850                     /home/tj/snap/jre/lib/amd64/libzip.so
+7f25cfdff000-7f25cfffe000 ---p 0001b000 08:01 147850                     /home/tj/snap/jre/lib/amd64/libzip.so
+7f25cfffe000-7f25cffff000 r--p 0001a000 08:01 147850                     /home/tj/snap/jre/lib/amd64/libzip.so
+7f25cffff000-7f25d0000000 rw-p 0001b000 08:01 147850                     /home/tj/snap/jre/lib/amd64/libzip.so
+7f25d0000000-7f25d4000000 rw-p 00000000 00:00 0 
+7f25d4000000-7f25d4002000 r--s 00009000 08:01 150149                     /home/tj/snap/snap/modules/org-esa-snap-snap-csv-dataio.jar
+7f25d4002000-7f25d4003000 ---p 00000000 00:00 0 
+7f25d4003000-7f25d4103000 rw-p 00000000 00:00 0 
+7f25d4103000-7f25d410e000 r-xp 00000000 08:01 1185859                    /lib/x86_64-linux-gnu/libnss_files-2.27.so
+7f25d410e000-7f25d430d000 ---p 0000b000 08:01 1185859                    /lib/x86_64-linux-gnu/libnss_files-2.27.so
+7f25d430d000-7f25d430e000 r--p 0000a000 08:01 1185859                    /lib/x86_64-linux-gnu/libnss_files-2.27.so
+7f25d430e000-7f25d430f000 rw-p 0000b000 08:01 1185859                    /lib/x86_64-linux-gnu/libnss_files-2.27.so
+7f25d430f000-7f25d4315000 rw-p 00000000 00:00 0 
+7f25d4315000-7f25d432c000 r-xp 00000000 08:01 1185853                    /lib/x86_64-linux-gnu/libnsl-2.27.so
+7f25d432c000-7f25d452b000 ---p 00017000 08:01 1185853                    /lib/x86_64-linux-gnu/libnsl-2.27.so
+7f25d452b000-7f25d452c000 r--p 00016000 08:01 1185853                    /lib/x86_64-linux-gnu/libnsl-2.27.so
+7f25d452c000-7f25d452d000 rw-p 00017000 08:01 1185853                    /lib/x86_64-linux-gnu/libnsl-2.27.so
+7f25d452d000-7f25d452f000 rw-p 00000000 00:00 0 
+7f25d452f000-7f25d453a000 r-xp 00000000 08:01 1185870                    /lib/x86_64-linux-gnu/libnss_nis-2.27.so
+7f25d453a000-7f25d4739000 ---p 0000b000 08:01 1185870                    /lib/x86_64-linux-gnu/libnss_nis-2.27.so
+7f25d4739000-7f25d473a000 r--p 0000a000 08:01 1185870                    /lib/x86_64-linux-gnu/libnss_nis-2.27.so
+7f25d473a000-7f25d473b000 rw-p 0000b000 08:01 1185870                    /lib/x86_64-linux-gnu/libnss_nis-2.27.so
+7f25d473b000-7f25d4743000 r-xp 00000000 08:01 1185855                    /lib/x86_64-linux-gnu/libnss_compat-2.27.so
+7f25d4743000-7f25d4943000 ---p 00008000 08:01 1185855                    /lib/x86_64-linux-gnu/libnss_compat-2.27.so
+7f25d4943000-7f25d4944000 r--p 00008000 08:01 1185855                    /lib/x86_64-linux-gnu/libnss_compat-2.27.so
+7f25d4944000-7f25d4945000 rw-p 00009000 08:01 1185855                    /lib/x86_64-linux-gnu/libnss_compat-2.27.so
+7f25d4945000-7f25d4971000 r-xp 00000000 08:01 147876                     /home/tj/snap/jre/lib/amd64/libjava.so
+7f25d4971000-7f25d4b70000 ---p 0002c000 08:01 147876                     /home/tj/snap/jre/lib/amd64/libjava.so
+7f25d4b70000-7f25d4b71000 r--p 0002b000 08:01 147876                     /home/tj/snap/jre/lib/amd64/libjava.so
+7f25d4b71000-7f25d4b73000 rw-p 0002c000 08:01 147876                     /home/tj/snap/jre/lib/amd64/libjava.so
+7f25d4b73000-7f25d4b80000 r-xp 00000000 08:01 147892                     /home/tj/snap/jre/lib/amd64/libverify.so
+7f25d4b80000-7f25d4d7f000 ---p 0000d000 08:01 147892                     /home/tj/snap/jre/lib/amd64/libverify.so
+7f25d4d7f000-7f25d4d81000 r--p 0000c000 08:01 147892                     /home/tj/snap/jre/lib/amd64/libverify.so
+7f25d4d81000-7f25d4d82000 rw-p 0000e000 08:01 147892                     /home/tj/snap/jre/lib/amd64/libverify.so
+7f25d4d82000-7f25d4d89000 r-xp 00000000 08:01 1185910                    /lib/x86_64-linux-gnu/librt-2.27.so
+7f25d4d89000-7f25d4f88000 ---p 00007000 08:01 1185910                    /lib/x86_64-linux-gnu/librt-2.27.so
+7f25d4f88000-7f25d4f89000 r--p 00006000 08:01 1185910                    /lib/x86_64-linux-gnu/librt-2.27.so
+7f25d4f89000-7f25d4f8a000 rw-p 00007000 08:01 1185910                    /lib/x86_64-linux-gnu/librt-2.27.so
+7f25d4f8a000-7f25d5127000 r-xp 00000000 08:01 1185832                    /lib/x86_64-linux-gnu/libm-2.27.so
+7f25d5127000-7f25d5326000 ---p 0019d000 08:01 1185832                    /lib/x86_64-linux-gnu/libm-2.27.so
+7f25d5326000-7f25d5327000 r--p 0019c000 08:01 1185832                    /lib/x86_64-linux-gnu/libm-2.27.so
+7f25d5327000-7f25d5328000 rw-p 0019d000 08:01 1185832                    /lib/x86_64-linux-gnu/libm-2.27.so
+7f25d5328000-7f25d6010000 r-xp 00000000 08:01 147866                     /home/tj/snap/jre/lib/amd64/server/libjvm.so
+7f25d6010000-7f25d620f000 ---p 00ce8000 08:01 147866                     /home/tj/snap/jre/lib/amd64/server/libjvm.so
+7f25d620f000-7f25d62a5000 r--p 00ce7000 08:01 147866                     /home/tj/snap/jre/lib/amd64/server/libjvm.so
+7f25d62a5000-7f25d62d6000 rw-p 00d7d000 08:01 147866                     /home/tj/snap/jre/lib/amd64/server/libjvm.so
+7f25d62d6000-7f25d6311000 rw-p 00000000 00:00 0 
+7f25d6311000-7f25d64f8000 r-xp 00000000 08:01 1185769                    /lib/x86_64-linux-gnu/libc-2.27.so
+7f25d64f8000-7f25d66f8000 ---p 001e7000 08:01 1185769                    /lib/x86_64-linux-gnu/libc-2.27.so
+7f25d66f8000-7f25d66fc000 r--p 001e7000 08:01 1185769                    /lib/x86_64-linux-gnu/libc-2.27.so
+7f25d66fc000-7f25d66fe000 rw-p 001eb000 08:01 1185769                    /lib/x86_64-linux-gnu/libc-2.27.so
+7f25d66fe000-7f25d6702000 rw-p 00000000 00:00 0 
+7f25d6702000-7f25d6705000 r-xp 00000000 08:01 1185792                    /lib/x86_64-linux-gnu/libdl-2.27.so
+7f25d6705000-7f25d6904000 ---p 00003000 08:01 1185792                    /lib/x86_64-linux-gnu/libdl-2.27.so
+7f25d6904000-7f25d6905000 r--p 00002000 08:01 1185792                    /lib/x86_64-linux-gnu/libdl-2.27.so
+7f25d6905000-7f25d6906000 rw-p 00003000 08:01 1185792                    /lib/x86_64-linux-gnu/libdl-2.27.so
+7f25d6906000-7f25d691d000 r-xp 00000000 08:01 147869                     /home/tj/snap/jre/lib/amd64/jli/libjli.so
+7f25d691d000-7f25d6b1c000 ---p 00017000 08:01 147869                     /home/tj/snap/jre/lib/amd64/jli/libjli.so
+7f25d6b1c000-7f25d6b1d000 r--p 00016000 08:01 147869                     /home/tj/snap/jre/lib/amd64/jli/libjli.so
+7f25d6b1d000-7f25d6b1e000 rw-p 00017000 08:01 147869                     /home/tj/snap/jre/lib/amd64/jli/libjli.so
+7f25d6b1e000-7f25d6b38000 r-xp 00000000 08:01 1185902                    /lib/x86_64-linux-gnu/libpthread-2.27.so
+7f25d6b38000-7f25d6d37000 ---p 0001a000 08:01 1185902                    /lib/x86_64-linux-gnu/libpthread-2.27.so
+7f25d6d37000-7f25d6d38000 r--p 00019000 08:01 1185902                    /lib/x86_64-linux-gnu/libpthread-2.27.so
+7f25d6d38000-7f25d6d39000 rw-p 0001a000 08:01 1185902                    /lib/x86_64-linux-gnu/libpthread-2.27.so
+7f25d6d39000-7f25d6d3d000 rw-p 00000000 00:00 0 
+7f25d6d3d000-7f25d6d64000 r-xp 00000000 08:01 1185741                    /lib/x86_64-linux-gnu/ld-2.27.so
+7f25d6d64000-7f25d6d65000 r--s 00008000 08:01 149949                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-engine-utilities/org-esa-snap/snap-runtime.jar
+7f25d6d65000-7f25d6d68000 r--s 00020000 08:01 149785                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-classification/be-abeel/ajt.jar
+7f25d6d68000-7f25d6d69000 r--s 00009000 08:01 149806                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-classification/tw-edu-ntu-csie/libsvm.jar
+7f25d6d69000-7f25d6d6b000 r--s 00027000 08:01 149787                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-classification/com-github-fommil-netlib/core.jar
+7f25d6d6b000-7f25d6d6d000 r--s 00016000 08:01 149793                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-classification/com-googlecode-netlib-java/netlib-java.jar
+7f25d6d6d000-7f25d6d72000 r--s 0003d000 08:01 149791                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-classification/com-googlecode-matrix-toolkits-java/mtj.jar
+7f25d6d72000-7f25d6d76000 r--s 0002f000 08:01 149799                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-classification/nz-ac-waikato-cms-weka-thirdparty/bounce.jar
+7f25d6d76000-7f25d6d77000 r--s 00005000 08:01 149800                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-classification/nz-ac-waikato-cms-weka-thirdparty/java-cup-11b-runtime.jar
+7f25d6d77000-7f25d6d79000 r--s 00016000 08:01 149801                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-classification/nz-ac-waikato-cms-weka-thirdparty/java-cup-11b.jar
+7f25d6d79000-7f25d6d7e000 r--s 00041000 08:01 150065                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-virtual-file-system/commons-lang/commons-lang.jar
+7f25d6d7e000-7f25d6d84000 r--s 0005b000 08:01 150069                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-virtual-file-system/org-jsoup/jsoup.jar
+7f25d6d84000-7f25d6e4c000 rw-p 00000000 00:00 0 
+7f25d6e4c000-7f25d6e4d000 ---p 00000000 00:00 0 
+7f25d6e4d000-7f25d6e50000 ---p 00000000 00:00 0 
+7f25d6e50000-7f25d6f51000 rw-p 00000000 00:00 0 
+7f25d6f51000-7f25d6f52000 r--s 00003000 08:01 149803                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-classification/nz-ac-waikato-cms-weka/LibSVM.jar
+7f25d6f52000-7f25d6f54000 r--s 00014000 08:01 150144                     /home/tj/snap/snap/modules/org-esa-snap-snap-classification.jar
+7f25d6f54000-7f25d6f56000 r--s 00003000 08:01 150067                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-virtual-file-system/org-jetbrains/annotations.jar
+7f25d6f56000-7f25d6f59000 r--s 00017000 08:01 150192                     /home/tj/snap/snap/modules/org-esa-snap-snap-virtual-file-system.jar
+7f25d6f59000-7f25d6f5a000 r--s 00008000 08:01 149912                     /home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/org-esa-snap/snap-runtime.jar
+7f25d6f5a000-7f25d6f62000 rw-s 00000000 08:01 953822                     /tmp/hsperfdata_tj/2522
+7f25d6f62000-7f25d6f63000 rw-p 00000000 00:00 0 
+7f25d6f63000-7f25d6f64000 ---p 00000000 00:00 0 
+7f25d6f64000-7f25d6f65000 r--p 00027000 08:01 1185741                    /lib/x86_64-linux-gnu/ld-2.27.so
+7f25d6f65000-7f25d6f66000 rw-p 00028000 08:01 1185741                    /lib/x86_64-linux-gnu/ld-2.27.so
+7f25d6f66000-7f25d6f67000 rw-p 00000000 00:00 0 
+7fff03355000-7fff03377000 rw-p 00000000 00:00 0                          [stack]
+7fff0339c000-7fff0339f000 r--p 00000000 00:00 0                          [vvar]
+7fff0339f000-7fff033a0000 r-xp 00000000 00:00 0                          [vdso]
+ffffffffff600000-ffffffffff601000 r-xp 00000000 00:00 0                  [vsyscall]
+
+VM Arguments:
+jvm_args: -Dinstall4j.jvmDir=/home/tj/snap/jre -Dexe4j.moduleName=/home/tj/snap/bin/gpt -Dsnap.mainClass=org.esa.snap.core.gpf.main.GPT -Dsnap.home=/home/tj/snap/bin//.. -Djava.awt.headless=true -Dinstall4j.noLoggingFix=true -Dinstall4j.launcherId=781 -Dinstall4j.swt=false -Di4jv=0 -Di4jv=0 -Di4jv=0 -Di4jv=0 -Di4jv=0 -Xmx10G -Di4j.vpt=true 
+java_command: com.install4j.runtime.launcher.UnixLauncher launch 4522bb12   org.esa.snap.runtime.Launcher ./utils/S1_intensity_step1_mod.xml -Pinput8=../S1_ARD/S1A_IW_SLC__1SDV_20190411T063207_20190411T063242_026738_0300B4_6882.SAFE/manifest.safe -Ptarget10=../S2_ARD/S1A_IW_SLC__1SDV_20190411T063207_20190411T063242_026738_0300B4_6882_cog/S1_ARD/S1A_IW_SLC__1SDV_20190411T063207_20190411T063242_026738_0300B4_6882_Orb_Cal_Db_ML.dim
+java_class_path (initial): /home/tj/snap/.install4j/i4jruntime.jar:/home/tj/snap/snap/modules/ext/org.esa.snap.snap-core/org-esa-snap/snap-runtime.jar
+Launcher Type: SUN_STANDARD
+
+Environment Variables:
+PATH=/home/tj/miniconda3/envs/cs\Library\bin;/home/tj/miniconda3/envs/cs/bin:/home/tj/google-cloud-sdk/bin:/home/tj/miniconda3/envs/cs/bin:/home/tj/miniconda3/condabin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+USERNAME=tj
+SHELL=/bin/bash
+DISPLAY=:0
+
+Signal Handlers:
+SIGSEGV: [libjvm.so+0xad3ce0], sa_mask[0]=11111111011111111101111111111110, sa_flags=SA_RESTART|SA_SIGINFO
+SIGBUS: [libjvm.so+0xad3ce0], sa_mask[0]=11111111011111111101111111111110, sa_flags=SA_RESTART|SA_SIGINFO
+SIGFPE: [libjvm.so+0x90b820], sa_mask[0]=11111111011111111101111111111110, sa_flags=SA_RESTART|SA_SIGINFO
+SIGPIPE: [libjvm.so+0x90b820], sa_mask[0]=11111111011111111101111111111110, sa_flags=SA_RESTART|SA_SIGINFO
+SIGXFSZ: [libjvm.so+0x90b820], sa_mask[0]=11111111011111111101111111111110, sa_flags=SA_RESTART|SA_SIGINFO
+SIGILL: [libjvm.so+0x90b820], sa_mask[0]=11111111011111111101111111111110, sa_flags=SA_RESTART|SA_SIGINFO
+SIGUSR1: SIG_DFL, sa_mask[0]=00000000000000000000000000000000, sa_flags=none
+SIGUSR2: [libjvm.so+0x90b6f0], sa_mask[0]=00000000000000000000000000000000, sa_flags=SA_RESTART|SA_SIGINFO
+SIGHUP: [libjvm.so+0x90bd10], sa_mask[0]=11111111011111111101111111111110, sa_flags=SA_RESTART|SA_SIGINFO
+SIGINT: [libjvm.so+0x90bd10], sa_mask[0]=11111111011111111101111111111110, sa_flags=SA_RESTART|SA_SIGINFO
+SIGTERM: [libjvm.so+0x90bd10], sa_mask[0]=11111111011111111101111111111110, sa_flags=SA_RESTART|SA_SIGINFO
+SIGQUIT: [libjvm.so+0x90bd10], sa_mask[0]=11111111011111111101111111111110, sa_flags=SA_RESTART|SA_SIGINFO
+
+
+---------------  S Y S T E M  ---------------
+
+OS:DISTRIB_ID=Ubuntu
+DISTRIB_RELEASE=18.04
+DISTRIB_CODENAME=bionic
+DISTRIB_DESCRIPTION="Ubuntu 18.04.3 LTS"
+
+uname:Linux 5.0.0-27-generic #28~18.04.1-Ubuntu SMP Thu Aug 22 03:00:32 UTC 2019 x86_64
+libc:glibc 2.27 NPTL 2.27 
+rlimit: STACK 8192k, CORE 0k, NPROC 43201, NOFILE 4096, AS infinity
+load average:3.22 1.20 0.46
+
+/proc/meminfo:
+MemTotal:       11107332 kB
+MemFree:          157496 kB
+MemAvailable:      61252 kB
+Buffers:             568 kB
+Cached:           153968 kB
+SwapCached:        75504 kB
+Active:          9713296 kB
+Inactive:        1002172 kB
+Active(anon):    9682612 kB
+Inactive(anon):   968120 kB
+Active(file):      30684 kB
+Inactive(file):    34052 kB
+Unevictable:          48 kB
+Mlocked:              48 kB
+SwapTotal:       1214880 kB
+SwapFree:             56 kB
+Dirty:                12 kB
+Writeback:             0 kB
+AnonPages:      10485648 kB
+Mapped:           149460 kB
+Shmem:             89676 kB
+KReclaimable:      35584 kB
+Slab:              77988 kB
+SReclaimable:      35584 kB
+SUnreclaim:        42404 kB
+KernelStack:       12096 kB
+PageTables:        60808 kB
+NFS_Unstable:          0 kB
+Bounce:                0 kB
+WritebackTmp:          0 kB
+CommitLimit:     6768544 kB
+Committed_AS:   15771832 kB
+VmallocTotal:   34359738367 kB
+VmallocUsed:           0 kB
+VmallocChunk:          0 kB
+Percpu:             2240 kB
+HardwareCorrupted:     0 kB
+AnonHugePages:         0 kB
+ShmemHugePages:        0 kB
+ShmemPmdMapped:        0 kB
+CmaTotal:              0 kB
+CmaFree:               0 kB
+HugePages_Total:       0
+HugePages_Free:        0
+HugePages_Rsvd:        0
+HugePages_Surp:        0
+Hugepagesize:       2048 kB
+Hugetlb:               0 kB
+DirectMap4k:      156608 kB
+DirectMap2M:    11220992 kB
+
+container (cgroup) information:
+container_type: cgroupv1
+cpu_cpuset_cpus: 0-5
+cpu_memory_nodes: 0
+active_processor_count: 6
+cpu_quota: -1
+cpu_period: 100000
+cpu_shares: -1
+memory_limit_in_bytes: -1
+memory_and_swap_limit_in_bytes: -2
+memory_soft_limit_in_bytes: -1
+memory_usage_in_bytes: 10971619328
+memory_max_usage_in_bytes: 2097152
+
+
+CPU:total 6 (initial active 6) (6 cores per cpu, 1 threads per core) family 6 model 158 stepping 10, cmov, cx8, fxsr, mmx, sse, sse2, sse3, ssse3, sse4.1, sse4.2, popcnt, avx, avx2, aes, clmul, 3dnowpref, lzcnt, tsc, tscinvbit
+
+/proc/cpuinfo:
+processor	: 0
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 158
+model name	: Intel(R) Core(TM) i7-8750H CPU @ 2.20GHz
+stepping	: 10
+cpu MHz		: 2208.000
+cache size	: 9216 KB
+physical id	: 0
+siblings	: 6
+core id		: 0
+cpu cores	: 6
+apicid		: 0
+initial apicid	: 0
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 22
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx rdtscp lm constant_tsc rep_good nopl xtopology nonstop_tsc cpuid tsc_known_freq pni pclmulqdq ssse3 cx16 pcid sse4_1 sse4_2 x2apic movbe popcnt aes xsave avx rdrand hypervisor lahf_lm abm 3dnowprefetch invpcid_single pti fsgsbase avx2 invpcid rdseed clflushopt md_clear flush_l1d
+bugs		: cpu_meltdown spectre_v1 spectre_v2 spec_store_bypass l1tf mds swapgs
+bogomips	: 4416.00
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 39 bits physical, 48 bits virtual
+power management:
+
+processor	: 1
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 158
+model name	: Intel(R) Core(TM) i7-8750H CPU @ 2.20GHz
+stepping	: 10
+cpu MHz		: 2208.000
+cache size	: 9216 KB
+physical id	: 0
+siblings	: 6
+core id		: 1
+cpu cores	: 6
+apicid		: 1
+initial apicid	: 1
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 22
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx rdtscp lm constant_tsc rep_good nopl xtopology nonstop_tsc cpuid tsc_known_freq pni pclmulqdq ssse3 cx16 pcid sse4_1 sse4_2 x2apic movbe popcnt aes xsave avx rdrand hypervisor lahf_lm abm 3dnowprefetch invpcid_single pti fsgsbase avx2 invpcid rdseed clflushopt md_clear flush_l1d
+bugs		: cpu_meltdown spectre_v1 spectre_v2 spec_store_bypass l1tf mds swapgs
+bogomips	: 4416.00
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 39 bits physical, 48 bits virtual
+power management:
+
+processor	: 2
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 158
+model name	: Intel(R) Core(TM) i7-8750H CPU @ 2.20GHz
+stepping	: 10
+cpu MHz		: 2208.000
+cache size	: 9216 KB
+physical id	: 0
+siblings	: 6
+core id		: 2
+cpu cores	: 6
+apicid		: 2
+initial apicid	: 2
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 22
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx rdtscp lm constant_tsc rep_good nopl xtopology nonstop_tsc cpuid tsc_known_freq pni pclmulqdq ssse3 cx16 pcid sse4_1 sse4_2 x2apic movbe popcnt aes xsave avx rdrand hypervisor lahf_lm abm 3dnowprefetch invpcid_single pti fsgsbase avx2 invpcid rdseed clflushopt md_clear flush_l1d
+bugs		: cpu_meltdown spectre_v1 spectre_v2 spec_store_bypass l1tf mds swapgs
+bogomips	: 4416.00
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 39 bits physical, 48 bits virtual
+power management:
+
+processor	: 3
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 158
+model name	: Intel(R) Core(TM) i7-8750H CPU @ 2.20GHz
+stepping	: 10
+cpu MHz		: 2208.000
+cache size	: 9216 KB
+physical id	: 0
+siblings	: 6
+core id		: 3
+cpu cores	: 6
+apicid		: 3
+initial apicid	: 3
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 22
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx rdtscp lm constant_tsc rep_good nopl xtopology nonstop_tsc cpuid tsc_known_freq pni pclmulqdq ssse3 cx16 pcid sse4_1 sse4_2 x2apic movbe popcnt aes xsave avx rdrand hypervisor lahf_lm abm 3dnowprefetch invpcid_single pti fsgsbase avx2 invpcid rdseed clflushopt md_clear flush_l1d
+bugs		: cpu_meltdown spectre_v1 spectre_v2 spec_store_bypass l1tf mds swapgs
+bogomips	: 4416.00
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 39 bits physical, 48 bits virtual
+power management:
+
+processor	: 4
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 158
+model name	: Intel(R) Core(TM) i7-8750H CPU @ 2.20GHz
+stepping	: 10
+cpu MHz		: 2208.000
+cache size	: 9216 KB
+physical id	: 0
+siblings	: 6
+core id		: 4
+cpu cores	: 6
+apicid		: 4
+initial apicid	: 4
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 22
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx rdtscp lm constant_tsc rep_good nopl xtopology nonstop_tsc cpuid tsc_known_freq pni pclmulqdq ssse3 cx16 pcid sse4_1 sse4_2 x2apic movbe popcnt aes xsave avx rdrand hypervisor lahf_lm abm 3dnowprefetch invpcid_single pti fsgsbase avx2 invpcid rdseed clflushopt md_clear flush_l1d
+bugs		: cpu_meltdown spectre_v1 spectre_v2 spec_store_bypass l1tf mds swapgs
+bogomips	: 4416.00
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 39 bits physical, 48 bits virtual
+power management:
+
+processor	: 5
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 158
+model name	: Intel(R) Core(TM) i7-8750H CPU @ 2.20GHz
+stepping	: 10
+cpu MHz		: 2208.000
+cache size	: 9216 KB
+physical id	: 0
+siblings	: 6
+core id		: 5
+cpu cores	: 6
+apicid		: 5
+initial apicid	: 5
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 22
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx rdtscp lm constant_tsc rep_good nopl xtopology nonstop_tsc cpuid tsc_known_freq pni pclmulqdq ssse3 cx16 pcid sse4_1 sse4_2 x2apic movbe popcnt aes xsave avx rdrand hypervisor lahf_lm abm 3dnowprefetch invpcid_single pti fsgsbase avx2 invpcid rdseed clflushopt md_clear flush_l1d
+bugs		: cpu_meltdown spectre_v1 spectre_v2 spec_store_bypass l1tf mds swapgs
+bogomips	: 4416.00
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 39 bits physical, 48 bits virtual
+power management:
+
+
+
+Memory: 4k page, physical 11107332k(157496k free), swap 1214880k(60k free)
+
+vm_info: Java HotSpot(TM) 64-Bit Server VM (25.202-b08) for linux-amd64 JRE (1.8.0_202-b08), built on Dec 15 2018 12:40:22 by "java_re" with gcc 7.3.0
+
+time: Fri Sep  6 08:06:03 2019
+timezone: BST
+elapsed time: 99 seconds (0d 0h 1m 39s)
+
