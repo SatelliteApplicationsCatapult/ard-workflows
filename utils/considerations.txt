@@ -1,0 +1,62 @@
+This document details the considerations taken, and that should be made, when implementing the S1 SLC processing routine for Common Sensing (CS).
+First of all, it is worth noting that the naming and numbering of the input and output files (and any other variables) is arbitrary; the S1 processing
+scripts are based on the ones used in IPP Colombia, where there were many files created, so I used the numbering scheme to keep
+track of everything. As long as the name of the input/output variable in the wrapper script matches that in the xml chain, all good :) 
+
+Much of the explanations for each step are based on the SNAP software help section. 
+
+Step 1 - Apply orbit file, and update the metadata in the observation file accordingly. This needs to be performed for each S1 scene. The choice here is to go for S1 restituted orbits, which
+become available with the S1 observation, or precise orbit files, which can take 2-3 weeks to be generated and made available by
+ESA. The restituted orbits can create problems with precision on the ground, so could be a problem e.g. with land cover classification. 
+The switch in the xml chain under this step "continueonfail" means that if a precise orbit file is not found, the processing will 
+continue with the use of a restituted orbit file. Suggestion is to leave this on "true".
+
+Step 2 - Radiometric calibration. Necessary for all scenes in order to convert from detector digital numbers to actual radar backscatter
+by removing radiometric bias. This allows SAR images from different periods in time and sensors to be compared more accurately, through
+the use of calibration targets. If necessary, the "creategammaband" and "createbetaband" need to be set to "true", for example if 
+terrain flattening is being applied. 
+
+Step 3 - TOPSAR Deburst. Necessary for all S1 SLC products. This allows the images for all the busts in each IW subswath to be resampled
+to a commong pixel spacing grid. There are no input parameter choices for this step, unless we wish to apply it only to specific
+input bands.
+
+Step 4 - Multilooking. Averaging over the pixels in an image, using a user-defined kernel, in order to improve ease of interpretation of
+the images. The default is to use the GR square pixel method by setting the relevant flag to "true", which normally results in 4 range
+looks x 1 azimuth look averaging. 
+
+Step 5 - Speckle filtering. SAR images inevitably have a "TV static" appearance to them, called speckle, due to random constructive 
+and destructive interference of the return waves within each ground resolution cell, after they have been scattered within them by 
+elementary scatterers. Speckle filtering in CS is done using the "single product speckle filter" method. Speckle filter should not 
+be applied if we are interested in seeing small-scale features, as it is effectively averaging over pixels. The main option here is 
+the selection of the speckle filter and the size of the filtering kernel. 
+
+(Step 6 - Radiometric terrain flattening (also known as the (David) Small approach). This is currently not incorporated in the
+processing flow, and if it was to be applied, would need to take place before the final terrain correction, and requires the
+extra outputs from the radiometric normalisation. This is needed if we are in a mountainous/hilly area, where terrain 
+variations may affect not just the position of a target on the Earth's surface (as seen by the satellite) but also the 
+brightness of the backscatter. This can cause problems when carrying out land cover classification, for example, where the 
+eventual result may mirror the radiometry rather than the land cover itself. The radiometric terrain flattening thus removes 
+variability introduced by the topography by flattening the terrain as described in Small 2011, while preserving the radiometric
+variation associated with different land cover. The main option here is the DEM used for the correction, which needs to match the
+one used in the terrain correction, the DEM resampling method and the additional overlap percentage (this is automatically 
+calculated using the DEM, but may need to be increased if there is a tiling effect).)
+
+Step 6/7 - Terrain correction, and specifically Range Doppler Terrain Correction. Necessary to correct distortions in the SAR 
+image due to topographical variations and the tilt of the sensor, so that the geometry of the SAR image is as close to the real
+world as possible. The DEM selected has to be the same as that used in the radiometric terrain flattening, if applied. The 
+resampling methods can be changed, and areas without elevation can be masked out (this should be set to "false" if we are looking
+at coastal areas, as some parts of the coast can be masked out by accident). The main question is around the use or not of radio
+metric normalisation based on an approach proposed by Kellndorfer+ 1998. According to this article: https://forum.step.esa.int/t/s1-radiometric-correction/3191, 
+"the terrain flattening should replace the radiometric normalisation", and it sounds like radiometric terrain flattening + terrain
+correction is similar to terrain correction with radiometric normalisation applied. As such, it becomes more of a question of 
+which of the two approaches above becomes more appropriate and if there is any difference between the two, both in terms of 
+performance and processing time. 
+Some further discussion on the topic can be found here: https://forum.step.esa.int/t/correct-sar-calibration-steps/2318. 
+
+Terrain correction using SAR simulation: A different method of terrain correction. A simulated SAR image is first generated
+using a selected DEM and some information taken from a given SAR image, thus creating a SAR image with the same size and 
+resolution as the original SAR image. This also generates the SAR layover-shadow mask. The simulated and original SAR images
+are then coregistered. Finally, for each pixel in the DEM grid used, its corresponding position in the simulated SAR image is 
+found (using SAR model), and then the corresponding pixel position in the original image is found (from the coregistration). This 
+allows the pixel value in the final geocorrected image to be found by means of interpolation. Many more parameters can be 
+tweaked here, which may well require more investigation, and radiometric normalisation can also be applied. 
