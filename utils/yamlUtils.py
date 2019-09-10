@@ -12,6 +12,8 @@ import uuid
 from pathlib import Path
 from xml.etree import ElementTree  # should use cElementTree..
 import yaml
+import boto3
+
 
 
 def get_geometry(path):
@@ -142,13 +144,12 @@ def yaml_prep_s1(scene_dir):
     print ( "Preparing scene {}".format(scene_name) )
     print ( "Scene path {}".format(scene_dir) )
     
-    prod_paths = glob.glob(scene_dir + '*dB.tif')
-    # print ( "Preparing scene {}".format(prod_paths) ) 
-    
-    t0=parse(str( datetime.strptime(prod_paths[0].split("_")[-10].split(".")[0], '%Y%m%dT%H%M%S')))
-    # print ( t0 )
+    prod_paths = glob.glob(scene_dir + '*.tif')
+        
+    t0=parse(str( datetime.strptime(prod_paths[0].split("_")[-3], '%Y%m%dT%H%M%S')))
+    print ( t0 )
     t1=t0
-    # print ( t1 )
+    print ( t1 )
 
     # get polorisation from each image product (S1 band)
     # should be replaced with a more concise, generalisable parsing
@@ -157,10 +158,10 @@ def yaml_prep_s1(scene_dir):
             'path': str(prod_path.split('/')[-1])
         } for prod_path in prod_paths
     }
-    # print ( images )
+    print ( images )
     
     # trusting bands coaligned, use one to generate spatial bounds for all
-    projection, extent = get_geometry('/'.join([str(scene_dir), images['vv']['path']]))
+    projection, extent = get_geometry('/'.join([str(scene_dir), images['vh']['path']]))
     
     # format metadata (i.e. construct hashtable tree for syntax of file interface)
     return {
@@ -287,7 +288,7 @@ def create_yaml(scene_dir, sensor):
     """
         
     if sensor == 's1':
-        metadata = prep_dataset_yaml_s1(scene_dir)
+        metadata = yaml_prep_s1(scene_dir)
 
     elif sensor == 's2':
         metadata = yaml_prep_s2(scene_dir)
@@ -300,4 +301,67 @@ def create_yaml(scene_dir, sensor):
         
     print ( 'Created yaml: {}'.format(yaml_path) )
         
+
+
+def s3_single_upload(in_path, s3_path, s3_bucket):
+    """
+    put a file into S3 from the local file system.
+
+    :param in_path: a path to a file on the local file system
+    :param s3_path: where in S3 to put the file.
+    :return: None
+    """
+    
+    # prep session & creds
+    access = os.getenv("AWS_ACCESS_KEY_ID")
+    secret = os.getenv("AWS_SECRET_ACCESS_KEY")
+    
+    session = boto3.Session(
+        access,
+        secret,
+    )
+    s3 = session.resource('s3',region_name='eu-west-2')
+    client = session.client('s3')
+    bucket = s3.Bucket(s3_bucket)
+    gb = 1024 ** 3
+    s3_client = boto3.client(
+        's3',
+        aws_access_key_id=access,
+        aws_secret_access_key=secret
+    )
+    
+    # Ensure that multipart uploads only happen if the size of a transfer is larger than
+    # S3's size limit for non multipart uploads, which is 5 GB. we copy using multipart 
+    # at anything over 4gb
+    transfer_config = boto3.s3.transfer.TransferConfig(multipart_threshold=2 * gb,
+                                                       max_concurrency=10, 
+                                                       multipart_chunksize=2 * gb,
+                                                       use_threads=True) 
+    
+    print ( 'Local source file: {}'.format(in_path) )
+    print ( 'S3 target file: {}'.format(s3_path) )
+    
+    if not os.path.exists(s3_path): # doesn't work on s3... better function to do this...
+        print ( 'Start: {} {} '.format(in_path, str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))) )
+                
+        transfer = boto3.s3.transfer.S3Transfer(client=s3_client, config=transfer_config)
+        transfer.upload_file(in_path, bucket.name, s3_path)  
         
+        print ( 'Finish: {} {} '.format(in_path, str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))) )
+        
+
+def s3_upload_cogs(in_paths, s3_bucket, s3_dir):
+
+    # create upload lists for multi-threading
+    out_paths = [ s3_dir + i.split('/')[-2] + '/' + i.split('/')[-1] 
+                 for i in in_paths ]
+        
+    upload_list = [(in_path, out_path, s3_bucket) 
+                   for in_path, out_path in zip(in_paths, out_paths)]
+    
+    for i in upload_list: 
+        print (s3_single_upload(i[0],i[1],i[2]))
+    
+    # parallelise upload
+#     pool = multiprocessing.Pool(processes=5)
+#     pool.starmap(s3_single_upload, upload_list)

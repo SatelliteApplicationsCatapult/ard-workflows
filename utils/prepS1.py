@@ -110,10 +110,10 @@ def conv_s1scene_cogs(noncog_scene_dir, cog_scene_dir, scene_name, overwrite=Fal
     
     cog_val = []
     
-    des_prods = ["VV","VH"] # to ammend once outputs finalised - TO DO*****
+#     des_prods = ["Gamma0_VH","Gamma0_VH"] # to ammend once outputs finalised - TO DO*****
     
     # find all individual prods to convert to cog (ignore true colour images (TCI))
-    prod_paths = glob.glob(noncog_scene_dir + '/*.img') # - TO DO*****
+    prod_paths = glob.glob(noncog_scene_dir + '/*Gamma0*.img') # - TO DO*****
         
     for i in prod_paths: print (i)
     
@@ -123,7 +123,7 @@ def conv_s1scene_cogs(noncog_scene_dir, cog_scene_dir, scene_name, overwrite=Fal
     for prod in prod_paths: 
              
         in_filename = prod
-        out_filename = cog_scene_dir + scene_name + prod[-12:-4] + '.tif' # - TO DO*****
+        out_filename = cog_scene_dir + scene_name + '_' + os.path.basename(prod)[:-4] + '.tif' # - TO DO*****
                 
         # ensure input file exists
         if os.path.exists(in_filename):
@@ -180,6 +180,25 @@ def conv_sgl_cog(in_path, out_path):
         print ('not updated nodata')
 
     # should inc. cog val...
+    
+
+def copy_s1_metadata(out_s1_prod, cog_scene_dir, scene_name):
+    """
+    Parse through S2 metadtaa .xml for either l1c or l2a S2 scenes.
+    """
+    
+    if os.path.exists(out_s1_prod):
+        
+        meta_base = os.path.basename(out_s1_prod)
+        n_meta = cog_scene_dir + scene_name + '_' + meta_base
+        print ( "Copying original metadata file to cog dir: {}".format(n_meta) )
+        if not os.path.exists(n_meta):
+            shutil.copyfile(out_s1_prod, n_meta)
+        else:
+            print ( "Original metadata file already copied to cog_dir: {}".format(n_meta) )
+    else:
+        print ( "Cannot find orignial metadata file: {}".format(meta) )
+    
 
 
 def prepareS1(in_scene, s3_bucket='public-eo-data', s3_dir='fiji/Sentinel_1_test/', inter_dir='/data/intermediate/', source='asf'):
@@ -219,18 +238,19 @@ def prepareS1(in_scene, s3_bucket='public-eo-data', s3_dir='fiji/Sentinel_1_test
         input_mani = inter_dir + in_scene + '/manifest.safe'
         inter_prod = inter_dir + scene_name + '_Orb_Cal_Deb_ML.dim'
         out_prod = inter_dir + scene_name + '_Orb_Cal_Deb_ML_TF_TC.dim'
+        out_dir = out_prod[:-4] + '.data/'
         
         print("graph1: {}".format(int_graph_1))
         print("graph2: {}".format(int_graph_2))
         print("Manifest file: {}".format(input_mani))
         print("Intermediate prod: {}".format(inter_prod))
         print("Output ARD prod: {}".format(out_prod))
+        print("Output ARD prod dir: {}".format(out_dir))
         
         # sub-dirs used only for accessing tmp files
         down_dir = inter_dir + in_scene + '/' 
         cog_dir = inter_dir + scene_name + '/'
         os.makedirs(cog_dir, exist_ok=True)
-        l2a_dir = inter_dir + '/'
         
         log_file = os.path.join(inter_dir + 'log_file.csv') # Create log somewhere more sensible - assumes exists
         
@@ -246,25 +266,26 @@ def prepareS1(in_scene, s3_bucket='public-eo-data', s3_dir='fiji/Sentinel_1_test
             log.write("\n")
 
             # DOWNLOAD
-#             if source == "asf":
-#                 download_extract_s1_scene_asf(in_scene, inter_dir)
-#             elif source == "esa":
-#                 print('Not supported yet...')
+            if source == "asf":
+                download_extract_s1_scene_asf(in_scene, inter_dir)
+            elif source == "esa":
+                print('Not supported yet...')
 
-#             log.write("{},{},{}".format(in_scene, 'Downloaded', str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))))
-#             log.write("\n")
+            log.write("{},{},{}".format(in_scene, 'Downloaded', str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))))
+            log.write("\n")
 
-#             # SNAP P1 - logic to check if exists, 
-#             if not os.path.exists(inter_prod):
-#                 cmd = "{} {} -Pinput8={} -Ptarget10={}".format(snap_gpt, int_graph_1, input_mani, inter_prod)
-#                 p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
-#                 out = p.stdout.read()
+            # SNAP P1 - logic to check if exists, 
+            print('P1')
+            if not os.path.exists(inter_prod):
+                cmd = "{} {} -Pinput8={} -Ptarget10={}".format(snap_gpt, int_graph_1, input_mani, inter_prod)
+                p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
+                out = p.stdout.read()
             
-#             log.write("{},{},{}".format(in_scene, 'S1_Pt1', str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))))
-#             log.write("\n")
+            log.write("{},{},{}".format(in_scene, 'S1_Pt1', str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))))
+            log.write("\n")
 
             # SNAP P2
-            print('p2')
+            print('P2')
             if not os.path.exists(out_prod):
                 cmd = "{} {} -Pinput9={} -Ptarget11={}".format(snap_gpt, int_graph_2, inter_prod, out_prod)
                 p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
@@ -274,30 +295,30 @@ def prepareS1(in_scene, s3_bucket='public-eo-data', s3_dir='fiji/Sentinel_1_test
             log.write("{},{},{}".format(in_scene, 'S1_Pt2', str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))))
             log.write("\n")
 
-#             # CONVERT TO COGS TO TEMP COG DIRECTORY**
-#             conv_s1scene_cogs(down_dir, cog_dir, scene_name)
+            # CONVERT TO COGS TO TEMP COG DIRECTORY**
+            conv_s1scene_cogs(out_dir, cog_dir, scene_name)
 
-#             log.write("{},{},{}".format(in_scene, 'COGS', str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))))
-#             log.write("\n")
+            log.write("{},{},{}".format(in_scene, 'COGS', str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))))
+            log.write("\n")
 
-#             # PARSE METADATA TO TEMP COG DIRECTORY**
-#             copy_s2_metadata(down_dir, cog_dir, scene_name) 
+            # PARSE METADATA TO TEMP COG DIRECTORY**
+            copy_s1_metadata(out_prod, cog_dir, scene_name) 
 
-#             # GENERATE YAML WITHIN TEMP COG DIRECTORY**
-#             create_yaml(cog_dir, 's2')
+            # GENERATE YAML WITHIN TEMP COG DIRECTORY**
+            create_yaml(cog_dir, 's1')
 
-#             log.write("{},{},{}".format(in_scene, 'Yaml', str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))))
-#             log.write("\n")        
+            log.write("{},{},{}".format(in_scene, 'Yaml', str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))))
+            log.write("\n")        
         
-#             # AMEND SO THAT LOG INCCLUDES UPLOAD TIME BEFORE BEING UPLOADED ITSELF....
-#             # MOVE COG DIRECTORY TO OUTPUT DIRECTORY
-#             s3_upload_cogs(glob.glob(cog_dir + '*'), s3_bucket, s3_dir)
+            # AMEND SO THAT LOG INCCLUDES UPLOAD TIME BEFORE BEING UPLOADED ITSELF....
+            # MOVE COG DIRECTORY TO OUTPUT DIRECTORY
+            s3_upload_cogs(glob.glob(cog_dir + '*'), s3_bucket, s3_dir)
 
-#             log.write("{},{},{}".format(in_scene, 'Uploaded', str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))))
-#             log.write("\n")        
+            log.write("{},{},{}".format(in_scene, 'Uploaded', str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))))
+            log.write("\n")        
             
-#         shutil.move(log_file, cog_dir + 'log_file.csv')
-#         s3_upload_cogs(glob.glob(cog_dir + '*.csv'), s3_bucket, s3_dir)
+        shutil.move(log_file, cog_dir + 'log_file.csv')
+        s3_upload_cogs(glob.glob(cog_dir + '*.csv'), s3_bucket, s3_dir)
         
                 
 #         # DELETE ANYTHING WITIN TEH TEMP DIRECTORY

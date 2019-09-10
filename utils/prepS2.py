@@ -14,7 +14,6 @@ import multiprocessing
 from multiprocessing import pool
 from multiprocessing.pool import ThreadPool as Pool
 from itertools import product
-import boto3
 import csv
 
 
@@ -301,70 +300,6 @@ def s2_ndvi(red_file, nir_file, out_file=False):
     os.remove(inter)
     
     return ndvi
-
-
-def s3_single_upload(in_path, s3_path, s3_bucket):
-    """
-    put a file into S3 from the local file system.
-
-    :param in_path: a path to a file on the local file system
-    :param s3_path: where in S3 to put the file.
-    :return: None
-    """
-    
-    # prep session & creds
-    access = os.getenv("AWS_ACCESS_KEY_ID")
-    secret = os.getenv("AWS_SECRET_ACCESS_KEY")
-    
-    session = boto3.Session(
-        access,
-        secret,
-    )
-    s3 = session.resource('s3',region_name='eu-west-2')
-    client = session.client('s3')
-    bucket = s3.Bucket(s3_bucket)
-    gb = 1024 ** 3
-    s3_client = boto3.client(
-        's3',
-        aws_access_key_id=access,
-        aws_secret_access_key=secret
-    )
-    
-    # Ensure that multipart uploads only happen if the size of a transfer is larger than
-    # S3's size limit for non multipart uploads, which is 5 GB. we copy using multipart 
-    # at anything over 4gb
-    transfer_config = boto3.s3.transfer.TransferConfig(multipart_threshold=2 * gb,
-                                                       max_concurrency=10, 
-                                                       multipart_chunksize=2 * gb,
-                                                       use_threads=True) 
-    
-    print ( 'Local source file: {}'.format(in_path) )
-    print ( 'S3 target file: {}'.format(s3_path) )
-    
-    if not os.path.exists(s3_path): # doesn't work on s3... better function to do this...
-        print ( 'Start: {} {} '.format(in_path, str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))) )
-                
-        transfer = boto3.s3.transfer.S3Transfer(client=s3_client, config=transfer_config)
-        transfer.upload_file(in_path, bucket.name, s3_path)  
-        
-        print ( 'Finish: {} {} '.format(in_path, str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))) )
-        
-
-def s3_upload_cogs(in_paths, s3_bucket, s3_dir):
-
-    # create upload lists for multi-threading
-    out_paths = [ s3_dir + i.split('/')[-2] + '/' + i.split('/')[-1] 
-                 for i in in_paths ]
-        
-    upload_list = [(in_path, out_path, s3_bucket) 
-                   for in_path, out_path in zip(in_paths, out_paths)]
-    
-    for i in upload_list: 
-        print (s3_single_upload(i[0],i[1],i[2]))
-    
-    # parallelise upload
-#     pool = multiprocessing.Pool(processes=5)
-#     pool.starmap(s3_single_upload, upload_list)
 
 
 # @click.command()
