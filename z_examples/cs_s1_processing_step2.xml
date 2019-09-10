@@ -1,40 +1,13 @@
 <graph id="Graph">
   <version>1.0</version>
-  <node id="Read">
-    <operator>Read</operator>
-    <sources/>
-    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <file>$input9</file>
-    </parameters>
-  </node>
-  <node id="Speckle-Filter">
-    <operator>Speckle-Filter</operator>
-    <sources>
-      <sourceProduct refid="Read"/>
-    </sources>
-    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <sourceBands/>
-      <filter>Lee Sigma</filter>
-      <filterSizeX>3</filterSizeX>
-      <filterSizeY>3</filterSizeY>
-      <dampingFactor>2</dampingFactor>
-      <estimateENL>true</estimateENL>
-      <enl>1.0</enl>
-      <numLooksStr>1</numLooksStr>
-      <windowSize>7x7</windowSize>
-      <targetWindowSizeStr>3x3</targetWindowSizeStr>
-      <sigmaStr>0.9</sigmaStr>
-      <anSize>50</anSize>
-    </parameters>
-  </node>
   <node id="Terrain-Correction">
     <operator>Terrain-Correction</operator>
     <sources>
-      <sourceProduct refid="Speckle-Filter"/>
+      <sourceProduct refid="Terrain-Flattening"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <sourceBands/>
-      <demName>SRTM 3Sec</demName>
+      <demName>SRTM 1Sec HGT</demName>
       <externalDEMFile/>
       <externalDEMNoDataValue>0.0</externalDEMNoDataValue>
       <externalDEMApplyEGM>true</externalDEMApplyEGM>
@@ -70,82 +43,53 @@
       <externalAuxFile/>
     </parameters>
   </node>
-  <node id="LinearToFromdB">
-    <operator>LinearToFromdB</operator>
+  <node id="Read">
+    <operator>Read</operator>
+    <sources/>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <file>D:\SHARED_VB\IPP_Common_Sensing\S1_ARD\S1B_IW_SLC__1SDV_20190831T073944_tmp\S1B_IW_SLC__1SDV_20190831T073944_20190831T074019_017826_0218C3_FFCE_inter.dim</file>
+    </parameters>
+  </node>
+  <node id="Terrain-Flattening">
+    <operator>Terrain-Flattening</operator>
     <sources>
-      <sourceProduct refid="Terrain-Correction"/>
+      <sourceProduct refid="Read"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <sourceBands/>
-    </parameters>
-  </node>
-  <node id="BandSelect">
-    <operator>BandSelect</operator>
-    <sources>
-      <sourceProduct refid="LinearToFromdB"/>
-    </sources>
-    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <selectedPolarisations>VH</selectedPolarisations>
-      <sourceBands/>
-      <bandNamePattern/>
-    </parameters>
-  </node>
-  <node id="BandSelect(2)">
-    <operator>BandSelect</operator>
-    <sources>
-      <sourceProduct refid="LinearToFromdB"/>
-    </sources>
-    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <selectedPolarisations>VV</selectedPolarisations>
-      <sourceBands/>
-      <bandNamePattern/>
-    </parameters>
-  </node>
-  <node id="Write(2)">
-    <operator>Write</operator>
-    <sources>
-      <sourceProduct refid="BandSelect(2)"/>
-    </sources>
-    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <file>$target12</file>
-      <formatName>BEAM-DIMAP</formatName>
+      <demName>SRTM 1Sec HGT</demName>
+      <demResamplingMethod>BILINEAR_INTERPOLATION</demResamplingMethod>
+      <externalDEMFile/>
+      <externalDEMNoDataValue>0.0</externalDEMNoDataValue>
+      <outputSimulatedImage>false</outputSimulatedImage>
+      <additionalOverlap>0.1</additionalOverlap>
+      <oversamplingMultiple>1.5</oversamplingMultiple>
+      <reGridMethod>true</reGridMethod>
     </parameters>
   </node>
   <node id="Write">
     <operator>Write</operator>
     <sources>
-      <sourceProduct refid="BandSelect"/>
+      <sourceProduct refid="Terrain-Correction"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <file>$target11</file>
+      <file>D:\SHARED_VB\IPP_Common_Sensing\S1_ARD\S1A_IW_SLC__1SDV_20190411T063207_tmp\S1B_IW_SLC__1SDV_20190831T073944_20190831T074019_017826_0218C3_FFCE_inter_TF_TC.dim</file>
       <formatName>BEAM-DIMAP</formatName>
     </parameters>
   </node>
   <applicationData id="Presentation">
     <Description/>
-    <node id="Read">
-            <displayPosition x="37.0" y="134.0"/>
-    </node>
-    <node id="Speckle-Filter">
-      <displayPosition x="163.0" y="185.0"/>
-    </node>
     <node id="Terrain-Correction">
-      <displayPosition x="289.0" y="190.0"/>
+      <displayPosition x="283.0" y="272.0"/>
     </node>
-    <node id="LinearToFromdB">
-      <displayPosition x="466.0" y="207.0"/>
+    <node id="Read">
+      <displayPosition x="44.0" y="199.0"/>
     </node>
-    <node id="BandSelect">
-      <displayPosition x="613.0" y="177.0"/>
-    </node>
-    <node id="BandSelect(2)">
-      <displayPosition x="620.0" y="254.0"/>
-    </node>
-    <node id="Write(2)">
-      <displayPosition x="745.0" y="279.0"/>
+    <node id="Terrain-Flattening">
+      <displayPosition x="127.0" y="266.0"/>
     </node>
     <node id="Write">
-      <displayPosition x="730.0" y="184.0"/>
+      <displayPosition x="473.0" y="240.0"/>
     </node>
   </applicationData>
 </graph>

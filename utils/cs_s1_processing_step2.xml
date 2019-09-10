@@ -1,5 +1,29 @@
 <graph id="Graph">
   <version>1.0</version>
+  <node id="Read">
+    <operator>Read</operator>
+    <sources/>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <file>$input9</file>
+    </parameters>
+  </node>
+  <node id="Terrain-Flattening">
+    <operator>Terrain-Flattening</operator>
+    <sources>
+      <sourceProduct refid="Read"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <sourceBands/>
+      <demName>SRTM 1Sec HGT</demName>
+      <demResamplingMethod>BILINEAR_INTERPOLATION</demResamplingMethod>
+      <externalDEMFile/>
+      <externalDEMNoDataValue>0.0</externalDEMNoDataValue>
+      <outputSimulatedImage>false</outputSimulatedImage>
+      <additionalOverlap>0.1</additionalOverlap>
+      <oversamplingMultiple>1.5</oversamplingMultiple>
+      <reGridMethod>true</reGridMethod>
+    </parameters>
+  </node>
   <node id="Terrain-Correction">
     <operator>Terrain-Correction</operator>
     <sources>
@@ -43,37 +67,13 @@
       <externalAuxFile/>
     </parameters>
   </node>
-  <node id="Read">
-    <operator>Read</operator>
-    <sources/>
-    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <file>D:\SHARED_VB\IPP_Common_Sensing\S1_ARD\S1B_IW_SLC__1SDV_20190831T073944_tmp\S1B_IW_SLC__1SDV_20190831T073944_20190831T074019_017826_0218C3_FFCE_inter.dim</file>
-    </parameters>
-  </node>
-  <node id="Terrain-Flattening">
-    <operator>Terrain-Flattening</operator>
-    <sources>
-      <sourceProduct refid="Read"/>
-    </sources>
-    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <sourceBands/>
-      <demName>SRTM 1Sec HGT</demName>
-      <demResamplingMethod>BILINEAR_INTERPOLATION</demResamplingMethod>
-      <externalDEMFile/>
-      <externalDEMNoDataValue>0.0</externalDEMNoDataValue>
-      <outputSimulatedImage>false</outputSimulatedImage>
-      <additionalOverlap>0.1</additionalOverlap>
-      <oversamplingMultiple>1.5</oversamplingMultiple>
-      <reGridMethod>true</reGridMethod>
-    </parameters>
-  </node>
   <node id="Write">
     <operator>Write</operator>
     <sources>
       <sourceProduct refid="Terrain-Correction"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <file>D:\SHARED_VB\IPP_Common_Sensing\S1_ARD\S1A_IW_SLC__1SDV_20190411T063207_tmp\S1B_IW_SLC__1SDV_20190831T073944_20190831T074019_017826_0218C3_FFCE_inter_TF_TC.dim</file>
+      <file>$target11</file>
       <formatName>BEAM-DIMAP</formatName>
     </parameters>
   </node>

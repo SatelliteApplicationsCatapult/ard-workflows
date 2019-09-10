@@ -13,7 +13,7 @@
       <sourceProduct refid="Read"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <orbitType>Sentinel Restituted (Auto Download)</orbitType>
+      <orbitType>Sentinel Precise (Auto Download)</orbitType>
       <polyDegree>3</polyDegree>
       <continueOnFail>true</continueOnFail>
     </parameters>
@@ -33,8 +33,8 @@
       <createBetaBand>false</createBetaBand>
       <selectedPolarisations/>
       <outputSigmaBand>true</outputSigmaBand>
-      <outputGammaBand>false</outputGammaBand>
-      <outputBetaBand>false</outputBetaBand>
+      <outputGammaBand>true</outputGammaBand>
+      <outputBetaBand>true</outputBetaBand>
     </parameters>
   </node>
   <node id="TOPSAR-Deburst">
@@ -72,22 +72,22 @@
   <applicationData id="Presentation">
     <Description/>
     <node id="Read">
-      <displayPosition x="66.0" y="51.0"/>
+            <displayPosition x="37.0" y="134.0"/>
     </node>
     <node id="Apply-Orbit-File">
-      <displayPosition x="185.0" y="70.0"/>
+      <displayPosition x="124.0" y="193.0"/>
     </node>
     <node id="Calibration">
-      <displayPosition x="300.0" y="148.0"/>
+      <displayPosition x="247.0" y="224.0"/>
     </node>
     <node id="TOPSAR-Deburst">
-      <displayPosition x="389.0" y="212.0"/>
+      <displayPosition x="346.0" y="224.0"/>
     </node>
     <node id="Multilook">
-      <displayPosition x="485.0" y="295.0"/>
+      <displayPosition x="458.0" y="176.0"/>
     </node>
     <node id="Write">
-      <displayPosition x="631.0" y="331.0"/>
+      <displayPosition x="540.0" y="133.0"/>
     </node>
   </applicationData>
 </graph>
