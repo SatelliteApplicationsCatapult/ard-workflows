@@ -392,7 +392,6 @@ def prepareS2(in_scene, s3_bucket='public-eo-data', s3_dir='fiji/Sentinel_2_test
             log.write("{},{},{}".format(in_scene, 'Yaml', str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))))
             log.write("\n")        
         
-            # AMEND SO THAT LOG INCCLUDES UPLOAD TIME BEFORE BEING UPLOADED ITSELF....
             # MOVE COG DIRECTORY TO OUTPUT DIRECTORY
             s3_upload_cogs(glob.glob(cog_dir + '*'), s3_bucket, s3_dir)
 

@@ -226,8 +226,8 @@ def prepareS1(in_scene, s3_bucket='public-eo-data', s3_dir='fiji/Sentinel_1_test
     inter_dir = inter_dir + scene_name +'_tmp/'
     print(inter_dir)
     
-#     try:
-    if 'x' == 'x':
+    try:
+#     if 'x' == 'x':
         
         # inc exist tests
         
@@ -310,7 +310,6 @@ def prepareS1(in_scene, s3_bucket='public-eo-data', s3_dir='fiji/Sentinel_1_test
             log.write("{},{},{}".format(in_scene, 'Yaml', str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))))
             log.write("\n")        
         
-            # AMEND SO THAT LOG INCCLUDES UPLOAD TIME BEFORE BEING UPLOADED ITSELF....
             # MOVE COG DIRECTORY TO OUTPUT DIRECTORY
             s3_upload_cogs(glob.glob(cog_dir + '*'), s3_bucket, s3_dir)
 
@@ -321,19 +320,19 @@ def prepareS1(in_scene, s3_bucket='public-eo-data', s3_dir='fiji/Sentinel_1_test
         s3_upload_cogs(glob.glob(cog_dir + '*.csv'), s3_bucket, s3_dir)
         
                 
-#         # DELETE ANYTHING WITIN TEH TEMP DIRECTORY
-#         cmd = 'rm -frv {}'.format(inter_dir)
-#         p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
-#         out = p.stdout.read()
+        # DELETE ANYTHING WITIN TEH TEMP DIRECTORY
+        cmd = 'rm -frv {}'.format(inter_dir)
+        p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
+        out = p.stdout.read()
         
     
-#     except:
+    except:
         
-#         # DELETE ANYTHING WITIN TEH TEMP DIRECTORY
-#         cmd = 'rm -frv {}'.format(inter_dir)
-#         p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
-#         out = p.stdout.read()
-#         print("Something didn't work!")
+        # DELETE ANYTHING WITIN TEH TEMP DIRECTORY
+        cmd = 'rm -frv {}'.format(inter_dir)
+        p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
+        out = p.stdout.read()
+        print("Something didn't work!")
 
 
 # if __name__ == '__main__':

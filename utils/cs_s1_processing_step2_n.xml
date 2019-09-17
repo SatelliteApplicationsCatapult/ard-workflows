@@ -4,7 +4,7 @@
     <operator>Read</operator>
     <sources/>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <file>D:\SHARED_VB\IPP_Common_Sensing\S1_ARD\S1B_IW_SLC__1SDV_20190831T073944_tmp\S1B_IW_SLC__1SDV_20190831T073944_Orb_Cal_Deb_ML.dim</file>
+      <file>$input9</file>
     </parameters>
   </node>
   <node id="Terrain-Flattening">
@@ -83,7 +83,7 @@
       <sourceProduct refid="BandSelect"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <file>D:\SHARED_VB\IPP_Common_Sensing\S1_ARD\S1A_IW_SLC__1SDV_20190411T063207_tmp\$target11.dim</file>
+      <file>$target11</file>
       <formatName>BEAM-DIMAP</formatName>
     </parameters>
   </node>
