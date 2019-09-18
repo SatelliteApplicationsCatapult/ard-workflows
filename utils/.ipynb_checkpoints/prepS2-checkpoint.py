@@ -1,9 +1,15 @@
 import os
 import time
 from tqdm import tqdm
-from google.cloud import storage
+try:
+    from google.cloud import storage
+except:
+    print('no gsutils installed')
 import glob
-from sentinelsat import SentinelAPI
+try:
+    from sentinelsat import SentinelAPI
+except:
+    print('sentinelsat not installed')
 import zipfile
 import shutil
 import rasterio
@@ -15,6 +21,31 @@ from multiprocessing import pool
 from multiprocessing.pool import ThreadPool as Pool
 from itertools import product
 import csv
+import logging
+
+
+try:
+    from .cogeo import *
+except:
+    from cogeo import *
+try:
+    from .yamlUtils import *
+except:
+    from yamlUtils import *
+    
+    
+def find_s2_uuid(s2_filename):
+    """
+    Finds uuid required for download based upon an input S2 file/scene name. 
+    I.e. S2A_MSIL1C_20180820T223011_N0206_R072_T60KWE_20180821T013410
+    """
+    esa_api = SentinelAPI('tmj21','Welcome12!')
+    if s2_filename[-5:] == '.SAFE':
+        res = esa_api.query(filename=s2_filename)
+        res = esa_api.to_geodataframe(res)
+from itertools import product
+import csv
+import logging
 
 
 try:
@@ -329,7 +360,7 @@ def prepareS2(in_scene, s3_bucket='public-eo-data', s3_dir='fiji/Sentinel_2_test
     - maybe something to do with gcloud storage log in? Not sure if needed...
     - etc.... tbd
     """
-
+        
     # Need to handle inputs with and without .SAFE extension
     if not in_scene.endswith('.SAFE'):
         in_scene = in_scene + '.SAFE'
@@ -339,83 +370,76 @@ def prepareS2(in_scene, s3_bucket='public-eo-data', s3_dir='fiji/Sentinel_2_test
     
     # Unique inter_dir needed for clean-up
     inter_dir = inter_dir + scene_name +'_tmp/'
-
-    try:
-#     if 'x' == 'x':
-                
-        # sub-dirs used only for accessing tmp files
-        down_dir = inter_dir + in_scene + '/' 
-        cog_dir = inter_dir + scene_name + '/'
-        os.makedirs(cog_dir, exist_ok=True)
-        l2a_dir = inter_dir + '/'
-        
-        log_file = os.path.join(inter_dir + 'log_file.csv') # Create log somewhere more sensible - assumes exists
-        
-        with open(log_file, 'w') as foo:
-                pass
-        
-        with open(log_file, 'a') as log:
-            
-            log.write("{},{},{}".format('Scene_Name', 'Completed_Stage', 'DateTime'))
-            log.write("\n")
-
-            log.write("{},{},{}".format(in_scene, 'Start', str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))))
-            log.write("\n")
-
-            # DOWNLOAD
-            if source == "esahub":
-                s2id = find_s2_uuid(in_scene)
-                download_extract_s2_esa(s2id, inter_dir, down_dir)
-            elif source == "gcloud":
-                t = 't'
-                download_s2_granule_gcloud(in_scene, inter_dir)
-
-            log.write("{},{},{}".format(in_scene, 'Downloaded', str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))))
-            log.write("\n")
-
-    #         # [CREATE L2A WITHIN TEMP DIRECTORY]
-    #         if (scene_name.split('_')[1] == 'MSIL1C') & (prodlevel == 'L2A'):
-    #             sen2cor_correction(sen2cor8, down_dir, l2a_dir)
-
-            # CONVERT TO COGS TO TEMP COG DIRECTORY**
-            conv_s2scene_cogs(down_dir, cog_dir, scene_name)
-
-            log.write("{},{},{}".format(in_scene, 'COGS', str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))))
-            log.write("\n")
-
-            # PARSE METADATA TO TEMP COG DIRECTORY**
-            copy_s2_metadata(down_dir, cog_dir, scene_name) 
-
-            # GENERATE YAML WITHIN TEMP COG DIRECTORY**
-            create_yaml(cog_dir, 's2')
-
-            log.write("{},{},{}".format(in_scene, 'Yaml', str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))))
-            log.write("\n")        
-        
-            # MOVE COG DIRECTORY TO OUTPUT DIRECTORY
-            s3_upload_cogs(glob.glob(cog_dir + '*'), s3_bucket, s3_dir)
-
-            log.write("{},{},{}".format(in_scene, 'Uploaded', str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))))
-            log.write("\n")        
-            
-        shutil.move(log_file, cog_dir + 'log_file.csv')
-        s3_upload_cogs(glob.glob(cog_dir + '*.csv'), s3_bucket, s3_dir)
-        
-                
-        # DELETE ANYTHING WITIN TEH TEMP DIRECTORY
-        cmd = 'rm -frv {}'.format(inter_dir)
-        p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
-        out = p.stdout.read()
-        
+    os.makedirs(inter_dir, exist_ok=True)
+    # sub-dirs used only for accessing tmp files
+    down_dir = inter_dir + in_scene + '/' 
+    cog_dir = inter_dir + scene_name + '/'
+    os.makedirs(cog_dir, exist_ok=True)
+    l2a_dir = inter_dir + '/'
     
-    except:
+    log_file = inter_dir+'log_file.log'
+    logging.basicConfig(filename=log_file,
+                        level=logging.DEBUG, 
+                        format='%(asctime)s %(message)s')
+    logging.info('{} {} Starting'.format(in_scene, scene_name))
+        
+    try:
+        # DOWNLOAD
+        if source == "esahub":
+            s2id = find_s2_uuid(in_scene)
+            download_extract_s2_esa(s2id, inter_dir, down_dir)
+            logging.info('{} {} DOWNLOADED from ESA'.format(in_scene, scene_name))
+        elif source == "gcloud":
+            t = 't'
+            download_s2_granule_gcloud(in_scene, inter_dir)
+            logging.info('{} {} DOWNLOADED from GCloud'.format(in_scene, scene_name))
+        
+#         # [CREATE L2A WITHIN TEMP DIRECTORY]
+#         if (scene_name.split('_')[1] == 'MSIL1C') & (prodlevel == 'L2A'):
+#             sen2cor_correction(sen2cor8, down_dir, l2a_dir)
+        
+        # CONVERT TO COGS TO TEMP COG DIRECTORY**
+        conv_s2scene_cogs(down_dir, cog_dir, scene_name)
+        logging.info('{} {} COGGED'.format(in_scene, scene_name))
+        
+        # PARSE METADATA TO TEMP COG DIRECTORY**
+        copy_s2_metadata(down_dir, cog_dir, scene_name) 
+        logging.info('{} {} MTD'.format(in_scene, scene_name))
+        
+        # GENERATE YAML WITHIN TEMP COG DIRECTORY**
+        create_yaml(cog_dir, 's2')
+        logging.info('{} {} YAML'.format(in_scene, scene_name))
+
+        # MOVE COG DIRECTORY TO OUTPUT DIRECTORY
+        s3_upload_cogs(glob.glob(cog_dir + '*'), s3_bucket, s3_dir)
+        logging.info('{} {} UPLOADED'.format(in_scene, scene_name))
+        
+        logging.shutdown()
+        
+        # Tidy up log file to ensure upload
+        shutil.move(log_file, cog_dir + 'log_file.txt')
+        s3_upload_cogs(glob.glob(cog_dir + '*log_file.txt'), s3_bucket, s3_dir)
+        
+        logging.shutdown()
         
         # DELETE ANYTHING WITIN TEH TEMP DIRECTORY
         cmd = 'rm -frv {}'.format(inter_dir)
         p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
         out = p.stdout.read()
-        print("Something didn't work!")
-
+                
+    except Exception as e:
+        logging.exception("Exception occurred")
+        logging.shutdown()
+        
+        shutil.move(log_file, cog_dir + 'log_file.txt')
+        
+        s3_upload_cogs(glob.glob(cog_dir + '*log_file.txt'), s3_bucket, s3_dir)        
+        
+        logging.shutdown()
+        
+        cmd = 'rm -frv {}'.format(inter_dir)
+        p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
+        out = p.stdout.read()
 
 # if __name__ == '__main__':
 

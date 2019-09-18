@@ -204,10 +204,10 @@ def copy_s1_metadata(out_s1_prod, cog_scene_dir, scene_name):
             print ( "Original metadata file already copied to cog_dir: {}".format(n_meta) )
     else:
         print ( "Cannot find orignial metadata file: {}".format(meta) )
+    
 
 
-
-def prepareS1(in_scene, s3_bucket='public-eo-data', s3_dir='yemen/Sentinel_1/', inter_dir='/data/intermediate/', source='asf'):
+def prepareS1(in_scene, s3_bucket='public-eo-data', s3_dir='fiji/Sentinel_1_test/', inter_dir='/data/intermediate/', source='asf'):
     """
     Prepare IN_SCENE of Sentinel-1 satellite data into OUT_DIR for ODC indexing. 
 
@@ -224,93 +224,122 @@ def prepareS1(in_scene, s3_bucket='public-eo-data', s3_dir='yemen/Sentinel_1/', 
     # Need to handle inputs with and without .SAFE extension
     if not in_scene.endswith('.SAFE'):
         in_scene = in_scene + '.SAFE'
+        
     # shorten scene name
     scene_name = in_scene[:32]
 
     # Unique inter_dir needed for clean-up
     inter_dir = inter_dir + scene_name +'_tmp/'
     print(inter_dir)
-    # sub-dirs used only for accessing tmp files
-    down_dir = inter_dir + in_scene + '/' 
-    cog_dir = inter_dir + scene_name + '/'
-    os.makedirs(cog_dir, exist_ok=True)
-    # s1-specific relative inputs
-    input_mani = inter_dir + in_scene + '/manifest.safe'
-    out_prod = inter_dir + scene_name + '_Orb_Cal_Deb_ML_TF_TC.dim'
-    out_dir = out_prod[:-4] + '.data/'    
-
-    log_file = inter_dir+'log_file.log'
-    logging.basicConfig(filename=log_file,
-                        level=logging.DEBUG, 
-                        format='%(asctime)s %(message)s')
-    logging.info('{} {} Starting'.format(in_scene, scene_name))
     
     try:
+#     if 'x' == 'x':
+        
+        # inc exist tests
         
         snap_gpt = os.environ['SNAP_GPT']
-        int_graph = os.environ['S1_PROCESS'] # ENV VAR        
-#         print("graph: {}".format(int_graph))
-#         print("Manifest file: {}".format(input_mani))
-#         print("Output ARD prod: {}".format(out_prod))
-#         print("Output ARD prod dir: {}".format(out_dir))        
+        int_graph_1 = os.environ['S1_PROCESS_P1'] # ENV VAR
+        int_graph_2 = os.environ['S1_PROCESS_P2'] # ENV VAR
+
+        input_mani = inter_dir + in_scene + '/manifest.safe'
+        inter_prod = inter_dir + scene_name + '_Orb_Cal_Deb_ML.dim'
+        out_prod = inter_dir + scene_name + '_Orb_Cal_Deb_ML_TF_TC.dim'
+        out_dir = out_prod[:-4] + '.data/'
         
-        # DOWNLOAD
-        if source == "asf":
-            download_extract_s1_scene_asf(in_scene, inter_dir)
-            logging.info('{} {} DOWNLOADED from ASF'.format(in_scene, scene_name))
-            # TO DO - add something on current bandwidth...
-        elif source == "esa":
-            logging.exception('{} {} CANNOT DOWNLOAD from ESA (yet..)'.format(in_scene, scene_name))
+        print("graph1: {}".format(int_graph_1))
+        print("graph2: {}".format(int_graph_2))
+        print("Manifest file: {}".format(input_mani))
+        print("Intermediate prod: {}".format(inter_prod))
+        print("Output ARD prod: {}".format(out_prod))
+        print("Output ARD prod dir: {}".format(out_dir))
         
-        # SNAP - logic to check if exists, 
-        if not os.path.exists(out_prod):
-            cmd = "{} {} -Pinput1={} -Ptarget1={}".format(snap_gpt, int_graph, input_mani, out_prod)
-            print(cmd)
-            p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
-            out = p.stdout.read()
-            logging.info('{} {} PROCESSED'.format(in_scene, scene_name))
+        # sub-dirs used only for accessing tmp files
+        down_dir = inter_dir + in_scene + '/' 
+        cog_dir = inter_dir + scene_name + '/'
+        os.makedirs(cog_dir, exist_ok=True)
         
-        # CONVERT TO COGS TO TEMP COG DIRECTORY**
-        conv_s1scene_cogs(out_dir, cog_dir, scene_name)
-        logging.info('{} {} COGGED'.format(in_scene, scene_name))
+        log_file = os.path.join(inter_dir + 'log_file.csv') # Create log somewhere more sensible - assumes exists
         
-        # PARSE METADATA TO TEMP COG DIRECTORY**
-        copy_s1_metadata(out_prod, cog_dir, scene_name) 
-        logging.info('{} {} MTD'.format(in_scene, scene_name))
+        with open(log_file, 'w') as foo:
+                pass
         
-        # GENERATE YAML WITHIN TEMP COG DIRECTORY**
-        create_yaml(cog_dir, 's1')
-        logging.info('{} {} YAML'.format(in_scene, scene_name))
+        with open(log_file, 'a') as log:
+            
+            log.write("{},{},{}".format('Scene_Name', 'Completed_Stage', 'DateTime'))
+            log.write("\n")
+
+            log.write("{},{},{}".format(in_scene, 'Start', str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))))
+            log.write("\n")
+
+            # DOWNLOAD
+            if source == "asf":
+                download_extract_s1_scene_asf(in_scene, inter_dir)
+            elif source == "esa":
+                print('Not supported yet...')
+
+            log.write("{},{},{}".format(in_scene, 'Downloaded', str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))))
+            log.write("\n")
+
+            # SNAP P1 - logic to check if exists, 
+            print('P1')
+            if not os.path.exists(inter_prod):
+                cmd = "{} {} -Pinput8={} -Ptarget10={}".format(snap_gpt, int_graph_1, input_mani, inter_prod)
+                p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
+                out = p.stdout.read()
+            
+            log.write("{},{},{}".format(in_scene, 'S1_Pt1', str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))))
+            log.write("\n")
+
+            # SNAP P2
+            print('P2')
+            if not os.path.exists(out_prod):
+                cmd = "{} {} -Pinput9={} -Ptarget11={}".format(snap_gpt, int_graph_2, inter_prod, out_prod)
+                p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
+                out = p.stdout.read()
+                print(out)
+
+            log.write("{},{},{}".format(in_scene, 'S1_Pt2', str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))))
+            log.write("\n")
+
+            # CONVERT TO COGS TO TEMP COG DIRECTORY**
+            conv_s1scene_cogs(out_dir, cog_dir, scene_name)
+
+            log.write("{},{},{}".format(in_scene, 'COGS', str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))))
+            log.write("\n")
+
+            # PARSE METADATA TO TEMP COG DIRECTORY**
+            copy_s1_metadata(out_prod, cog_dir, scene_name) 
+
+            # GENERATE YAML WITHIN TEMP COG DIRECTORY**
+            create_yaml(cog_dir, 's1')
+
+            log.write("{},{},{}".format(in_scene, 'Yaml', str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))))
+            log.write("\n")        
         
-        # MOVE COG DIRECTORY TO OUTPUT DIRECTORY
-        s3_upload_cogs(glob.glob(cog_dir + '*'), s3_bucket, s3_dir)
-        logging.info('{} {} UPLOADED'.format(in_scene, scene_name))
+            # MOVE COG DIRECTORY TO OUTPUT DIRECTORY
+            s3_upload_cogs(glob.glob(cog_dir + '*'), s3_bucket, s3_dir)
+
+            log.write("{},{},{}".format(in_scene, 'Uploaded', str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))))
+            log.write("\n")        
+            
+        shutil.move(log_file, cog_dir + 'log_file.csv')
+        s3_upload_cogs(glob.glob(cog_dir + '*.csv'), s3_bucket, s3_dir)
         
-        logging.shutdown()
+                
+        # DELETE ANYTHING WITIN TEH TEMP DIRECTORY
+        cmd = 'rm -frv {}'.format(inter_dir)
+        p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
+        out = p.stdout.read()
         
-        shutil.move(log_file, cog_dir + 'log_file.txt')
-        s3_upload_cogs(glob.glob(cog_dir + '*log_file.txt'), s3_bucket, s3_dir)
-        
-        logging.shutdown()
+    
+    except:
         
         # DELETE ANYTHING WITIN TEH TEMP DIRECTORY
         cmd = 'rm -frv {}'.format(inter_dir)
         p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
         out = p.stdout.read()
+        print("Something didn't work!")
 
-    except Exception as e:
-        logging.exception("Exception occurred")
-        logging.shutdown()
-        
-        shutil.move(log_file, cog_dir + 'log_file.txt')  
-        
-        s3_upload_cogs(glob.glob(cog_dir + '*log_file.txt'), s3_bucket, s3_dir)        
-        
-        logging.shutdown()
-        
-        cmd = 'rm -frv {}'.format(inter_dir)
-        p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
-        out = p.stdout.read()
 
 # if __name__ == '__main__':
 
