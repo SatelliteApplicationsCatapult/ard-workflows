@@ -23,6 +23,7 @@ from itertools import product
 import boto3
 import csv
 import pandas as pd
+import logging
 
 
 try:
@@ -220,7 +221,7 @@ def prepareS1(in_scene, s3_bucket='public-eo-data', s3_dir='yemen/Sentinel_1/', 
     Assumptions:
     - etc.... tbd
     """
-
+    
     # Need to handle inputs with and without .SAFE extension
     if not in_scene.endswith('.SAFE'):
         in_scene = in_scene + '.SAFE'
@@ -236,14 +237,21 @@ def prepareS1(in_scene, s3_bucket='public-eo-data', s3_dir='yemen/Sentinel_1/', 
     os.makedirs(cog_dir, exist_ok=True)
     # s1-specific relative inputs
     input_mani = inter_dir + in_scene + '/manifest.safe'
-    out_prod = inter_dir + scene_name + '_Orb_Cal_Deb_ML_TF_TC.dim'
+    out_prod = inter_dir + scene_name + '_Orb_Cal_Deb_ML_TF_TC_dB.dim'
     out_dir = out_prod[:-4] + '.data/'    
 
-    log_file = inter_dir+'log_file.log'
-    logging.basicConfig(filename=log_file,
-                        level=logging.DEBUG, 
-                        format='%(asctime)s %(message)s')
-    logging.info('{} {} Starting'.format(in_scene, scene_name))
+    
+    # Logging structure taken from - https://www.loggly.com/ultimate-guide/python-logging-basics/
+    log_file = inter_dir+'log_file.txt'
+    handler = logging.handlers.WatchedFileHandler(
+        os.environ.get("LOGFILE", log_file))
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    handler.setFormatter(formatter)
+    root = logging.getLogger()
+    root.setLevel(os.environ.get("LOGLEVEL", "INFO"))
+    root.addHandler(handler)
+
+    root.info('{} {} Starting'.format(in_scene, scene_name))
     
     try:
         
@@ -257,10 +265,10 @@ def prepareS1(in_scene, s3_bucket='public-eo-data', s3_dir='yemen/Sentinel_1/', 
         # DOWNLOAD
         if source == "asf":
             download_extract_s1_scene_asf(in_scene, inter_dir)
-            logging.info('{} {} DOWNLOADED from ASF'.format(in_scene, scene_name))
+            root.info('{} {} DOWNLOADED from ASF'.format(in_scene, scene_name))
             # TO DO - add something on current bandwidth...
         elif source == "esa":
-            logging.exception('{} {} CANNOT DOWNLOAD from ESA (yet..)'.format(in_scene, scene_name))
+            root.exception('{} {} CANNOT DOWNLOAD from ESA (yet..)'.format(in_scene, scene_name))
         
         # SNAP - logic to check if exists, 
         if not os.path.exists(out_prod):
@@ -268,46 +276,45 @@ def prepareS1(in_scene, s3_bucket='public-eo-data', s3_dir='yemen/Sentinel_1/', 
             print(cmd)
             p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
             out = p.stdout.read()
-            logging.info('{} {} PROCESSED'.format(in_scene, scene_name))
+            root.info('{} {} PROCESSED'.format(in_scene, scene_name))
         
         # CONVERT TO COGS TO TEMP COG DIRECTORY**
         conv_s1scene_cogs(out_dir, cog_dir, scene_name)
-        logging.info('{} {} COGGED'.format(in_scene, scene_name))
+        root.info('{} {} COGGED'.format(in_scene, scene_name))
         
         # PARSE METADATA TO TEMP COG DIRECTORY**
         copy_s1_metadata(out_prod, cog_dir, scene_name) 
-        logging.info('{} {} MTD'.format(in_scene, scene_name))
+        root.info('{} {} MTD'.format(in_scene, scene_name))
         
         # GENERATE YAML WITHIN TEMP COG DIRECTORY**
         create_yaml(cog_dir, 's1')
-        logging.info('{} {} YAML'.format(in_scene, scene_name))
+        root.info('{} {} YAML'.format(in_scene, scene_name))
         
         # MOVE COG DIRECTORY TO OUTPUT DIRECTORY
         s3_upload_cogs(glob.glob(cog_dir + '*'), s3_bucket, s3_dir)
-        logging.info('{} {} UPLOADED'.format(in_scene, scene_name))
+        root.info('{} {} UPLOADED'.format(in_scene, scene_name))
         
-        logging.shutdown()
+        root.removeHandler(handler)
+        handler.close()
         
         shutil.move(log_file, cog_dir + 'log_file.txt')
         s3_upload_cogs(glob.glob(cog_dir + '*log_file.txt'), s3_bucket, s3_dir)
-        
-        logging.shutdown()
-        
+                
         # DELETE ANYTHING WITIN TEH TEMP DIRECTORY
         cmd = 'rm -frv {}'.format(inter_dir)
         p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
         out = p.stdout.read()
 
     except Exception as e:
+        print('boo')
         logging.exception("Exception occurred")
-        logging.shutdown()
+        root.removeHandler(handler)
+        handler.close()
         
         shutil.move(log_file, cog_dir + 'log_file.txt')  
         
         s3_upload_cogs(glob.glob(cog_dir + '*log_file.txt'), s3_bucket, s3_dir)        
-        
-        logging.shutdown()
-        
+                
         cmd = 'rm -frv {}'.format(inter_dir)
         p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
         out = p.stdout.read()

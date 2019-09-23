@@ -22,6 +22,8 @@ from multiprocessing.pool import ThreadPool as Pool
 from itertools import product
 import csv
 import logging
+import logging.handlers
+from sys import exit
 
 
 try:
@@ -43,34 +45,6 @@ def find_s2_uuid(s2_filename):
     if s2_filename[-5:] == '.SAFE':
         res = esa_api.query(filename=s2_filename)
         res = esa_api.to_geodataframe(res)
-from itertools import product
-import csv
-import logging
-
-
-try:
-    from .cogeo import *
-except:
-    from cogeo import *
-try:
-    from .yamlUtils import *
-except:
-    from yamlUtils import *
-    
-    
-def find_s2_uuid(s2_filename):
-    """
-    Finds uuid required for download based upon an input S2 file/scene name. 
-    I.e. S2A_MSIL1C_20180820T223011_N0206_R072_T60KWE_20180821T013410
-    """
-    esa_api = SentinelAPI('tmj21','Welcome12!')
-    if s2_filename[-5:] == '.SAFE':
-        res = esa_api.query(filename=s2_filename)
-        res = esa_api.to_geodataframe(res)
-    else:
-        res = esa_api.query(filename=s2_filename+'.SAFE')
-        res = esa_api.to_geodataframe(res)
-    return res.uuid.values[0]
 
 
 def download_s2_granule_gcloud(s2_id, download_dir, safe_form=True, bands=False):
@@ -375,24 +349,30 @@ def prepareS2(in_scene, s3_bucket='public-eo-data', s3_dir='fiji/Sentinel_2_test
     down_dir = inter_dir + in_scene + '/' 
     cog_dir = inter_dir + scene_name + '/'
     os.makedirs(cog_dir, exist_ok=True)
-    l2a_dir = inter_dir + '/'
+    l2a_dir = inter_dir + '/'    
     
-    log_file = inter_dir+'log_file.log'
-    logging.basicConfig(filename=log_file,
-                        level=logging.DEBUG, 
-                        format='%(asctime)s %(message)s')
-    logging.info('{} {} Starting'.format(in_scene, scene_name))
-        
+    # Logging structure taken from - https://www.loggly.com/ultimate-guide/python-logging-basics/
+    log_file = inter_dir+'log_file.txt'
+    handler = logging.handlers.WatchedFileHandler(
+        os.environ.get("LOGFILE", log_file))
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    handler.setFormatter(formatter)
+    root = logging.getLogger()
+    root.setLevel(os.environ.get("LOGLEVEL", "INFO"))
+    root.addHandler(handler)
+    
+    root.info('{} {} Starting'.format(in_scene, scene_name))
+    
     try:
         # DOWNLOAD
         if source == "esahub":
             s2id = find_s2_uuid(in_scene)
             download_extract_s2_esa(s2id, inter_dir, down_dir)
-            logging.info('{} {} DOWNLOADED from ESA'.format(in_scene, scene_name))
+            root.info('{} {} DOWNLOADED from ESA'.format(in_scene, scene_name))
         elif source == "gcloud":
             t = 't'
             download_s2_granule_gcloud(in_scene, inter_dir)
-            logging.info('{} {} DOWNLOADED from GCloud'.format(in_scene, scene_name))
+            root.info('{} {} DOWNLOADED from GCloud'.format(in_scene, scene_name))
         
 #         # [CREATE L2A WITHIN TEMP DIRECTORY]
 #         if (scene_name.split('_')[1] == 'MSIL1C') & (prodlevel == 'L2A'):
@@ -400,43 +380,42 @@ def prepareS2(in_scene, s3_bucket='public-eo-data', s3_dir='fiji/Sentinel_2_test
         
         # CONVERT TO COGS TO TEMP COG DIRECTORY**
         conv_s2scene_cogs(down_dir, cog_dir, scene_name)
-        logging.info('{} {} COGGED'.format(in_scene, scene_name))
+        root.info('{} {} COGGED'.format(in_scene, scene_name))
         
         # PARSE METADATA TO TEMP COG DIRECTORY**
         copy_s2_metadata(down_dir, cog_dir, scene_name) 
-        logging.info('{} {} MTD'.format(in_scene, scene_name))
+        root.info('{} {} MTD'.format(in_scene, scene_name))
         
         # GENERATE YAML WITHIN TEMP COG DIRECTORY**
         create_yaml(cog_dir, 's2')
-        logging.info('{} {} YAML'.format(in_scene, scene_name))
+        root.info('{} {} YAML'.format(in_scene, scene_name))
 
         # MOVE COG DIRECTORY TO OUTPUT DIRECTORY
         s3_upload_cogs(glob.glob(cog_dir + '*'), s3_bucket, s3_dir)
-        logging.info('{} {} UPLOADED'.format(in_scene, scene_name))
-        
-        logging.shutdown()
-        
+        root.info('{} {} UPLOADED'.format(in_scene, scene_name))
+
+        root.removeHandler(handler)
+        handler.close()
+
         # Tidy up log file to ensure upload
         shutil.move(log_file, cog_dir + 'log_file.txt')
         s3_upload_cogs(glob.glob(cog_dir + '*log_file.txt'), s3_bucket, s3_dir)
-        
-        logging.shutdown()
-        
+                
         # DELETE ANYTHING WITIN TEH TEMP DIRECTORY
         cmd = 'rm -frv {}'.format(inter_dir)
         p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
         out = p.stdout.read()
                 
     except Exception as e:
-        logging.exception("Exception occurred")
-        logging.shutdown()
-        
+        print('boo')
+        root.exception("Exception occurred")
+        root.removeHandler(handler)
+        handler.close()
+
         shutil.move(log_file, cog_dir + 'log_file.txt')
         
         s3_upload_cogs(glob.glob(cog_dir + '*log_file.txt'), s3_bucket, s3_dir)        
-        
-        logging.shutdown()
-        
+                
         cmd = 'rm -frv {}'.format(inter_dir)
         p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
         out = p.stdout.read()
