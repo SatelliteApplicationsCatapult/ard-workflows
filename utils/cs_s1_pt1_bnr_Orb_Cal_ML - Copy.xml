@@ -1,0 +1,109 @@
+<graph id="Graph">
+  <version>1.0</version>
+  <node id="Read">
+    <operator>Read</operator>
+    <sources/>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <file>D:\SHARED_VB\IPP_Common_Sensing\S1_ARD\S1A_IW_GRDH_1SDV_20190912T151052_tmp\S1A_IW_GRDH_1SDV_20190912T151052_20190912T151117_028990_0349C6_D2E2.SAFE\manifest.safe</file>
+    </parameters>
+  </node>
+  <node id="Remove-GRD-Border-Noise">
+    <operator>Remove-GRD-Border-Noise</operator>
+    <sources>
+      <sourceProduct refid="ThermalNoiseRemoval"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <selectedPolarisations>VH,VV</selectedPolarisations>
+      <borderLimit>500</borderLimit>
+      <trimThreshold>0.5</trimThreshold>
+    </parameters>
+  </node>
+  <node id="Apply-Orbit-File">
+    <operator>Apply-Orbit-File</operator>
+    <sources>
+      <sourceProduct refid="Remove-GRD-Border-Noise"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <orbitType>Sentinel Precise (Auto Download)</orbitType>
+      <polyDegree>3</polyDegree>
+      <continueOnFail>true</continueOnFail>
+    </parameters>
+  </node>
+  <node id="Calibration">
+    <operator>Calibration</operator>
+    <sources>
+      <sourceProduct refid="Apply-Orbit-File"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <sourceBands/>
+      <auxFile>Product Auxiliary File</auxFile>
+      <externalAuxFile/>
+      <outputImageInComplex>false</outputImageInComplex>
+      <outputImageScaleInDb>false</outputImageScaleInDb>
+      <createGammaBand>false</createGammaBand>
+      <createBetaBand>false</createBetaBand>
+      <selectedPolarisations>VH,VV</selectedPolarisations>
+      <outputSigmaBand>false</outputSigmaBand>
+      <outputGammaBand>false</outputGammaBand>
+      <outputBetaBand>true</outputBetaBand>
+    </parameters>
+  </node>
+  <node id="Multilook">
+    <operator>Multilook</operator>
+    <sources>
+      <sourceProduct refid="Calibration"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <sourceBands/>
+      <nRgLooks>2</nRgLooks>
+      <nAzLooks>2</nAzLooks>
+      <outputIntensity>true</outputIntensity>
+      <grSquarePixel>true</grSquarePixel>
+    </parameters>
+  </node>
+  <node id="ThermalNoiseRemoval">
+    <operator>ThermalNoiseRemoval</operator>
+    <sources>
+      <sourceProduct refid="Read"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <selectedPolarisations/>
+      <removeThermalNoise>true</removeThermalNoise>
+      <reIntroduceThermalNoise>false</reIntroduceThermalNoise>
+    </parameters>
+  </node>
+  <node id="Write(3)">
+    <operator>Write</operator>
+    <sources>
+      <sourceProduct refid="Multilook"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <file>D:\SHARED_VB\IPP_Common_Sensing\S1_ARD\S1A_IW_GRDH_1SDV_20190912T151052_tmp\S1A_IW_GRDH_1SDV_20190912T151052_20190912T151117_028990_0349C6_D2E2_NR_Orb_Cal_ML.dim</file>
+      <formatName>BEAM-DIMAP</formatName>
+    </parameters>
+  </node>
+  <applicationData id="Presentation">
+    <Description/>
+    <node id="Read">			
+            			<displayPosition x="128.0" y="91.0"/>
+    </node>
+    <node id="Remove-GRD-Border-Noise">
+      <displayPosition x="79.0" y="190.0"/>
+    </node>
+    <node id="Apply-Orbit-File">			
+            			<displayPosition x="111.0" y="248.0"/>
+    </node>
+    <node id="Calibration">			
+            			<displayPosition x="123.0" y="292.0"/>
+    </node>
+    <node id="Multilook">
+      <displayPosition x="125.0" y="338.0"/>
+    </node>
+    <node id="ThermalNoiseRemoval">
+      <displayPosition x="90.0" y="140.0"/>
+    </node>
+    <node id="Write(3)">
+      <displayPosition x="124.0" y="394.0"/>
+    </node>
+  </applicationData>
+</graph>

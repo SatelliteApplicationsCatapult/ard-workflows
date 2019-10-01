@@ -353,12 +353,11 @@ def prepareS2(in_scene, s3_bucket='public-eo-data', s3_dir='fiji/Sentinel_2_test
     
     # Logging structure taken from - https://www.loggly.com/ultimate-guide/python-logging-basics/
     log_file = inter_dir+'log_file.txt'
-    handler = logging.handlers.WatchedFileHandler(
-        os.environ.get("LOGFILE", log_file))
+    handler = logging.handlers.WatchedFileHandler(log_file)
     formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
     handler.setFormatter(formatter)
     root = logging.getLogger()
-    root.setLevel(os.environ.get("LOGLEVEL", "INFO"))
+    root.setLevel(os.environ.get("LOGLEVEL", "DEBUG"))
     root.addHandler(handler)
     
     root.info('{} {} Starting'.format(in_scene, scene_name))
@@ -416,9 +415,9 @@ def prepareS2(in_scene, s3_bucket='public-eo-data', s3_dir='fiji/Sentinel_2_test
         
         s3_upload_cogs(glob.glob(cog_dir + '*log_file.txt'), s3_bucket, s3_dir)        
                 
-        cmd = 'rm -frv {}'.format(inter_dir)
-        p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
-        out = p.stdout.read()
+#         cmd = 'rm -frv {}'.format(inter_dir)
+#         p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
+#         out = p.stdout.read()
 
 # if __name__ == '__main__':
 

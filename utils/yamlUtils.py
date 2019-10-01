@@ -70,6 +70,8 @@ def band_name_s1(prod_path):
         layername = 'vh'
     if 'VV' in str(prod_name):
         layername = 'vv'
+    if 'LayoverShadow_MASK' in str (prod_name):
+        layername = 'layovershadow_mask'
         
     return layername
 
@@ -146,7 +148,8 @@ def yaml_prep_s1(scene_dir):
     
     prod_paths = glob.glob(scene_dir + '*.tif')
         
-    t0=parse(str( datetime.strptime(prod_paths[0].split("_")[-3], '%Y%m%dT%H%M%S')))
+#     t0=parse(str( datetime.strptime(prod_paths[0].split("_")[-5], '%Y%m%dT%H%M%S')))
+    t0=parse(str( datetime.strptime(os.path.dirname(prod_paths[0]).split("_")[-1], '%Y%m%dT%H%M%S')))
     print ( t0 )
     t1=t0
     print ( t1 )
@@ -161,7 +164,11 @@ def yaml_prep_s1(scene_dir):
     print ( images )
     
     # trusting bands coaligned, use one to generate spatial bounds for all
-    projection, extent = get_geometry('/'.join([str(scene_dir), images['vh']['path']]))
+    try:
+        projection, extent = get_geometry('/'.join([str(scene_dir), images['vh']['path']]))
+    except:
+        projection, extent = get_geometry('/'.join([str(scene_dir), images['vv']['path']]))
+        print('no vh band available')
     
     # format metadata (i.e. construct hashtable tree for syntax of file interface)
     return {

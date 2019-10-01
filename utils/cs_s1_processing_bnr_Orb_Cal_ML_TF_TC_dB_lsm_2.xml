@@ -1,0 +1,205 @@
+<graph id="Graph">
+  <version>1.0</version>
+  <node id="Read">
+    <operator>Read</operator>
+    <sources/>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <file>D:\SHARED_VB\IPP_Common_Sensing\S1_ARD\S1A_IW_GRDH_1SDV_20190912T151052_tmp\S1A_IW_GRDH_1SDV_20190912T151052_20190912T151117_028990_0349C6_D2E2.SAFE\manifest.safe</file>
+    </parameters>
+  </node>
+  <node id="Remove-GRD-Border-Noise">
+    <operator>Remove-GRD-Border-Noise</operator>
+    <sources>
+      <sourceProduct refid="ThermalNoiseRemoval"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <selectedPolarisations>VH,VV</selectedPolarisations>
+      <borderLimit>500</borderLimit>
+      <trimThreshold>0.5</trimThreshold>
+    </parameters>
+  </node>
+  <node id="Apply-Orbit-File">
+    <operator>Apply-Orbit-File</operator>
+    <sources>
+      <sourceProduct refid="Remove-GRD-Border-Noise"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <orbitType>Sentinel Precise (Auto Download)</orbitType>
+      <polyDegree>3</polyDegree>
+      <continueOnFail>true</continueOnFail>
+    </parameters>
+  </node>
+  <node id="Calibration">
+    <operator>Calibration</operator>
+    <sources>
+      <sourceProduct refid="Apply-Orbit-File"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <sourceBands/>
+      <auxFile>Product Auxiliary File</auxFile>
+      <externalAuxFile/>
+      <outputImageInComplex>false</outputImageInComplex>
+      <outputImageScaleInDb>false</outputImageScaleInDb>
+      <createGammaBand>false</createGammaBand>
+      <createBetaBand>false</createBetaBand>
+      <selectedPolarisations>VH,VV</selectedPolarisations>
+      <outputSigmaBand>false</outputSigmaBand>
+      <outputGammaBand>false</outputGammaBand>
+      <outputBetaBand>true</outputBetaBand>
+    </parameters>
+  </node>
+  <node id="Multilook">
+    <operator>Multilook</operator>
+    <sources>
+      <sourceProduct refid="Calibration"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <sourceBands/>
+      <nRgLooks>2</nRgLooks>
+      <nAzLooks>2</nAzLooks>
+      <outputIntensity>true</outputIntensity>
+      <grSquarePixel>true</grSquarePixel>
+    </parameters>
+  </node>
+  <node id="Terrain-Flattening">
+    <operator>Terrain-Flattening</operator>
+    <sources>
+      <sourceProduct refid="Multilook"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <sourceBands/>
+      <demName>SRTM 1Sec HGT</demName>
+      <demResamplingMethod>BILINEAR_INTERPOLATION</demResamplingMethod>
+      <externalDEMFile/>
+      <externalDEMNoDataValue>0.0</externalDEMNoDataValue>
+      <externalDEMApplyEGM>false</externalDEMApplyEGM>
+      <outputSimulatedImage>false</outputSimulatedImage>
+      <additionalOverlap>0.1</additionalOverlap>
+      <oversamplingMultiple>1.5</oversamplingMultiple>
+    </parameters>
+  </node>
+  <node id="Terrain-Correction">
+    <operator>Terrain-Correction</operator>
+    <sources>
+      <sourceProduct refid="SAR-Simulation"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <sourceBands/>
+      <demName>SRTM 1Sec HGT</demName>
+      <externalDEMFile/>
+      <externalDEMNoDataValue>0.0</externalDEMNoDataValue>
+      <externalDEMApplyEGM>true</externalDEMApplyEGM>
+      <demResamplingMethod>BILINEAR_INTERPOLATION</demResamplingMethod>
+      <imgResamplingMethod>BILINEAR_INTERPOLATION</imgResamplingMethod>
+      <pixelSpacingInMeter>20.0</pixelSpacingInMeter>
+      <pixelSpacingInDegree>1.796630568239043E-4</pixelSpacingInDegree>
+      <mapProjection>GEOGCS[&quot;WGS84(DD)&quot;, &#xd;
+  DATUM[&quot;WGS84&quot;, &#xd;
+    SPHEROID[&quot;WGS84&quot;, 6378137.0, 298.257223563]], &#xd;
+  PRIMEM[&quot;Greenwich&quot;, 0.0], &#xd;
+  UNIT[&quot;degree&quot;, 0.017453292519943295], &#xd;
+  AXIS[&quot;Geodetic longitude&quot;, EAST], &#xd;
+  AXIS[&quot;Geodetic latitude&quot;, NORTH]]</mapProjection>
+      <alignToStandardGrid>false</alignToStandardGrid>
+      <standardGridOriginX>0.0</standardGridOriginX>
+      <standardGridOriginY>0.0</standardGridOriginY>
+      <nodataValueAtSea>false</nodataValueAtSea>
+      <saveDEM>false</saveDEM>
+      <saveLatLon>false</saveLatLon>
+      <saveIncidenceAngleFromEllipsoid>false</saveIncidenceAngleFromEllipsoid>
+      <saveLocalIncidenceAngle>false</saveLocalIncidenceAngle>
+      <saveProjectedLocalIncidenceAngle>false</saveProjectedLocalIncidenceAngle>
+      <saveSelectedSourceBand>true</saveSelectedSourceBand>
+      <outputComplex>false</outputComplex>
+      <applyRadiometricNormalization>false</applyRadiometricNormalization>
+      <saveSigmaNought>false</saveSigmaNought>
+      <saveGammaNought>false</saveGammaNought>
+      <saveBetaNought>false</saveBetaNought>
+      <incidenceAngleForSigma0>Use projected local incidence angle from DEM</incidenceAngleForSigma0>
+      <incidenceAngleForGamma0>Use projected local incidence angle from DEM</incidenceAngleForGamma0>
+      <auxFile>Latest Auxiliary File</auxFile>
+      <externalAuxFile/>
+    </parameters>
+  </node>
+  <node id="LinearToFromdB">
+    <operator>LinearToFromdB</operator>
+    <sources>
+      <sourceProduct refid="Terrain-Correction"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <sourceBands>Simulated_Intensity_VH,Gamma0_VH,Gamma0_VV,layover_shadow_mask_VH</sourceBands>
+    </parameters>
+  </node>
+  <node id="SAR-Simulation">
+    <operator>SAR-Simulation</operator>
+    <sources>
+      <sourceProduct refid="Terrain-Flattening"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <sourceBands/>
+      <demName>SRTM 1Sec HGT</demName>
+      <demResamplingMethod>BICUBIC_INTERPOLATION</demResamplingMethod>
+      <externalDEMFile/>
+      <externalDEMNoDataValue>0.0</externalDEMNoDataValue>
+      <externalDEMApplyEGM>true</externalDEMApplyEGM>
+      <saveLayoverShadowMask>true</saveLayoverShadowMask>
+    </parameters>
+  </node>
+  <node id="ThermalNoiseRemoval">
+    <operator>ThermalNoiseRemoval</operator>
+    <sources>
+      <sourceProduct refid="Read"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <selectedPolarisations/>
+      <removeThermalNoise>true</removeThermalNoise>
+      <reIntroduceThermalNoise>false</reIntroduceThermalNoise>
+    </parameters>
+  </node>
+  <node id="Write">
+    <operator>Write</operator>
+    <sources>
+      <sourceProduct refid="LinearToFromdB"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <file>D:\CommonSensing_tests\S1A_IW_GRDH_1SDV_20190912T151052_20190912T151117_028990_0349C6_D2E2_NR_Orb_Cal_ML_TF_TC_dB.dim</file>
+      <formatName>BEAM-DIMAP</formatName>
+    </parameters>
+  </node>
+  <applicationData id="Presentation">
+    <Description/>
+    <node id="Read">			
+            			<displayPosition x="9.0" y="14.0"/>
+    </node>
+    <node id="Remove-GRD-Border-Noise">
+      <displayPosition x="146.0" y="86.0"/>
+    </node>
+    <node id="Apply-Orbit-File">			
+            			<displayPosition x="239.0" y="140.0"/>
+    </node>
+    <node id="Calibration">			
+            			<displayPosition x="313.0" y="222.0"/>
+    </node>
+    <node id="Multilook">
+      <displayPosition x="406.0" y="102.0"/>
+    </node>
+    <node id="Terrain-Flattening">			
+            			<displayPosition x="469.0" y="167.0"/>
+    </node>
+    <node id="Terrain-Correction">			
+            			<displayPosition x="439.0" y="329.0"/>
+    </node>
+    <node id="LinearToFromdB">
+      <displayPosition x="567.0" y="279.0"/>
+    </node>
+    <node id="SAR-Simulation">
+      <displayPosition x="436.0" y="240.0"/>
+    </node>
+    <node id="ThermalNoiseRemoval">
+      <displayPosition x="138.0" y="43.0"/>
+    </node>
+    <node id="Write">			
+            			<displayPosition x="696.0" y="311.0"/>
+    </node>
+  </applicationData>
+</graph>

@@ -117,11 +117,14 @@ def conv_s1scene_cogs(noncog_scene_dir, cog_scene_dir, scene_name, overwrite=Fal
     
     cog_val = []
     
-#     des_prods = ["Gamma0_VH","Gamma0_VH"] # to ammend once outputs finalised - TO DO*****
+    des_prods = ["Gamma0_VV_db",
+                 "Gamma0_VH_db",
+                 "LayoverShadow_MASK_VH"] # to ammend once outputs finalised - TO DO*****
     
     # find all individual prods to convert to cog (ignore true colour images (TCI))
-    prod_paths = glob.glob(noncog_scene_dir + '/*Gamma0*.img') # - TO DO*****
-        
+    prod_paths = glob.glob(noncog_scene_dir + '*TF_TC*/*.img') # - TO DO*****
+    prod_paths = [x for x in prod_paths if os.path.basename(x)[:-4] in des_prods]
+
     for i in prod_paths: print (i)
     
     proc_list = []
@@ -237,18 +240,20 @@ def prepareS1(in_scene, s3_bucket='public-eo-data', s3_dir='yemen/Sentinel_1/', 
     os.makedirs(cog_dir, exist_ok=True)
     # s1-specific relative inputs
     input_mani = inter_dir + in_scene + '/manifest.safe'
-    out_prod = inter_dir + scene_name + '_Orb_Cal_Deb_ML_TF_TC_dB.dim'
-    out_dir = out_prod[:-4] + '.data/'    
-
+    inter_prod = inter_dir + scene_name + '_Orb_Cal_Deb_ML.dim'
+    inter_prod_dir = inter_prod[:-4] + '.data/'
+    out_prod1 = inter_dir + scene_name + '_Orb_Cal_Deb_ML_TF_TC_dB.dim'
+    out_dir1 = out_prod1[:-4] + '.data/'
+    out_prod2 = inter_dir + scene_name + '_Orb_Cal_Deb_ML_TF_TC_lsm.dim'
+    out_dir2 = out_prod2[:-4] + '.data/'
     
     # Logging structure taken from - https://www.loggly.com/ultimate-guide/python-logging-basics/
     log_file = inter_dir+'log_file.txt'
-    handler = logging.handlers.WatchedFileHandler(
-        os.environ.get("LOGFILE", log_file))
+    handler = logging.handlers.WatchedFileHandler(log_file)
     formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
     handler.setFormatter(formatter)
     root = logging.getLogger()
-    root.setLevel(os.environ.get("LOGLEVEL", "INFO"))
+    root.setLevel(os.environ.get("LOGLEVEL", "DEBUG"))
     root.addHandler(handler)
 
     root.info('{} {} Starting'.format(in_scene, scene_name))
@@ -256,11 +261,8 @@ def prepareS1(in_scene, s3_bucket='public-eo-data', s3_dir='yemen/Sentinel_1/', 
     try:
         
         snap_gpt = os.environ['SNAP_GPT']
-        int_graph = os.environ['S1_PROCESS'] # ENV VAR        
-#         print("graph: {}".format(int_graph))
-#         print("Manifest file: {}".format(input_mani))
-#         print("Output ARD prod: {}".format(out_prod))
-#         print("Output ARD prod dir: {}".format(out_dir))        
+        int_graph_1 = os.environ['S1_PROCESS_P1'] # ENV VAR        
+        int_graph_2 = os.environ['S1_PROCESS_P2'] # ENV VAR 
         
         # DOWNLOAD
         if source == "asf":
@@ -271,19 +273,26 @@ def prepareS1(in_scene, s3_bucket='public-eo-data', s3_dir='yemen/Sentinel_1/', 
             root.exception('{} {} CANNOT DOWNLOAD from ESA (yet..)'.format(in_scene, scene_name))
         
         # SNAP - logic to check if exists, 
-        if not os.path.exists(out_prod):
-            cmd = "{} {} -Pinput1={} -Ptarget1={}".format(snap_gpt, int_graph, input_mani, out_prod)
+        if not os.path.exists(out_prod2):
+            cmd = f"{snap_gpt} {int_graph_1} -Pinput_grd={input_mani} -Poutput_ml={inter_prod}"
             print(cmd)
             p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
             out = p.stdout.read()
             root.info('{} {} PROCESSED'.format(in_scene, scene_name))
-        
+            print('pt2')
+            cmd = f"{snap_gpt} {int_graph_2} -Pinput_ml={inter_prod} -Poutput_db={out_prod1} -Poutput_ls={out_prod2}"
+            print(cmd)
+            p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
+            out = p.stdout.read()
+            root.info('{} {} PROCESSED'.format(in_scene, scene_name))
+            
         # CONVERT TO COGS TO TEMP COG DIRECTORY**
-        conv_s1scene_cogs(out_dir, cog_dir, scene_name)
-        root.info('{} {} COGGED'.format(in_scene, scene_name))
+        conv_s1scene_cogs(inter_dir, cog_dir, scene_name)
+        root.info('{} {} COGGED MASK'.format(in_scene, scene_name))
         
         # PARSE METADATA TO TEMP COG DIRECTORY**
-        copy_s1_metadata(out_prod, cog_dir, scene_name) 
+        copy_s1_metadata(out_prod1, cog_dir, scene_name)
+        copy_s1_metadata(out_prod2, cog_dir, scene_name)
         root.info('{} {} MTD'.format(in_scene, scene_name))
         
         # GENERATE YAML WITHIN TEMP COG DIRECTORY**
@@ -306,7 +315,7 @@ def prepareS1(in_scene, s3_bucket='public-eo-data', s3_dir='yemen/Sentinel_1/', 
         out = p.stdout.read()
 
     except Exception as e:
-        print('boo')
+        print('boo', e)
         logging.exception("Exception occurred")
         root.removeHandler(handler)
         handler.close()
