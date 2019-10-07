@@ -211,7 +211,7 @@ def copy_s1_metadata(out_s1_prod, cog_scene_dir, scene_name):
 
 
 
-def prepareS1(in_scene, s3_bucket='public-eo-data', s3_dir='yemen/Sentinel_1/', inter_dir='/data/intermediate/', source='asf'):
+def prepareS1(in_scene, s3_bucket='public-eo-data', s3_dir='yemen/Sentinel_1/', inter_dir='/tmp/data/intermediate/', source='asf'):
     """
     Prepare IN_SCENE of Sentinel-1 satellite data into OUT_DIR for ODC indexing. 
 
