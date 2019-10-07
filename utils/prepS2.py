@@ -342,6 +342,8 @@ def prepareS2(in_scene, s3_bucket='public-eo-data', s3_dir='fiji/Sentinel_2_test
     scene_name = in_scene[:-21]
     scene_name = scene_name[:-17] + scene_name.split('_')[-1] 
     
+    sen2cor8 = os.environ.get("SEN2COR_8")
+    
     # Unique inter_dir needed for clean-up
     inter_dir = inter_dir + scene_name +'_tmp/'
     os.makedirs(inter_dir, exist_ok=True)
@@ -373,9 +375,9 @@ def prepareS2(in_scene, s3_bucket='public-eo-data', s3_dir='fiji/Sentinel_2_test
             download_s2_granule_gcloud(in_scene, inter_dir)
             root.info('{} {} DOWNLOADED from GCloud'.format(in_scene, scene_name))
         
-#         # [CREATE L2A WITHIN TEMP DIRECTORY]
-#         if (scene_name.split('_')[1] == 'MSIL1C') & (prodlevel == 'L2A'):
-#             sen2cor_correction(sen2cor8, down_dir, l2a_dir)
+        # [CREATE L2A WITHIN TEMP DIRECTORY]
+        if (scene_name.split('_')[1] == 'MSIL1C') & (prodlevel == 'L2A'):
+            sen2cor_correction(sen2cor8, down_dir, l2a_dir)
         
         # CONVERT TO COGS TO TEMP COG DIRECTORY**
         conv_s2scene_cogs(down_dir, cog_dir, scene_name)
