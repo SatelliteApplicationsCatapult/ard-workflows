@@ -372,3 +372,39 @@ def s3_upload_cogs(in_paths, s3_bucket, s3_dir):
     # parallelise upload
 #     pool = multiprocessing.Pool(processes=5)
 #     pool.starmap(s3_single_upload, upload_list)
+
+
+def s3_list_objects(s3_bucket, prefix):
+    
+    # prep session & creds
+    access = os.getenv("AWS_ACCESS_KEY_ID")
+    secret = os.getenv("AWS_SECRET_ACCESS_KEY")
+    
+    session = boto3.Session(
+        access,
+        secret,
+    )
+    s3 = session.resource('s3',region_name='eu-west-2')
+    client = session.client('s3')
+    bucket = s3.Bucket(s3_bucket)
+    gb = 1024 ** 3
+    s3_client = boto3.client(
+        's3',
+        aws_access_key_id=access,
+        aws_secret_access_key=secret
+    )
+    
+    response = client.list_objects_v2(Bucket=s3_bucket, Prefix=prefix)
+    
+    return response
+    
+    
+def s3_calc_scene_size(scene_name, s3_bucket, prefix):
+    
+    """
+    Assumes prefix is directory of scenes like scene_name...
+    """
+    
+    r = s3_list_objects(s3_bucket, f'{prefix}{scene_name}/')
+    
+    return r
