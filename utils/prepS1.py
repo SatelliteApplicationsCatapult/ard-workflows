@@ -24,7 +24,7 @@ import boto3
 import csv
 import pandas as pd
 import logging
-
+import math
 
 try:
     from .cogeo import *
@@ -35,6 +35,30 @@ try:
 except:
     from yamlUtils import *
     
+    
+    
+def get_s1_asf_urls(s1_name_list, tmp_csv):
+
+    df = pd.DataFrame()
+    
+    num_parts = math.ceil(len(s1_name_list)/119)
+    s1_name_lists = numpy.array_split(numpy.array(s1_name_list),num_parts)
+    print([len(l) for l in s1_name_lists])
+    
+    for l in s1_name_lists:
+        cmd = f"curl https://api.daac.asf.alaska.edu/services/search/param?granule_list={','.join(l)}\&output=csv > {tmp_csv}"
+        p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
+        out = p.stdout.read()   
+        
+        try:
+            df = df.append(pd.read_csv(tmp_csv), ignore_index=True)
+        except Exception as e:
+            print(e)
+            
+        os.remove(tmp_csv)
+        
+    return df.loc[df['Processing Level'] == 'GRD_HD']
+
 
 def get_s1_asfurl(s1_name, download_dir):
     """
@@ -52,8 +76,11 @@ def get_s1_asfurl(s1_name, download_dir):
     p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
     out = p.stdout.read()
     
-    s1url = pd.read_csv(csv_out).URL.values[0]
-    
+    try:
+        s1url = pd.read_csv(csv_out).URL.values[0]
+    except:
+        s1url = 'NaN'
+        
     os.remove(csv_out)
     
     return s1url
