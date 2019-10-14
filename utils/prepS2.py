@@ -25,15 +25,10 @@ import logging
 import logging.handlers
 from sys import exit
 
-
 try:
-    from .cogeo import *
+    from .prep_utils import *
 except:
-    from cogeo import *
-try:
-    from .yamlUtils import *
-except:
-    from yamlUtils import *
+    from prep_utils import *
     
     
 def find_s2_uuid(s2_filename):
