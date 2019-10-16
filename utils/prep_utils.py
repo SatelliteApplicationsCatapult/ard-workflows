@@ -13,6 +13,7 @@ from pathlib import Path
 from xml.etree import ElementTree  # should use cElementTree..
 import yaml
 import boto3
+import gdal
 
 
 
@@ -634,3 +635,4 @@ def cog_validate(ds, check_tiled=True):
             (ovr_count - 1)]
 
     return errors, details
+
