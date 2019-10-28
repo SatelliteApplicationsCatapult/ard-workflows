@@ -295,10 +295,10 @@ def prepareS1(in_scene, s3_bucket='public-eo-data', s3_dir='yemen/Sentinel_1/', 
         except:
             root.exception(f"{in_scene} {scene_name} UNAVAILABLE via ASF, try ESA")
             try:
-                s1id = find_s1_uuid(in_scene) # TBC
-                print(s1id)
+#                 s1id = find_s1_uuid(in_scene) # TBC
+#                 print(s1id)
                 root.info(f"{in_scene} {scene_name} AVAILABLE via ESA")
-                download_extract_s1_esa(s1id, inter_dir, down_dir) # TBC
+#                 download_extract_s1_esa(s1id, inter_dir, down_dir) # TBC
                 root.info(f"{in_scene} {scene_name} DOWNLOADED via ESA")
             except:
                 root.exception(f"{in_scene} {scene_name} UNAVAILABLE via ESA too")
@@ -372,7 +372,7 @@ def prepareS1(in_scene, s3_bucket='public-eo-data', s3_dir='yemen/Sentinel_1/', 
         print('not boo')
 
     except:
-        print('boo', e)
+        print('boo')
         logging.exception("Preparation INCOMPLETE so tidying up")
         root.removeHandler(handler)
         handler.close()
