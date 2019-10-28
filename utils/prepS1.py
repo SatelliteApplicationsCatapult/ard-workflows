@@ -269,6 +269,10 @@ def prepareS1(in_scene, s3_bucket='public-eo-data', s3_dir='yemen/Sentinel_1/', 
     out_dir1 = out_prod1[:-4] + '.data/'
     out_prod2 = inter_dir + scene_name + '_Orb_Cal_Deb_ML_TF_TC_lsm.dim'
     out_dir2 = out_prod2[:-4] + '.data/'
+
+    snap_gpt = os.environ['SNAP_GPT']
+    int_graph_1 = os.environ['S1_PROCESS_P1'] # ENV VAR        
+    int_graph_2 = os.environ['S1_PROCESS_P2'] # ENV VAR 
     
     # Logging structure taken from - https://www.loggly.com/ultimate-guide/python-logging-basics/
     log_file = inter_dir+'log_file.txt'
@@ -283,48 +287,76 @@ def prepareS1(in_scene, s3_bucket='public-eo-data', s3_dir='yemen/Sentinel_1/', 
     
     try:
         
-        snap_gpt = os.environ['SNAP_GPT']
-        int_graph_1 = os.environ['S1_PROCESS_P1'] # ENV VAR        
-        int_graph_2 = os.environ['S1_PROCESS_P2'] # ENV VAR 
-        
-        # DOWNLOAD
-        if source == "asf":
+        #  DOWNLOAD
+        try:
+            root.info(f"{in_scene} {scene_name} DOWNLOADING via ASF")
             download_extract_s1_scene_asf(in_scene, inter_dir)
-            root.info('{} {} DOWNLOADED from ASF'.format(in_scene, scene_name))
-            # TO DO - add something on current bandwidth...
-        elif source == "esa":
-            root.exception('{} {} CANNOT DOWNLOAD from ESA (yet..)'.format(in_scene, scene_name))
-        
-        # SNAP - logic to check if exists, 
+            root.info(f"{in_scene} {scene_name} DOWNLOADED via ASF")
+        except:
+            root.exception(f"{in_scene} {scene_name} UNAVAILABLE via ASF, try ESA")
+            try:
+                s1id = find_s1_uuid(in_scene) # TBC
+                print(s1id)
+                root.info(f"{in_scene} {scene_name} AVAILABLE via ESA")
+                download_extract_s1_esa(s1id, inter_dir, down_dir) # TBC
+                root.info(f"{in_scene} {scene_name} DOWNLOADED via ESA")
+            except:
+                root.exception(f"{in_scene} {scene_name} UNAVAILABLE via ESA too")
+                raise Exception('Download Error ESA')
+
         if not os.path.exists(out_prod2):
-            cmd = f"{snap_gpt} {int_graph_1} -Pinput_grd={input_mani} -Poutput_ml={inter_prod}"
-            print(cmd)
-            p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
-            out = p.stdout.read()
-            root.info('{} {} PROCESSED'.format(in_scene, scene_name))
-            print('pt2')
-            cmd = f"{snap_gpt} {int_graph_2} -Pinput_ml={inter_prod} -Poutput_db={out_prod1} -Poutput_ls={out_prod2}"
-            print(cmd)
-            p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
-            out = p.stdout.read()
-            root.info('{} {} PROCESSED'.format(in_scene, scene_name))
-            
-        # CONVERT TO COGS TO TEMP COG DIRECTORY**
-        conv_s1scene_cogs(inter_dir, cog_dir, scene_name)
-        root.info('{} {} COGGED MASK'.format(in_scene, scene_name))
+            try:
+                cmd = f"{snap_gpt} {int_graph_1} -Pinput_grd={input_mani} -Poutput_ml={inter_prod}"
+                print(cmd)
+                p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
+                out1 = p.stdout.read()
+                root.info(out1)
+                root.info(f"{in_scene} {scene_name} PROCESSED to MULTILOOK starting PT2")
+                print('pt2')
+                cmd = f"{snap_gpt} {int_graph_2} -Pinput_ml={inter_prod} -Poutput_db={out_prod1} -Poutput_ls={out_prod2}"
+                print(cmd)
+                p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
+                out2 = p.stdout.read()
+                root.info(f"{in_scene} {scene_name} PROCESSED to dB + LSM")
+                root.info(out2)
+            except:
+                raise Exception(out1,out2)
+                
+       # CONVERT TO COGS TO TEMP COG DIRECTORY**
+        try:
+            root.info(f"{in_scene} {scene_name} Converting COGs")
+            conv_s1scene_cogs(inter_dir, cog_dir, scene_name)
+            root.info(f"{in_scene} {scene_name} COGGED")
+        except:
+            root.exception(f"{in_scene} {scene_name} COG conversion FAILED")
+            raise Exception('COG Error')        
         
         # PARSE METADATA TO TEMP COG DIRECTORY**
-        copy_s1_metadata(out_prod1, cog_dir, scene_name)
-        copy_s1_metadata(out_prod2, cog_dir, scene_name)
-        root.info('{} {} MTD'.format(in_scene, scene_name))
-        
+        try:
+            root.info(f"{in_scene} {scene_name} Copying original METADATA")
+            copy_s1_metadata(out_prod1, cog_dir, scene_name)
+            copy_s1_metadata(out_prod2, cog_dir, scene_name)
+            root.info(f"{in_scene} {scene_name} COPIED original METADATA")
+        except:
+            root.exception(f"{in_scene} {scene_name} MTD not coppied")
+            
         # GENERATE YAML WITHIN TEMP COG DIRECTORY**
-        create_yaml(cog_dir, 's1')
-        root.info('{} {} YAML'.format(in_scene, scene_name))
+        try:
+            root.info(f"{in_scene} {scene_name} Creating dataset YAML")
+            create_yaml(cog_dir, 's1')
+            root.info(f"{in_scene} {scene_name} Created original METADATA")
+        except:
+            root.exception(f"{in_scene} {scene_name} Dataset YAML not created")
+            raise Exception('YAML creation error')     
         
         # MOVE COG DIRECTORY TO OUTPUT DIRECTORY
-        s3_upload_cogs(glob.glob(cog_dir + '*'), s3_bucket, s3_dir)
-        root.info('{} {} UPLOADED'.format(in_scene, scene_name))
+        try:
+            root.info(f"{in_scene} {scene_name} Uploading to S3 Bucket")
+            s3_upload_cogs(glob.glob(cog_dir + '*'), s3_bucket, s3_dir)
+            root.info(f"{in_scene} {scene_name} Uploaded to S3 Bucket")
+        except:
+            root.exception(f"{in_scene} {scene_name} Upload to S3 Failed")
+            raise Exception('S3  upload error')        
         
         root.removeHandler(handler)
         handler.close()
@@ -336,10 +368,12 @@ def prepareS1(in_scene, s3_bucket='public-eo-data', s3_dir='yemen/Sentinel_1/', 
         cmd = 'rm -frv {}'.format(inter_dir)
         p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
         out = p.stdout.read()
+                        
+        print('not boo')
 
-    except Exception as e:
+    except:
         print('boo', e)
-        logging.exception("Exception occurred")
+        logging.exception("Preparation INCOMPLETE so tidying up")
         root.removeHandler(handler)
         handler.close()
         
@@ -351,6 +385,7 @@ def prepareS1(in_scene, s3_bucket='public-eo-data', s3_dir='yemen/Sentinel_1/', 
         p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
         out = p.stdout.read()
 
+                        
 # if __name__ == '__main__':
 
 #     prepareS2()

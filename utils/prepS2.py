@@ -460,7 +460,6 @@ def prepareS2(in_scene, s3_bucket='public-eo-data', s3_dir='fiji/Sentinel_2_test
             root.exception(f"{in_scene} {scene_name} Upload to S3 Failed")
             raise Exception('S3  upload error')
 
-
         root.removeHandler(handler)
         handler.close()
         
@@ -473,6 +472,8 @@ def prepareS2(in_scene, s3_bucket='public-eo-data', s3_dir='fiji/Sentinel_2_test
         p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
         out = p.stdout.read()
                 
+        print('not boo')
+            
     except:
         print('boo')
         root.exception("Processing INCOMPLETE so tidying up")
