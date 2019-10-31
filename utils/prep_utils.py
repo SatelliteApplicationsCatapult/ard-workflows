@@ -10,12 +10,13 @@ from rasterio.shutil import copy
 from osgeo import osr
 import uuid
 from pathlib import Path
-from xml.etree import ElementTree  # should use cElementTree..
+from xml.etree import ElementTree as ET  # should use cElementTree..
 import yaml
 import boto3
 import gdal
 
-
+from rasterio.env import GDALVersion
+import click
 
 def get_geometry(path):
     """
@@ -136,6 +137,37 @@ def band_name_s2(prod_path):
     return layername
 
 
+def band_name_l8(prod_path):
+    """
+    Determine l8 band of individual product from product name 
+    from path to specific product file
+    """
+    # print ( "Product path is: {}".format(prod_path) )
+    
+    prod_name = os.path.basename(prod_path)
+    prod_name = f"{prod_name.split('_')[-2]}_{prod_name.split('_')[-1][:-4]}"
+
+    print ( "Product name is: {}".format(prod_name) )
+
+    prod_map = {
+        "bt_band10": 'brightness_temperature_1',
+        "bt_band11": 'brightness_temperature_2',
+        "pixel_qa": 'pixel_qa',
+        "radsat_qa": 'radsat_qa',
+        "sr_aerosol": 'sr_aerosol',
+        "sr_band1": 'coastal_aerosol',
+        "sr_band2": 'blue',
+        "sr_band3": 'green',
+        "sr_band4": 'red',
+        "sr_band5": 'nir',
+        "sr_band6": 'swir1',
+        "sr_band7": 'swir2'
+    }
+    
+    layername = prod_map[prod_name]
+        
+    return layername
+
 
 def yaml_prep_s1(scene_dir):
     """
@@ -204,6 +236,94 @@ def yaml_prep_s1(scene_dir):
 
     }
 
+
+def find_l8_datetime(scene_dir):
+    
+    try:
+        meta = glob.glob(f"{scene_dir}*.xml")[0]
+        m = ET.parse(meta).getroot().findall('{http://espa.cr.usgs.gov/v2}global_metadata')[0] #####
+        d = m.find('{http://espa.cr.usgs.gov/v2}acquisition_date').text
+        t = m.find('{http://espa.cr.usgs.gov/v2}scene_center_time').text
+        return str(datetime.strptime(f"{d}{t[:8]}", '%Y-%m-%d%H:%M:%S'))
+    except:
+        return str(datetime.strptime(f"{scene_dir.split('_')[-1][:-1]}", '%Y%m%d'))
+        
+        
+def yaml_prep_l8(scene_dir):
+    """
+    Prepare individual L8 scene directory containing L8 cog products converted
+    from ESPA-ordered L1T scenes.
+    """
+    # scene_name = scene_dir.split('/')[-2][:26]
+    scene_name = scene_dir.split('/')[-2]
+    print ( "Preparing scene {}".format(scene_name) )
+    print ( "Scene path {}".format(scene_dir) )
+    
+    # find all cog prods
+    prod_paths = glob.glob(scene_dir + '*.tif')
+    # print ( 'paths: {}'.format(prod_paths) )
+    # for i in prod_paths: print ( i )
+    
+    # date time assumed eqv for start and stop - this isn't true and could be 
+    # pulled from .xml file (or scene dir) not done yet for sake of progression
+    t0=parse(find_l8_datetime(scene_dir))
+    # print ( t0 )
+    t1=t0
+    # print ( t1 )
+    
+    # get polorisation from each image product (S2 band)
+    images = {
+        band_name_l8(prod_path): {
+            'path': str(prod_path.split('/')[-1])
+        } for prod_path in prod_paths
+    }
+#     print ( images )
+    
+    # trusting bands coaligned, use one to generate spatial bounds for all
+    projection, extent = get_geometry('/'.join([str(scene_dir), images['blue']['path']]))
+    
+    # parse esa l2a prod metadata file for reference
+    scene_genesis =  glob.glob(scene_dir + '*.xml')[0]
+    if os.path.exists(scene_genesis):
+        scene_genesis = os.path.basename(scene_genesis)
+    else:
+        scene_genesis = ' '
+    
+    new_id = str(uuid.uuid5(uuid.NAMESPACE_URL, scene_name))
+#     print ('New uuid: {}'.format(new_id))
+    
+    return {
+        'id': new_id,
+        'processing_level': "espa_l2a2cog_ard",
+        'product_type': "optical_ard",
+        'creation_dt': str(datetime.today().strftime('%Y-%m-%d %H:%M:%S')),
+        'platform': {  
+            'code': 'LANDSAT_8'
+        },
+        'instrument': {
+            'name': 'OLI'
+        },
+        'extent': {
+            'coord': extent,
+            'from_dt': str(t0),
+            'to_dt': str(t1),
+            'center_dt': str(t0 + (t1 - t0) / 2)
+        },
+        'format': {
+            'name': 'GeoTiff'
+        },
+        'grid_spatial': {
+            'projection': projection
+        },
+        'image': {
+            'bands': images
+        },
+        'lineage': {
+            'source_datasets': scene_genesis,
+        }  
+
+    }
+        
 
 
 def yaml_prep_s2(scene_dir):
@@ -300,6 +420,9 @@ def create_yaml(scene_dir, sensor):
 
     elif sensor == 's2':
         metadata = yaml_prep_s2(scene_dir)
+        
+    elif sensor == 'l8':
+        metadata = yaml_prep_l8(scene_dir)
                         
     yaml_path = str(scene_dir + 'datacube-metadata.yaml')
     
@@ -494,7 +617,7 @@ def cog_translate(
 
 
                     
-def cog_validate(ds, check_tiled=True):
+def cog_validate_old(ds, check_tiled=True):
     """Check if a file is a (Geo)TIFF with cloud optimized compatible structure.
 
     Args:
@@ -636,3 +759,157 @@ def cog_validate(ds, check_tiled=True):
 
     return errors, details
 
+def cog_validate(src_path):
+    """
+    Validate Cloud Optimized Geotiff.
+    Parameters
+    ----------
+    src_path : str or PathLike object
+        A dataset path or URL. Will be opened in "r" mode.
+    This script is the rasterio equivalent of
+    https://svn.osgeo.org/gdal/trunk/gdal/swig/python/samples/validate_cloud_optimized_geotiff.py
+    """
+    errors = []
+    warnings = []
+    details = {}
+
+    if not GDALVersion.runtime().at_least("2.2"):
+        raise Exception("GDAL 2.2 or above required")
+
+    config = dict(GDAL_DISABLE_READDIR_ON_OPEN="FALSE")
+    with rasterio.Env(**config):
+        with rasterio.open(src_path) as src:
+            if not src.driver == "GTiff":
+                raise Exception("The file is not a GeoTIFF")
+
+            filelist = [os.path.basename(f) for f in src.files]
+            src_bname = os.path.basename(src_path)
+            if len(filelist) > 1 and src_bname + ".ovr" in filelist:
+                errors.append(
+                    "Overviews found in external .ovr file. They should be internal"
+                )
+
+            overviews = src.overviews(1)
+            if src.width > 512 or src.height > 512:
+                if not src.is_tiled:
+                    errors.append(
+                        "The file is greater than 512xH or 512xW, but is not tiled"
+                    )
+
+                if not overviews:
+                    warnings.append(
+                        "The file is greater than 512xH or 512xW, it is recommended "
+                        "to include internal overviews"
+                    )
+
+            ifd_offset = int(src.get_tag_item("IFD_OFFSET", "TIFF", bidx=1))
+            ifd_offsets = [ifd_offset]
+            if ifd_offset not in (8, 16):
+                errors.append(
+                    "The offset of the main IFD should be 8 for ClassicTIFF "
+                    "or 16 for BigTIFF. It is {} instead".format(ifd_offset)
+                )
+
+            details["ifd_offsets"] = {}
+            details["ifd_offsets"]["main"] = ifd_offset
+
+            if overviews and overviews != sorted(overviews):
+                errors.append("Overviews should be sorted")
+
+            for ix, dec in enumerate(overviews):
+
+                # NOTE: Size check is handled in rasterio `src.overviews` methods
+                # https://github.com/mapbox/rasterio/blob/4ebdaa08cdcc65b141ed3fe95cf8bbdd9117bc0b/rasterio/_base.pyx
+                # We just need to make sure the decimation level is > 1
+                if not dec > 1:
+                    errors.append(
+                        "Invalid Decimation {} for overview level {}".format(dec, ix)
+                    )
+
+                # Check that the IFD of descending overviews are sorted by increasing
+                # offsets
+                ifd_offset = int(src.get_tag_item("IFD_OFFSET", "TIFF", bidx=1, ovr=ix))
+                ifd_offsets.append(ifd_offset)
+
+                details["ifd_offsets"]["overview_{}".format(ix)] = ifd_offset
+                if ifd_offsets[-1] < ifd_offsets[-2]:
+                    if ix == 0:
+                        errors.append(
+                            "The offset of the IFD for overview of index {} is {}, "
+                            "whereas it should be greater than the one of the main "
+                            "image, which is at byte {}".format(
+                                ix, ifd_offsets[-1], ifd_offsets[-2]
+                            )
+                        )
+                    else:
+                        errors.append(
+                            "The offset of the IFD for overview of index {} is {}, "
+                            "whereas it should be greater than the one of index {}, "
+                            "which is at byte {}".format(
+                                ix, ifd_offsets[-1], ix - 1, ifd_offsets[-2]
+                            )
+                        )
+
+            block_offset = int(src.get_tag_item("BLOCK_OFFSET_0_0", "TIFF", bidx=1))
+            if not block_offset:
+                errors.append("Missing BLOCK_OFFSET_0_0")
+
+            data_offset = int(block_offset) if block_offset else None
+            data_offsets = [data_offset]
+            details["data_offsets"] = {}
+            details["data_offsets"]["main"] = data_offset
+
+            for ix, dec in enumerate(overviews):
+                data_offset = int(
+                    src.get_tag_item("BLOCK_OFFSET_0_0", "TIFF", bidx=1, ovr=ix)
+                )
+                data_offsets.append(data_offset)
+                details["data_offsets"]["overview_{}".format(ix)] = data_offset
+
+            if data_offsets[-1] < ifd_offsets[-1]:
+                if len(overviews) > 0:
+                    errors.append(
+                        "The offset of the first block of the smallest overview "
+                        "should be after its IFD"
+                    )
+                else:
+                    errors.append(
+                        "The offset of the first block of the image should "
+                        "be after its IFD"
+                    )
+
+            for i in range(len(data_offsets) - 2, 0, -1):
+                if data_offsets[i] < data_offsets[i + 1]:
+                    errors.append(
+                        "The offset of the first block of overview of index {} should "
+                        "be after the one of the overview of index {}".format(i - 1, i)
+                    )
+
+            if len(data_offsets) >= 2 and data_offsets[0] < data_offsets[1]:
+                errors.append(
+                    "The offset of the first block of the main resolution image "
+                    "should be after the one of the overview of index {}".format(
+                        len(overviews) - 1
+                    )
+                )
+
+        for ix, dec in enumerate(overviews):
+            with rasterio.open(src_path, OVERVIEW_LEVEL=ix) as ovr_dst:
+                if ovr_dst.width >= 512 or ovr_dst.height >= 512:
+                    if not ovr_dst.is_tiled:
+                        errors.append("Overview of index {} is not tiled".format(ix))
+
+    if warnings:
+        click.secho("The following warnings were found:", fg="yellow", err=True)
+        for w in warnings:
+            click.echo("- " + w, err=True)
+        click.echo(err=True)
+
+    if errors:
+        click.secho("The following errors were found:", fg="red", err=True)
+        for e in errors:
+            click.echo("- " + e, err=True)
+
+        return False
+
+    return True
