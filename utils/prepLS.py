@@ -38,8 +38,7 @@ except:
     
 def download_extract_ls_url(ls_url, down_tar, untar_dir):
     """
-    Download a single S2 scene from ESA via sentinelsat 
-    based upon uuid. 
+    Download a landsat from ESPA url. 
     Assumes esa hub creds stored as env variables.
     
     :param scene_uuid: S2 download uuid from sentinelsat query
