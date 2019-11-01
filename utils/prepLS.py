@@ -191,7 +191,7 @@ def copy_l8_metadata(untar_dir, cog_dir):
         print (" No metadata to copy")
 
         
-def prepareLS(ls_url, s3_bucket='public-eo-data', s3_dir='common_sensing/fiji/default', inter_dir='/tmp/data/intermediate/', prodlevel='L2A'):
+def prepareLS(in_scene, s3_bucket='public-eo-data', s3_dir='common_sensing/fiji/default', inter_dir='/tmp/data/intermediate/', prodlevel='L2A'):
     """
     Prepare IN_SCENE of Sentinel-2 satellite data into OUT_DIR for ODC indexing. 
 
@@ -209,7 +209,7 @@ def prepareLS(ls_url, s3_bucket='public-eo-data', s3_dir='common_sensing/fiji/de
     - env set AWS_ACCESS
     - env set AWS_SECRET
     """
-    
+    ls_url = in_scene
     down_basename = ls_url.split('/')[-1]
     scene_name = f"{down_basename[:4]}_L1TP_{down_basename[4:10]}_{down_basename[10:18]}"
     inter_dir = f"{inter_dir}{scene_name}_tmp/"
