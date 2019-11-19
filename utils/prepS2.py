@@ -1,35 +1,11 @@
-import os
-import time
-from tqdm import tqdm
-try:
-    from google.cloud import storage
-except:
-    print('no gsutils installed')
-import glob
-try:
-    from sentinelsat import SentinelAPI
-except:
-    print('sentinelsat not installed')
-import zipfile
+from google.cloud import storage
+from sentinelsat import SentinelAPI
 import shutil
-import rasterio
-import numpy
+import zipfile
 from subprocess import Popen, PIPE, STDOUT
-import click
-import multiprocessing
-from multiprocessing import pool
-from multiprocessing.pool import ThreadPool as Pool
-from itertools import product
-import csv
-import logging
-import logging.handlers
-from sys import exit
 
-try:
-    from .prep_utils import *
-except:
-    from prep_utils import *
-    
+from utils.prep_utils import *
+
 
 def download_s2_granule_gcloud(s2_id, download_dir, safe_form=True, bands=False):
     """
@@ -42,11 +18,11 @@ def download_s2_granule_gcloud(s2_id, download_dir, safe_form=True, bands=False)
     :return:
     """
     if s2_id.endswith('.SAFE'):
-        s2_id = s2_id[:-5]
-    
+        s2_id = os.path.splitext(s2_id)[0]
+
     client = storage.Client.create_anonymous_client()
     bucket = client.bucket(bucket_name="gcp-public-data-sentinel-2", user_project=None)
-    
+
     dir_name = download_dir
     if (not safe_form) & (not os.path.exists(dir_name)):
         os.makedirs(dir_name)
@@ -55,13 +31,13 @@ def download_s2_granule_gcloud(s2_id, download_dir, safe_form=True, bands=False)
     dir1 = identifiers[1:3]
     dir2 = identifiers[3]
     dir3 = identifiers[4:6]
-    
+
     if 'MSIL1C' in s2_id:
         prefix = "tiles/%s/%s/%s/%s.SAFE" % (str(dir1), str(dir2), str(dir3), str(s2_id))
     elif 'MSIL2A' in s2_id:
         prefix = "L2/tiles/%s/%s/%s/%s.SAFE" % (str(dir1), str(dir2), str(dir3), str(s2_id))
     blobs = bucket.list_blobs(prefix=prefix)  # Get list of files
-    
+
     # filter bands if needed
     if bands:
         try:
@@ -71,24 +47,76 @@ def download_s2_granule_gcloud(s2_id, download_dir, safe_form=True, bands=False)
                     des_blobs.append(blob)
             blobs = des_blobs
         except:
-            print('Bands either False or list. I.e. [B02.jp2, B03.jp2]')
-    
+            logging.error('Bands either False or list. I.e. [B02.jp2, B03.jp2]')
+
     for blob in blobs:
-        if (not blob.name.endswith("$")): # weird end directory signifier...
+        if not blob.name.endswith("$"):  # weird end directory signifier...
 
             if not safe_form:
                 name = os.path.join(dir_name, os.path.basename(blob.name))
 
             else:
-                interdir = os.path.join(dir_name,'/'.join(blob.name.split('/')[5:-1]))
+                interdir = os.path.join(dir_name, '/'.join(blob.name.split('/')[5:-1]))
 
-                if not os.path.exists(interdir):
-                    os.makedirs(interdir)
+                os.makedirs(interdir, exist_ok=True)
                 name = os.path.join(dir_name + '/'.join(blob.name.split('/')[5:]))
 
             blob.download_to_filename(name)
 
-            
+
+def band_name_s2(prod_path):
+    """
+    Determine s2 band of individual product from product name from
+    path to specific product file
+    """
+
+    prod_name = str(os.path.basename(prod_path))
+
+    if prod_name.split('_')[1] == 'MSIL1C':
+        logging.debug(prod_name)
+        prod_name = prod_name.split('_')[-1][:-4]
+        prod_map = {
+            "B01": 'coastal_aerosol',
+            "B02": 'blue',
+            "B03": 'green',
+            "B04": 'red',
+            "B05": 'vegetation_red_edge_1',
+            "B06": 'vegetation_red_edge_2',
+            "B07": 'vegetation_red_edge_3',
+            "B08": 'nir',
+            "B8A": 'water_vapour',
+            "B09": 'swir_1',
+            "B10": 'swir_cirrus',
+            "B11": 'swir_2',
+            "B12": 'narrow_nir',
+            "TCI": 'true_colour'
+        }
+
+    else:
+        prod_name = prod_name[-11:-4]
+        prod_map = {
+            "AOT_10m": 'aerosol_optical_thickness',
+            "B01_60m": 'coastal_aerosol',
+            "B02_10m": 'blue',
+            "B03_10m": 'green',
+            "B04_10m": 'red',
+            "B05_20m": 'vegetation_red_edge_1',
+            "B06_20m": 'vegetation_red_edge_2',
+            "B07_20m": 'vegetation_red_edge_3',
+            "B08_10m": 'nir',
+            "B8A_20m": 'water_vapour',
+            "B09_60m": 'swir_1',
+            "B11_20m": 'swir_2',
+            "B12_20m": 'narrow_nir',
+            "SCL_20m": 'scene_classification',
+            "WVP_10m": 'wvp'
+        }
+
+    layer_name = prod_map[prod_name]
+
+    return layer_name
+
+
 def find_s2_uuid(s2_filename):
     """
     Returns S2 uuid required for download via sentinelsat, based upon an input S2 file/scene name. 
@@ -98,15 +126,15 @@ def find_s2_uuid(s2_filename):
     :param s2_file_name: Sentinel-2 scene name
     :return s2_uuid: download id
     """
-    copernicus_username=os.getenv("COPERNICUS_USERNAME")
-    copernicus_pwd=os.getenv("COPERNICUS_PWD")
-    print(f"ESA username: {copernicus_username}")
+    copernicus_username = os.getenv("COPERNICUS_USERNAME")
+    copernicus_pwd = os.getenv("COPERNICUS_PWD")
+    logging.debug(f"ESA username: {copernicus_username}")
     esa_api = SentinelAPI(copernicus_username, copernicus_pwd)
-    
+
     if s2_filename[-5:] == '.SAFE':
         res = esa_api.query(filename=s2_filename)
         res = esa_api.to_geodataframe(res)
-        
+
         return res.uuid.values[0]
 
 
@@ -123,32 +151,32 @@ def download_extract_s2_esa(scene_uuid, down_dir, original_scene_dir):
     """
     # if unzipped .SAFE file doesn't exist then we must do something
     if not os.path.exists(original_scene_dir):
-        
-        # if downloaded .zip file doesn't exist then download it
-        if not os.path.exists(original_scene_dir.replace('.SAFE/','.zip')):
-            print ( 'Downloading ESA scene zip: {}'.format(os.path.basename(original_scene_dir)) )
 
-            copernicus_username=os.getenv("COPERNICUS_USERNAME")
-            copernicus_pwd=os.getenv("COPERNICUS_PWD")
-            print(f"ESA username: {copernicus_username}")
+        # if downloaded .zip file doesn't exist then download it
+        if not os.path.exists(original_scene_dir.replace('.SAFE/', '.zip')):
+            logging.info('Downloading ESA scene zip: {}'.format(os.path.basename(original_scene_dir)))
+
+            copernicus_username = os.getenv("COPERNICUS_USERNAME")
+            copernicus_pwd = os.getenv("COPERNICUS_PWD")
+            logging.debug(f"ESA username: {copernicus_username}")
             esa_api = SentinelAPI(copernicus_username, copernicus_pwd)
             esa_api.download(scene_uuid, down_dir, checksum=True)
-    
+
         # extract downloaded .zip file
-        print ( 'Extracting ESA scene: {}'.format(original_scene_dir) )
-        zip_ref = zipfile.ZipFile(original_scene_dir.replace('.SAFE/','.zip'), 'r')
+        logging.info('Extracting ESA scene: {}'.format(original_scene_dir))
+        zip_ref = zipfile.ZipFile(original_scene_dir.replace('.SAFE/', '.zip'), 'r')
         zip_ref.extractall(os.path.dirname(down_dir))
-        zip_ref.close()        
-    
+        zip_ref.close()
+
     else:
-        print ( 'ESA scene already extracted: {}'.format(original_scene_dir) )
-    
+        logging.warning('ESA scene already extracted: {}'.format(original_scene_dir))
+
     # remove zipped scene but onliy if unzipped 
-    if os.path.exists(original_scene_dir) & os.path.exists(original_scene_dir.replace('.SAFE/','.zip')):
-        print ( 'Deleting ESA scene zip: {}'.format(original_scene_dir.replace('.SAFE/','.zip')) )
-        os.remove(original_scene_dir.replace('.SAFE/','.zip'))
-    
-            
+    if os.path.exists(original_scene_dir) & os.path.exists(original_scene_dir.replace('.SAFE/', '.zip')):
+        logging.info('Deleting ESA scene zip: {}'.format(original_scene_dir.replace('.SAFE/', '.zip')))
+        os.remove(original_scene_dir.replace('.SAFE/', '.zip'))
+
+
 def conv_s2scene_cogs(original_scene_dir, cog_scene_dir, scene_name, overwrite=False):
     """
     Convert S2 scene products to cogs [+ validate TBC].
@@ -160,104 +188,34 @@ def conv_s2scene_cogs(original_scene_dir, cog_scene_dir, scene_name, overwrite=F
     :param overwrite: Binary for whether to overwrite or skip existing COG files)
     :return: 
     """
-    
+
     if not os.path.exists(original_scene_dir):
-        print('Cannot find original scene directory: {}'.format(original_scene_dir))
-    
+        logging.warning('Cannot find original scene directory: {}'.format(original_scene_dir))
+
     # create cog scene directory
     if not os.path.exists(cog_scene_dir):
-        print ( 'Creating scene cog directory: {}'.format(cog_scene_dir) )
+        logging.info('Creating scene cog directory: {}'.format(cog_scene_dir))
         os.mkdir(cog_scene_dir)
-#     else:
-#         print ( 'Scene cog directory already exists so passing: {}'.format(cog_scene_dir) )
-    
-    
-    cog_val = []
-    
+
     des_prods = ["AOT_10m", "B01_60m", "B02_10m", "B03_10m", "B04_10m", "B05_20m", "B06_20m",
                  "B07_20m", "B08_10m", "B8A_20m", "B09_60m", "B11_20m", "B12_20m", "SCL_20m",
                  "WVP_10m"]
-    
+
     # find all individual prods to convert to cog (ignore true colour images (TCI))
     if scene_name.split('_')[1] == 'MSIL1C':
         prod_paths = glob.glob(original_scene_dir + 'GRANULE/*/IMG_DATA/*.jp2')
-    
+
     elif scene_name.split('_')[1] == 'MSIL2A':
         prod_paths = glob.glob(original_scene_dir + 'GRANULE/*/IMG_DATA/*/*.jp2')
         prod_paths = [x for x in prod_paths if x[-11:-4] in des_prods]
-    
-#     for i in prod_paths: print (i)
-    
-    proc_list = []
-    
+
     # iterate over prods to create parellel processing list
-    for prod in prod_paths: 
-             
-        in_filename = prod
+    for prod in prod_paths:
+
         out_filename = cog_scene_dir + scene_name + prod[-12:-4] + '.tif'
-                
+
         # ensure input file exists
-        if os.path.exists(in_filename):
-            
-            # ensure output cog doesn't already exist
-            if not os.path.exists(out_filename):
-                
-                proc_list.append((in_filename, out_filename))
-                conv_sgl_cog( in_filename, out_filename )
-                
-            else:
-                print ( 'cog already exists: {}'.format(out_filename) )
-        else:
-            print ( 'cannot find product: {}'.format(in_filename) )
-    n = 3
-#     print(proc_list)
-#     pool = multiprocessing.Pool(processes=5)
-#     pool.starmap(conv_sgl_cog, proc_list)
-    
-    # return cog_val
-
-
-def conv_sgl_cog(in_path, out_path):
-    """
-    Convert a single input file to COG format. Default settings via cogeo repository (funcs within prep_utils). 
-    COG val TBC
-    
-    :param in_path: path to non-cog file
-    :param out_path: path to new cog file
-    :return: 
-    """
-    print (in_path, out_path)    
-    # set default cog profile (as recommended by alex leith)
-    cog_profile = {
-        'driver': 'GTiff',
-        'interleave': 'pixel',
-        'tiled': True,
-        'blockxsize': 512,
-        'blockysize': 512,
-        'compress': 'DEFLATE',
-        'predictor': 2,
-        'zlevel': 9
-    }    
-        
-    cog_translate(
-        in_path,
-        out_path,
-        cog_profile,
-        overview_level=5,
-        overview_resampling='average'
-    )
-    
-    ds = gdal.Open(in_path, gdal.GA_Update)
-    if ds is not None:
-        b = ds.GetRasterBand(1)
-        b.SetNoDataValue(0)
-        b.FlushCache()
-        b = None
-        ds = None 
-    else:
-        print ('not updated nodata')
-
-    # should inc. cog val...
+        to_cog(prod, out_filename)
 
 
 def copy_s2_metadata(original_scene_dir, cog_scene_dir, scene_name):
@@ -273,24 +231,22 @@ def copy_s2_metadata(original_scene_dir, cog_scene_dir, scene_name):
         meta_base = 'MTD_MSIL1C.xml'
     else:
         meta_base = 'MTD_MSIL2A.xml'
-        
+
     meta = original_scene_dir + meta_base
-    # print ( 'native_meta: {}'.format(meta) )
     n_meta = cog_scene_dir + scene_name + '_' + meta_base
-    # print ( 'native_meta: {}'.format(n_meta) )
-    
+
     # check meta file exists
     if os.path.exists(meta):
         # check cp doesn't exist
         if not os.path.exists(n_meta):
-            print ( "Copying original metadata file to cog dir: {}".format(n_meta) )
+            logging.info("Copying original metadata file to cog dir: {}".format(n_meta))
             shutil.copyfile(meta, n_meta)
         else:
-            print ( "Original metadata file already copied to cog_dir: {}".format(n_meta) )
+            logging.info("Original metadata file already copied to cog_dir: {}".format(n_meta))
     else:
-        print ( "Cannot find orignial metadata file: {}".format(meta) )
-    
-    
+        logging.warning("Cannot find orignial metadata file: {}".format(meta))
+
+
 def sen2cor_correction(sen2cor, in_dir, out_dir):
     """
     Run sen2cor on input S2 L1C product directory (must be unzipped).
@@ -301,45 +257,114 @@ def sen2cor_correction(sen2cor, in_dir, out_dir):
     :return: 
     """
     cmd = '{} {} --output_dir {}'.format(sen2cor, in_dir, out_dir)
-    print(cmd)
-    p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
+    logging.debug(cmd)
+    p = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
     out = p.stdout.read()
-    print(out)
-#     retVal = p.Wait()
-#     if retVal != 0:
-#         print("oh no it went wrong") 
+    logging.debug(out)
+
     try:
-        l2a_dir = glob.glob(in_dir.replace('_MSIL1C', '_MSIL2A')[:-39]+'*')[0] +'/'
-        os.rename(l2a_dir, in_dir.replace('_MSIL1C_','_MSIL2A_'))
-    except:
-        raise Exception(out)
-        
+        l2a_dir = glob.glob(in_dir.replace('_MSIL1C', '_MSIL2A')[:-39] + '*')[0] + '/'
+        os.rename(l2a_dir, in_dir.replace('_MSIL1C_', '_MSIL2A_'))
+    except Exception as e:
+        raise Exception(out, e)
+
 
 def s2_ndvi(red_file, nir_file, out_file=False):
     """
     Not useful atm.
     """
     # NEED TO WRITE DIRECTLY TO COG TO DRASTICALLY SPEED UP
-    
+
     inter = red_file[:-11] + 'NDVI_10m_inter.tif'
-    
+
     r = rasterio.open(red_file).read(1)
     nir = rasterio.open(nir_file).read(1)
     ndvi = (nir.astype(float) - r.astype(float)) / (nir + r)
-    
+
     with rasterio.open(red_file) as src:
         kwds = src.profile
         kwds['dtype'] = rasterio.float32
         with rasterio.open(inter, 'w', **kwds) as dst:
             dst.write(ndvi.astype(rasterio.float32), 1)
-            
+
     if not out_file:
         out_file = red_file[:-11] + 'NDVI_10m.tif'
-    
+
     conv_sgl_cog(inter, out_file)
     os.remove(inter)
-    
+
     return ndvi
+
+
+def yaml_prep_s2(scene_dir):
+    """
+    Prepare individual S2 scene directory containing S2 cog products converted
+    from ESA-disseminated L2A scenes.
+    note: aims to align with usgs landsat indexing, core difference lies in
+    ommission of qa_band, however the scene classification file (SCL) addresses
+    a deal of these reqs.
+    """
+    # scene_name = scene_dir.split('/')[-2][:26]
+    scene_name = scene_dir.split('/')[-2]
+    logging.info("Preparing scene {}".format(scene_name))
+    logging.info("Scene path {}".format(scene_dir))
+
+    # find all cog prods
+    prod_paths = glob.glob(scene_dir + '*.tif')
+
+    # date time assumed eqv for start and stop - this isn't true and could be
+    # pulled from .xml file (or scene dir) not done yet for sake of progression
+
+    if os.path.split(scene_dir.split)[-2].split('_')[1] == 'MSIL1C':
+        t0 = parse(str(datetime.strptime(prod_paths[0].split("_")[-3], '%Y%m%dT%H%M%S')))
+    else:
+        t0 = parse(str(datetime.strptime(prod_paths[0].split("_")[-4], '%Y%m%dT%H%M%S')))
+    t1 = t0
+
+    # get polorisation from each image product (S2 band)
+    images = {
+        band_name_s2(prod_path): {
+            'path': str(os.path.split(prod_path)[-1])
+        } for prod_path in prod_paths
+    }
+
+    # trusting bands coaligned, use one to generate spatial bounds for all
+    projection, extent = get_geometry(os.path.join(str(scene_dir), images['blue']['path']))
+
+    # parse esa l2a prod metadata file for reference
+    scene_genesis = glob.glob(scene_dir + '*MTD_*.xml')[0]
+    if os.path.exists(scene_genesis):
+        scene_genesis = os.path.basename(scene_genesis)
+    else:
+        scene_genesis = ' '
+
+    new_id = str(uuid.uuid5(uuid.NAMESPACE_URL, scene_name))
+
+    return {
+        'id': new_id,
+        'processing_level': "esa_l2a2cog_ard",
+        'product_type': "optical_ard",
+        'creation_dt': str(datetime.today().strftime('%Y-%m-%d %H:%M:%S')),
+        'platform': {
+            'code': 'SENTINEL_2'
+        },
+        'instrument': {
+            'name': 'MSI'
+        },
+        'extent': create_metadata_extent(extent, t0, t1),
+        'format': {
+            'name': 'GeoTiff'
+        },
+        'grid_spatial': {
+            'projection': projection
+        },
+        'image': {
+            'bands': images
+        },
+        'lineage': {
+            'source_datasets': scene_genesis,
+        }
+    }
 
 
 # @click.command()
@@ -349,7 +374,8 @@ def s2_ndvi(red_file, nir_file, out_file=False):
 # @click.option("--prodlevel", default="L1C", help="Desired Sentinel-2 product level. Defaults to 'L1C'. Use 'L2A' for ARD equivalent")
 # @click.option("--source", default="gcloud", help="Api source to be used for downloading scenes.")
 
-def prepareS2(in_scene, s3_bucket='public-eo-data', s3_dir='fiji/Sentinel_2_test/', inter_dir='/tmp/data/intermediate/', prodlevel='L2A'):
+def prepareS2(in_scene, s3_bucket='public-eo-data', s3_dir='fiji/Sentinel_2_test/', inter_dir='/tmp/data/intermediate/',
+              prodlevel='L2A'):
     """
     Prepare IN_SCENE of Sentinel-2 satellite data into OUT_DIR for ODC indexing. 
 
@@ -372,32 +398,25 @@ def prepareS2(in_scene, s3_bucket='public-eo-data', s3_dir='fiji/Sentinel_2_test
         in_scene = in_scene + '.SAFE'
     # shorten scene name
     scene_name = in_scene[:-21]
-    scene_name = scene_name[:-17] + scene_name.split('_')[-1] 
-    
+    scene_name = scene_name[:-17] + scene_name.split('_')[-1]
+
     sen2cor8 = os.environ.get("SEN2COR_8")
-    
+
     # Unique inter_dir needed for clean-up
-    inter_dir = inter_dir + scene_name +'_tmp/'
+    inter_dir = inter_dir + scene_name + '_tmp/'
     os.makedirs(inter_dir, exist_ok=True)
     # sub-dirs used only for accessing tmp files
-    down_dir = inter_dir + in_scene + '/' 
+    down_dir = inter_dir + in_scene + '/'
     cog_dir = inter_dir + scene_name + '/'
     os.makedirs(cog_dir, exist_ok=True)
-    l2a_dir = inter_dir + '/'    
-    
-    # Logging structure taken from - https://www.loggly.com/ultimate-guide/python-logging-basics/
-    log_file = inter_dir+'log_file.txt'
-    handler = logging.handlers.WatchedFileHandler(log_file)
-    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-    handler.setFormatter(formatter)
-    root = logging.getLogger()
-    root.setLevel(os.environ.get("LOGLEVEL", "DEBUG"))
-    root.addHandler(handler)
-    
+    l2a_dir = inter_dir + '/'
+
+    root = setup_logging(inter_dir)
+
     root.info(f"{in_scene} {scene_name} Starting")
-    
+
     try:
-        
+
         # DOWNLOAD
         try:
             root.info(f"{in_scene} {scene_name} DOWNLOADING via GCloud")
@@ -407,89 +426,66 @@ def prepareS2(in_scene, s3_bucket='public-eo-data', s3_dir='fiji/Sentinel_2_test
             root.exception(f"{in_scene} {scene_name} UNAVAILABLE via GCloud, try ESA")
             try:
                 s2id = find_s2_uuid(in_scene)
-                print(s2id)
+                logging.debug(s2id)
                 root.info(f"{in_scene} {scene_name} AVAILABLE via ESA")
                 download_extract_s2_esa(s2id, inter_dir, down_dir)
                 root.info(f"{in_scene} {scene_name} DOWNLOADED via ESA")
-            except:
+            except Exception as e:
                 root.exception(f"{in_scene} {scene_name} UNAVAILABLE via ESA too")
-                raise Exception('Dwonload Error ESA')
-            
+                raise Exception('Download Error ESA', e)
+
         # [CREATE L2A WITHIN TEMP DIRECTORY]
         if (scene_name.split('_')[1] == 'MSIL1C') & (prodlevel == 'L2A'):
             root.info(f"{in_scene} {scene_name} Sen2Cor Processing")
             try:
                 sen2cor_correction(sen2cor8, down_dir, l2a_dir)
                 root.info(f"{in_scene} {scene_name} Sen2Cor COMPLETE")
-            except:
+            except Exception as e:
                 root.exception(f"{in_scene} {scene_name} sen2cor FAILED")
-                raise Exception('Sen2Cor Error')
-        
+                raise Exception('Sen2Cor Error', e)
+
         # CONVERT TO COGS TO TEMP COG DIRECTORY**
         try:
             root.info(f"{in_scene} {scene_name} Converting COGs")
             conv_s2scene_cogs(down_dir, cog_dir, scene_name)
             root.info(f"{in_scene} {scene_name} COGGED")
-        except:
+        except Exception as e:
             root.exception(f"{in_scene} {scene_name} COG conversion FAILED")
-            raise Exception('COG Error')        
-        
-        # PARSE METADATA TO TEMP COG DIRECTORY**
+            raise Exception('COG Error', e)
+
+            # PARSE METADATA TO TEMP COG DIRECTORY**
         try:
             root.info(f"{in_scene} {scene_name} Copying original METADATA")
-            copy_s2_metadata(down_dir, cog_dir, scene_name) 
+            copy_s2_metadata(down_dir, cog_dir, scene_name)
             root.info(f"{in_scene} {scene_name} COPIED original METADATA")
         except:
             root.exception(f"{in_scene} {scene_name} MTD not coppied")
-        
+
         # GENERATE YAML WITHIN TEMP COG DIRECTORY**
         try:
             root.info(f"{in_scene} {scene_name} Creating dataset YAML")
-            create_yaml(cog_dir, 's2')
+            create_yaml(cog_dir, yaml_prep_s2(cog_dir))
             root.info(f"{in_scene} {scene_name} Created original METADATA")
-        except:
+        except Exception as e:
             root.exception(f"{in_scene} {scene_name} Dataset YAML not created")
-            raise Exception('YAML creation error')        
+            raise Exception('YAML creation error', e)
 
-        # MOVE COG DIRECTORY TO OUTPUT DIRECTORY
+            # MOVE COG DIRECTORY TO OUTPUT DIRECTORY
         try:
             root.info(f"{in_scene} {scene_name} Uploading to S3 Bucket")
             s3_upload_cogs(glob.glob(cog_dir + '*'), s3_bucket, s3_dir)
             root.info(f"{in_scene} {scene_name} Uploaded to S3 Bucket")
-        except:
+        except Exception as e:
             root.exception(f"{in_scene} {scene_name} Upload to S3 Failed")
-            raise Exception('S3  upload error')
+            raise Exception('S3  upload error', e)
 
-        root.removeHandler(handler)
-        handler.close()
-        
-        # Tidy up log file to ensure upload
-        shutil.move(log_file, cog_dir + 'log_file.txt')
-        s3_upload_cogs(glob.glob(cog_dir + '*log_file.txt'), s3_bucket, s3_dir)
-                
-        # DELETE ANYTHING WITIN TEH TEMP DIRECTORY
-        cmd = 'rm -frv {}'.format(inter_dir)
-        p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
-        out = p.stdout.read()
-                
-        print('not boo')
-            
-    except:
-        print('boo')
-        root.exception("Processing INCOMPLETE so tidying up")
-        root.removeHandler(handler)
-        handler.close()
+        clean_up(inter_dir)
 
-        shutil.move(log_file, cog_dir + 'log_file.txt')
-        
-        s3_upload_cogs(glob.glob(cog_dir + '*log_file.txt'), s3_bucket, s3_dir)        
-                
-        cmd = 'rm -frv {}'.format(inter_dir)
-        p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
-        out = p.stdout.read()
+    except Exception as e:
+        logging.error(f"could not process {scene_name}, {e}", )
+        clean_up(inter_dir)
 
 
-# if __name__ == '__main__':
+if __name__ == '__main__':
 
-#     prepareS2()
-
+    prepareS2("S2A_MSIL2A_20190124T221941_N0211_R029_T60KYF_20190124T234344")
