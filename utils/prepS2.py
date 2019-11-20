@@ -1,6 +1,7 @@
 from google.cloud import storage
 from sentinelsat import SentinelAPI
 import shutil
+from dateutil.parser import parse
 import glob
 import zipfile
 from subprocess import Popen, PIPE, STDOUT
