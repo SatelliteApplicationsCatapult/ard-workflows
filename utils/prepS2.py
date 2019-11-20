@@ -316,7 +316,7 @@ def yaml_prep_s2(scene_dir):
     # date time assumed eqv for start and stop - this isn't true and could be
     # pulled from .xml file (or scene dir) not done yet for sake of progression
 
-    if split_all(scene_dir.split)[-2].split('_')[1] == 'MSIL1C':
+    if split_all(scene_dir)[-2].split('_')[1] == 'MSIL1C':
         t0 = parse(str(datetime.strptime(prod_paths[0].split("_")[-3], '%Y%m%dT%H%M%S')))
     else:
         t0 = parse(str(datetime.strptime(prod_paths[0].split("_")[-4], '%Y%m%dT%H%M%S')))
