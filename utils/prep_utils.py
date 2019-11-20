@@ -76,6 +76,10 @@ def setup_logging(dir):
     logging.basicConfig(level=logging.DEBUG)
     root = logging.getLogger()
     root.setLevel("DEBUG")
+
+    logging.getLogger("rasterio").setLevel("INFO")
+    logging.getLogger("rasterio._io").setLevel("WARNING")
+
     # root.setLevel(os.environ.get("LOGLEVEL", "DEBUG"))
     # root.addHandler(handler)
     return root
