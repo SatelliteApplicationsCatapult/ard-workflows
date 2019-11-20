@@ -138,7 +138,7 @@ def get_geometry(path):
     """
     function stolen and unammended
     """
-    logging.debug("in get geometry", path)
+    logging.debug(f"in get geometry {path}")
     with rasterio.open(path) as img:
         left, bottom, right, top = img.bounds
         crs = str(str(getattr(img, 'crs_wkt', None) or img.crs.wkt))

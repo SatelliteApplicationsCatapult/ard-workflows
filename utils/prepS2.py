@@ -4,6 +4,7 @@ import shutil
 from dateutil.parser import parse
 import glob
 import zipfile
+import uuid
 from subprocess import Popen, PIPE, STDOUT
 
 from utils.prep_utils import *
