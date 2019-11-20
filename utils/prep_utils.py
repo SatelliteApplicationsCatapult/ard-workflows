@@ -22,9 +22,9 @@ def to_cog(input_file, output_file):
         if not os.path.exists(output_file):
             conv_sgl_cog(input_file, output_file)
         else:
-            print('cog already exists: {}'.format(output_file))
+            logging.info(f'cog already exists: {output_file}')
     else:
-        print('cannot find product: {}'.format(input_file))
+        logging.warning(f'cannot find product: {input_file}')
 
 
 def conv_sgl_cog(in_path, out_path):
@@ -245,16 +245,16 @@ def s3_single_upload(in_path, s3_path, s3_bucket):
                                                        multipart_chunksize=2 * gb,
                                                        use_threads=True)
 
-    print('Local source file: {}'.format(in_path))
-    print('S3 target file: {}'.format(s3_path))
+    logging.info(f"Local source file: {in_path}")
+    logging.info(f"S3 target file: {s3_path}")
 
     if not os.path.exists(s3_path):  # doesn't work on s3... better function to do this...
-        print('Start: {} {} '.format(in_path, str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))))
+        logging.info(f"Start: {in_path} {str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))}")
 
         transfer = boto3.s3.transfer.S3Transfer(client=s3_client, config=transfer_config)
         transfer.upload_file(in_path, bucket.name, s3_path)
 
-        print('Finish: {} {} '.format(in_path, str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))))
+        logging.info(f"Finish: {in_path} {str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))}")
 
 
 def s3_upload_cogs(in_paths, s3_bucket, s3_dir):
@@ -266,7 +266,7 @@ def s3_upload_cogs(in_paths, s3_bucket, s3_dir):
                    for in_path, out_path in zip(in_paths, out_paths)]
 
     for i in upload_list:
-        print(s3_single_upload(i[0], i[1], i[2]))
+        logging.debug(s3_single_upload(i[0], i[1], i[2]))
 
     # parallelise upload
 
