@@ -4,3 +4,5 @@
 .env
 *.aof
 __pycache__
+venv/
+.idea/
