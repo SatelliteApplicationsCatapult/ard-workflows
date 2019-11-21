@@ -286,7 +286,7 @@ def prepareLS(in_scene, s3_bucket='public-eo-data', s3_dir='common_sensing/fiji/
     os.makedirs(cog_dir, exist_ok=True)
     logging.info(f"scene: {scene_name}\nuntar: {untar_dir}\ncog_dir: {cog_dir}")
 
-    root = setup_logging(inter_dir)
+    root = setup_logging()
 
     root.info(f"{scene_name} Starting")
 

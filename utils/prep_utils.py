@@ -63,12 +63,10 @@ def conv_sgl_cog(in_path, out_path):
 
 def clean_up(work_dir):
     # TODO: sort out logging changes...
-    pass
-    # HACK: disabled for testing.
-    # shutil.rmtree(work_dir)
+    shutil.rmtree(work_dir)
 
 
-def setup_logging(dir):
+def setup_logging():
     # log_file = dir + 'log_file.txt'
     # handler = logging.handlers.WatchedFileHandler(log_file)
     # formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
@@ -77,6 +75,7 @@ def setup_logging(dir):
     root = logging.getLogger()
     root.setLevel("DEBUG")
 
+    # Turn down rasterio. It is extremely chatty at debug level.
     logging.getLogger("rasterio").setLevel("INFO")
     logging.getLogger("rasterio._io").setLevel("WARNING")
 

@@ -256,7 +256,7 @@ def prepareS1(in_scene, s3_bucket='public-eo-data', s3_dir='yemen/Sentinel_1/', 
     # int_graph_1 = os.environ['S1_PROCESS_P1']  # ENV VAR
     # int_graph_2 = os.environ['S1_PROCESS_P2']  # ENV VAR
 
-    root = setup_logging(inter_dir)
+    root = setup_logging()
     root.info('{} {} Starting'.format(in_scene, scene_name))
 
     try:

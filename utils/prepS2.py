@@ -414,7 +414,7 @@ def prepareS2(in_scene, s3_bucket='public-eo-data', s3_dir='fiji/Sentinel_2_test
     os.makedirs(cog_dir, exist_ok=True)
     l2a_dir = inter_dir + '/'
 
-    root = setup_logging(inter_dir)
+    root = setup_logging()
 
     root.info(f"{in_scene} {scene_name} Starting")
 
