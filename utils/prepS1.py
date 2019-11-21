@@ -217,7 +217,7 @@ def yaml_prep_s1(scene_dir):
     }
 
 
-def prepareS1(in_scene, s3_bucket='public-eo-data', s3_dir='yemen/Sentinel_1/', inter_dir='/tmp/data/intermediate/',
+def prepareS1(in_scene, s3_bucket='cs-odc-data', s3_dir='yemen/Sentinel_1/', inter_dir='/tmp/data/intermediate/',
               source='asf'):
     """
     Prepare IN_SCENE of Sentinel-1 satellite data into OUT_DIR for ODC indexing. 

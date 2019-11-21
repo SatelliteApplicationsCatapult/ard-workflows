@@ -255,7 +255,7 @@ def yaml_prep_l8(scene_dir):
     }
 
 
-def prepareLS(in_scene, s3_bucket='public-eo-data', s3_dir='common_sensing/fiji/default',
+def prepareLS(in_scene, s3_bucket='cs-odc-data', s3_dir='common_sensing/fiji/default',
               inter_dir='/tmp/data/intermediate/', prodlevel='L2A'):
     """
     Prepare IN_SCENE of Sentinel-2 satellite data into OUT_DIR for ODC indexing. 

@@ -79,6 +79,9 @@ def setup_logging():
     logging.getLogger("rasterio").setLevel("INFO")
     logging.getLogger("rasterio._io").setLevel("WARNING")
 
+    # Boto Core is also very chatty at debug. Logging entire request text etc
+    logging.getLogger("botocore").setLevel("INFO")
+
     # root.setLevel(os.environ.get("LOGLEVEL", "DEBUG"))
     # root.addHandler(handler)
     return root
@@ -265,13 +268,7 @@ def s3_upload_cogs(in_paths, s3_bucket, s3_dir):
                    for in_path, out_path in zip(in_paths, out_paths)]
 
     for i in upload_list:
-        logging.debug(s3_single_upload(i[0], i[1], i[2]))
-
-    # parallelise upload
-
-
-#     pool = multiprocessing.Pool(processes=5)
-#     pool.starmap(s3_single_upload, upload_list)
+        s3_single_upload(i[0], i[1], i[2])
 
 
 def s3_list_objects(s3_bucket, prefix):
