@@ -1,6 +1,9 @@
 import tarfile
-
+import uuid
 import requests
+import glob
+import os
+import logging
 
 from utils.prep_utils import *
 
@@ -257,23 +260,7 @@ def yaml_prep_l8(scene_dir):
 
 def prepareLS(in_scene, s3_bucket='cs-odc-data', s3_dir='common_sensing/fiji/default',
               inter_dir='/tmp/data/intermediate/', prodlevel='L2A'):
-    """
-    Prepare IN_SCENE of Sentinel-2 satellite data into OUT_DIR for ODC indexing. 
 
-    :param in_scene: input Sentinel-2 scene name (either L1C or L2A) i.e. "S2A_MSIL1C_20180820T223011_N0206_R072_T60KWE_20180821T013410[.SAFE]"
-    :param s3_bucket: name of the s3 bucket in which to upload preppared products
-    :param s3_dir: bucket dir in which to upload prepared products
-    :param inter_dir: dir in which to store intermeriary products - this will be nuked at the end of processing, error or not
-    :param --prodlevel: Desired Sentinel-2 product level. Defaults to 'L1C'. Use 'L2A' for ARD equivalent
-    :return: None
-    
-    Assumptions:
-    - env set at SEN2COR_8: i.e. Sen2Cor-02.08.00-Linux64/bin/L2A_Process"
-    - env set COPERNICUS_USERNAME
-    - env set COPERNICUS_PWD
-    - env set AWS_ACCESS
-    - env set AWS_SECRET
-    """
     ls_url = in_scene
     down_basename = ls_url.split('/')[-1]
     scene_name = f"{down_basename[:4]}_L1TP_{down_basename[4:10]}_{down_basename[10:18]}"

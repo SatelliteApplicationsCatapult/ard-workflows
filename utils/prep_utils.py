@@ -79,6 +79,7 @@ def setup_logging():
     # Boto Core is also very chatty at debug. Logging entire request text etc
     logging.getLogger("botocore").setLevel("INFO")
     logging.getLogger("boto").setLevel("INFO")
+    logging.getLogger("boto3.resources").setLevel("INFO")
     logging.getLogger("s3transfer").setLevel("INFO")
     logging.getLogger("urllib3").setLevel("INFO")
 
@@ -106,7 +107,7 @@ def get_url(url, user=None, password=None):
 
         handler = HTTPBasicAuthHandler(password_mgr)
         opener = build_opener(handler)
-
+        opener.addheaders({"User-agent": "Wget/1.20.1 (linux-gnu)"})
         return opener.open(url)
 
     with urlopen(url) as response:
