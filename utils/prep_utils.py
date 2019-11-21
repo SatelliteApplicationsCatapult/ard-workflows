@@ -67,13 +67,10 @@ def clean_up(work_dir):
 
 
 def setup_logging():
-    # log_file = dir + 'log_file.txt'
-    # handler = logging.handlers.WatchedFileHandler(log_file)
-    # formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-    # handler.setFormatter(formatter)
+
     logging.basicConfig(level=logging.DEBUG)
     root = logging.getLogger()
-    root.setLevel("DEBUG")
+    root.setLevel(os.environ.get("LOGLEVEL", "DEBUG"))
 
     # Turn down rasterio. It is extremely chatty at debug level.
     logging.getLogger("rasterio").setLevel("INFO")
@@ -81,9 +78,10 @@ def setup_logging():
 
     # Boto Core is also very chatty at debug. Logging entire request text etc
     logging.getLogger("botocore").setLevel("INFO")
+    logging.getLogger("boto").setLevel("INFO")
+    logging.getLogger("s3transfer").setLevel("INFO")
+    logging.getLogger("urllib3").setLevel("INFO")
 
-    # root.setLevel(os.environ.get("LOGLEVEL", "DEBUG"))
-    # root.addHandler(handler)
     return root
 
 

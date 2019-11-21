@@ -386,7 +386,7 @@ def prepareS2(in_scene, s3_bucket='cs-odc-data', s3_dir='fiji/Sentinel_2_test/',
     :param s3_bucket: name of the s3 bucket in which to upload preppared products
     :param s3_dir: bucket dir in which to upload prepared products
     :param inter_dir: dir in which to store intermeriary products - this will be nuked at the end of processing, error or not
-    :param --prodlevel: Desired Sentinel-2 product level. Defaults to 'L1C'. Use 'L2A' for ARD equivalent
+    :param prodlevel: Desired Sentinel-2 product level. Defaults to 'L1C'. Use 'L2A' for ARD equivalent
     :return: None
     
     Assumptions:
