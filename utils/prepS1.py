@@ -1,12 +1,12 @@
 import math
 import zipfile
 from subprocess import Popen, PIPE, STDOUT
-
+import glob
 import numpy
 import pandas as pd
 from requests import HTTPError
 from http.cookiejar import MozillaCookieJar
-from urllib.request import urlopen, Request, HTTPHandler, HTTPSHandler, HTTPCookieProcessor, build_opener
+from urllib.request import Request, HTTPHandler, HTTPSHandler, HTTPCookieProcessor, build_opener
 from urllib.error import HTTPError
 
 from utils.prep_utils import *
