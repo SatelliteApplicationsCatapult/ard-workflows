@@ -5,8 +5,60 @@ from subprocess import Popen, PIPE, STDOUT
 import numpy
 import pandas as pd
 from requests import HTTPError
+from http.cookiejar import MozillaCookieJar
+from urllib.request import urlopen, Request, HTTPHandler, HTTPSHandler, HTTPCookieProcessor, build_opener
+from urllib.error import HTTPError
 
 from utils.prep_utils import *
+
+cookie_jar_path = os.path.join( os.path.expanduser('~'), ".bulk_download_cookiejar.txt")
+cookie_jar = MozillaCookieJar()
+
+
+def get_asf_cookie(user, password):
+
+    logging.info("logging into asf")
+
+    login_url = "https://urs.earthdata.nasa.gov/oauth/authorize"
+    client_id = "BO_n7nTIlMljdvU6kRRB3g"
+    redirect_url = "https://auth.asf.alaska.edu/login"
+
+    user_pass = base64.b64encode(bytes(user + ":" + password, "utf-8"))
+    user_pass = user_pass.decode("utf-8")
+
+    auth_cookie_url = f"{login_url}?client_id={client_id}&redirect_uri={redirect_url}&response_type=code&state="
+    context = {}
+    opener = build_opener(HTTPCookieProcessor(cookie_jar), HTTPHandler(), HTTPSHandler(**context))
+    request = Request(auth_cookie_url, headers={"Authorization": "Basic {0}".format(user_pass)})
+
+    try:
+        response = opener.open(request)
+    except HTTPError as e:
+        if e.code == 401:
+            logging.error("invalid username and password")
+            return False
+        else:
+            # If an error happens here, the user most likely has not confirmed EULA.
+            logging.error(f"Could not log in. {e.code} {e.response}")
+            return False
+
+    if check_cookie_is_logged_in(cookie_jar):
+        # COOKIE SUCCESS!
+        cookie_jar.save(cookie_jar_path)
+        logging.info("successfully logged into asf")
+        return True
+
+    logging.info("failed logging into asf")
+    return False
+
+
+def check_cookie_is_logged_in(cj):
+    for cookie in cj:
+        if cookie.name == 'urs_user_already_logged':
+            # Only get this cookie if we logged in successfully!
+            return True
+
+    return False
 
 
 def get_s1_asf_urls(s1_name_list):
@@ -46,14 +98,31 @@ def get_s1_asf_url(s1_name, retry=3):
             .URL \
             .values[0]
     except HTTPError as e:
-        logging.debug("could not query: {}", e)
+        logging.debug(f"could not query: {e}", )
         if e.code == 503 and retry > 0:
             logging.info("retrying...")
             return get_s1_asf_url(s1_name, retry - 1)
         return 'NaN'
     except Exception as e:
-        logging.debug("could not query: {}", e)
+        logging.debug(f"could not query: {e}")
         return 'NaN'
+
+
+def get_asf_file(url, output_path, chunk_size=16*1024):  # 8 kb default
+    context = {}
+    opener = build_opener(HTTPCookieProcessor(cookie_jar), HTTPHandler(), HTTPSHandler(**context))
+    request = Request(url)
+    response = opener.open(request)
+
+    with open(output_path, "wb") as f:
+        while True:
+            chunk = response.read(chunk_size)
+            if not chunk:
+                break
+            f.write(chunk)
+
+
+
 
 
 def download_extract_s1_scene_asf(s1_name, download_dir):
@@ -81,8 +150,11 @@ def download_extract_s1_scene_asf(s1_name, download_dir):
     zipped = os.path.join(download_dir, s1_name + '.zip')
     safe_dir = os.path.join(download_dir, s1_name + '.SAFE/')
 
+    if not check_cookie_is_logged_in(cookie_jar):
+        get_asf_cookie(asf_user, asf_pwd)
+
     if not os.path.exists(zipped) & (not os.path.exists(safe_dir)):
-        get_file(s1url, zipped, user=asf_user, password=asf_pwd)
+        get_asf_file(s1url, zipped)
 
     if not os.path.exists(safe_dir):
         logging.info('Extracting ASF scene: {}'.format(zipped))
@@ -252,9 +324,9 @@ def prepareS1(in_scene, s3_bucket='cs-odc-data', s3_dir='yemen/Sentinel_1/', int
     out_prod2 = inter_dir + scene_name + '_Orb_Cal_Deb_ML_TF_TC_lsm.dim'
     out_dir2 = out_prod2[:-4] + '.data/'
 
-    # snap_gpt = os.environ['SNAP_GPT']
-    # int_graph_1 = os.environ['S1_PROCESS_P1']  # ENV VAR
-    # int_graph_2 = os.environ['S1_PROCESS_P2']  # ENV VAR
+    snap_gpt = os.environ['SNAP_GPT']
+    int_graph_1 = os.environ['S1_PROCESS_P1']  # ENV VAR
+    int_graph_2 = os.environ['S1_PROCESS_P2']  # ENV VAR
 
     root = setup_logging()
     root.info('{} {} Starting'.format(in_scene, scene_name))

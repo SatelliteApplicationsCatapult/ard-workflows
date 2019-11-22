@@ -2,13 +2,15 @@ import logging
 import os
 import shutil
 from datetime import datetime
-from urllib.request import urlopen, HTTPPasswordMgrWithDefaultRealm, HTTPBasicAuthHandler, build_opener
-
+from urllib.request import urlopen, HTTPPasswordMgrWithDefaultRealm, HTTPBasicAuthHandler, HTTPDigestAuthHandler, build_opener
+from urllib.error import HTTPError
 import boto3
 import click
 import gdal
 import rasterio
+import requests
 import yaml
+import base64
 from osgeo import osr
 from rasterio.enums import Resampling
 from rasterio.env import GDALVersion
@@ -63,7 +65,8 @@ def conv_sgl_cog(in_path, out_path):
 
 def clean_up(work_dir):
     # TODO: sort out logging changes...
-    shutil.rmtree(work_dir)
+    # shutil.rmtree(work_dir)
+    pass
 
 
 def setup_logging():
@@ -89,8 +92,9 @@ def setup_logging():
 def get_file(url, output_path, user=None, password=None):
     logging.debug(f"downloading {url} to {output_path}")
     request = get_url(url, user, password)
-    with open(output_path, 'wb') as f:
-        shutil.copyfileobj(request, f)
+    if request:
+        with open(output_path, 'wb') as f:
+            logging.info(f.write(request.content))
 
 
 def get_url(url, user=None, password=None):
@@ -101,17 +105,12 @@ def get_url(url, user=None, password=None):
     :param password: optional http password to apply to the request
     :return: byte array containing the file.
     """
-    if user and password:
-        password_mgr = HTTPPasswordMgrWithDefaultRealm()
-        password_mgr.add_password(None, url, user, password)
-
-        handler = HTTPBasicAuthHandler(password_mgr)
-        opener = build_opener(handler)
-        opener.addheaders({"User-agent": "Wget/1.20.1 (linux-gnu)"})
-        return opener.open(url)
-
-    with urlopen(url) as response:
-        return response
+    logging.info(f"u: {user} p: {password}")
+    r = requests.get(url, auth=(user, password))
+    if not r.ok:
+        logging.error(f"could not make request {r.status_code} {r.content.decode('utf-8')}")
+    else:
+        return r
 
 
 def split_all(path):
@@ -126,7 +125,7 @@ def split_all(path):
         if parts[0] == path:  # sentinel for absolute paths
             all_parts.insert(0, parts[0])
             break
-        elif parts[1] == path: # sentinel for relative paths
+        elif parts[1] == path:  # sentinel for relative paths
             all_parts.insert(0, parts[1])
             break
         else:
