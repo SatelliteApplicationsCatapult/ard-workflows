@@ -238,9 +238,9 @@ def yaml_prep_s1(scene_dir):
     logging.info("Preparing scene {}".format(scene_name))
     logging.info("Scene path {}".format(scene_dir))
 
-    prod_paths = glob.glob(scene_dir + '*.tif')
+    prod_paths = glob.glob(scene_dir + '*.dim')
 
-    logging.info(f"prod_path: {prod_paths[0]}, scene_name: {scene_name}")
+    logging.info(f"prod_path: {prod_paths}, scene_name: {scene_name}")
     t0 = parse(str(datetime.strptime(os.path.dirname(prod_paths[0]).split("_")[-1], '%Y%m%dT%H%M%S')))
 
     # get polorisation from each image product (S1 band)
