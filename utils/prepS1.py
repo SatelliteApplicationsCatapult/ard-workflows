@@ -1,6 +1,7 @@
 import math
 import zipfile
 from subprocess import Popen, PIPE, STDOUT
+from dateutil.parser import parse
 import glob
 import numpy
 import pandas as pd
@@ -120,9 +121,6 @@ def get_asf_file(url, output_path, chunk_size=16*1024):  # 8 kb default
             if not chunk:
                 break
             f.write(chunk)
-
-
-
 
 
 def download_extract_s1_scene_asf(s1_name, download_dir):
@@ -408,7 +406,7 @@ def prepareS1(in_scene, s3_bucket='cs-odc-data', s3_dir='yemen/Sentinel_1/', int
         clean_up(inter_dir)
 
     except Exception as e:
-        logging.error(f"could not process{scene_name}", e)
+        logging.error(f"could not process{scene_name} {e}")
         clean_up(inter_dir)
 
 
