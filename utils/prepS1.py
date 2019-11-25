@@ -399,7 +399,7 @@ def prepareS1(in_scene, s3_bucket='cs-odc-data', s3_dir='yemen/Sentinel_1/', int
             # MOVE COG DIRECTORY TO OUTPUT DIRECTORY
         try:
             root.info(f"{in_scene} {scene_name} Uploading to S3 Bucket")
-            s3_upload_cogs(glob.glob(cog_dir + '*'), s3_bucket, s3_dir)
+            s3_upload_cogs(glob.glob(os.path.join(cog_dir, '*')), s3_bucket, s3_dir)
             root.info(f"{in_scene} {scene_name} Uploaded to S3 Bucket")
         except Exception as e:
             root.exception(f"{in_scene} {scene_name} Upload to S3 Failed")
