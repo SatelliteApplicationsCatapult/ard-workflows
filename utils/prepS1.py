@@ -176,6 +176,8 @@ def band_name_s1(prod_path):
     if 'LayoverShadow_MASK' in str(prod_name):
         return 'layovershadow_mask'
 
+    logging.error(f"could not find band name for {prod_path}")
+
     return 'unknown layer'
 
 
@@ -237,7 +239,7 @@ def yaml_prep_s1(scene_dir):
     logging.info("Preparing scene {}".format(scene_name))
     logging.info("Scene path {}".format(scene_dir))
 
-    prod_paths = glob.glob(scene_dir + '*.dim')
+    prod_paths = glob.glob(scene_dir + '*.tif')
 
     logging.info(f"prod_path: {prod_paths}, scene_name: {scene_name}")
     t0 = parse(str(datetime.strptime(scene_name.split("_")[-2], '%Y%m%dT%H%M%S')))
