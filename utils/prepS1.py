@@ -255,9 +255,9 @@ def yaml_prep_s1(scene_dir):
 
     # trusting bands coaligned, use one to generate spatial bounds for all
     try:
-        projection, extent = get_geometry('/'.join([str(scene_dir), images['vh']['path']]))
+        projection, extent = get_geometry(os.path.join(str(scene_dir), images['vh']['path']))
     except:
-        projection, extent = get_geometry('/'.join([str(scene_dir), images['vv']['path']]))
+        projection, extent = get_geometry(os.path.join(str(scene_dir), images['vv']['path']))
         logging.warning('no vh band available')
 
     # format metadata (i.e. construct hashtable tree for syntax of file interface)
