@@ -205,7 +205,7 @@ def conv_s1scene_cogs(noncog_scene_dir, cog_scene_dir, scene_name, overwrite=Fal
 
     # iterate over prods to create parellel processing list
     for prod in prod_paths:
-        out_filename = cog_scene_dir + scene_name + '_' + os.path.basename(prod)[:-4] + '.tif'  # - TO DO*****
+        out_filename = os.path.join(cog_scene_dir, scene_name + '_' + os.path.basename(prod)[:-4] + '.tif')  # - TO DO*****
         logging.info(f"converting {prod} to cog at {out_filename}")
         # ensure input file exists
         to_cog(prod, out_filename)
@@ -248,7 +248,7 @@ def yaml_prep_s1(scene_dir):
     # should be replaced with a more concise, generalisable parsing
     images = {
         band_name_s1(prod_path): {
-            'path': str(prod_path.split('/')[-1])
+            'path': os.path.split(prod_path)[-1]
         } for prod_path in prod_paths
     }
     logging.debug(images)
