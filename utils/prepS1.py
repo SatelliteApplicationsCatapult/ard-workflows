@@ -9,6 +9,7 @@ from requests import HTTPError
 from http.cookiejar import MozillaCookieJar
 from urllib.request import Request, HTTPHandler, HTTPSHandler, HTTPCookieProcessor, build_opener
 from urllib.error import HTTPError
+import uuid
 
 from utils.prep_utils import *
 
@@ -226,7 +227,7 @@ def copy_s1_metadata(out_s1_prod, cog_scene_dir, scene_name):
         else:
             logging.info("Original metadata file already copied to cog_dir: {}".format(n_meta))
     else:
-        logging.warning("Cannot find orignial metadata file: {}".format(meta))
+        logging.warning("Cannot find orignial metadata file: {}".format(out_s1_prod))
 
 
 def yaml_prep_s1(scene_dir):
