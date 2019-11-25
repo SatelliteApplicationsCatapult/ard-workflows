@@ -203,9 +203,8 @@ def conv_s1scene_cogs(noncog_scene_dir, cog_scene_dir, scene_name, overwrite=Fal
 
     # iterate over prods to create parellel processing list
     for prod in prod_paths:
-        logging.info(f"converting {prod} to cog")
         out_filename = cog_scene_dir + scene_name + '_' + os.path.basename(prod)[:-4] + '.tif'  # - TO DO*****
-
+        logging.info(f"converting {prod} to cog at {out_filename}")
         # ensure input file exists
         to_cog(prod, out_filename)
 
