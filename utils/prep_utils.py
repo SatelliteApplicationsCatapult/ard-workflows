@@ -114,7 +114,7 @@ def run_snap_command(command):
 
     logging.debug(f"running {full_command}")
 
-    process = os.subprocess.Popen(full_command, env=base_env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    process = subprocess.Popen(full_command, env=base_env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     snap_logger_out = logging.getLogger("snap_stdout")
     snap_logger_err = logging.getLogger("snap_stderr")
