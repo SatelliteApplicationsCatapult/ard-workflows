@@ -351,12 +351,12 @@ def prepareS1(in_scene, s3_bucket='cs-odc-data', s3_dir='yemen/Sentinel_1/', int
                 raise Exception('Download Error ESA', e)
 
         if not os.path.exists(out_prod2):
-            cmd = [{snap_gpt}, {int_graph_1}, f"-Pinput_grd={input_mani}", f"-Poutput_ml={inter_prod}"]
+            cmd = [snap_gpt, int_graph_1, f"-Pinput_grd={input_mani}", f"-Poutput_ml={inter_prod}"]
             root.info(cmd)
             run_snap_command(cmd)
             root.info(f"{in_scene} {scene_name} PROCESSED to MULTILOOK starting PT2")
 
-            cmd = [{snap_gpt}, {int_graph_2}, f"-Pinput_ml={inter_prod}", f"-Poutput_db={out_prod1}", f"-Poutput_ls={out_prod2}"]
+            cmd = [snap_gpt, int_graph_2, f"-Pinput_ml={inter_prod}", f"-Poutput_db={out_prod1}", f"-Poutput_ls={out_prod2}"]
             root.info(cmd)
             run_snap_command(cmd)
             root.info(f"{in_scene} {scene_name} PROCESSED to dB + LSM")
