@@ -11,6 +11,8 @@ import click
 import gdal
 import rasterio
 import requests
+import platform
+import subprocess
 import yaml
 import base64
 from osgeo import osr
