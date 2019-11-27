@@ -351,22 +351,15 @@ def prepareS1(in_scene, s3_bucket='cs-odc-data', s3_dir='yemen/Sentinel_1/', int
                 raise Exception('Download Error ESA', e)
 
         if not os.path.exists(out_prod2):
-            try:
-                cmd = f"{snap_gpt} {int_graph_1} -Pinput_grd={input_mani} -Poutput_ml={inter_prod}"
-                root.info(cmd)
-                p = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
-                out1 = p.stdout.read()
-                root.info(out1)
-                root.info(f"{in_scene} {scene_name} PROCESSED to MULTILOOK starting PT2")
+            cmd = [{snap_gpt}, {int_graph_1}, f"-Pinput_grd={input_mani}", f"-Poutput_ml={inter_prod}"]
+            root.info(cmd)
+            run_snap_command(cmd)
+            root.info(f"{in_scene} {scene_name} PROCESSED to MULTILOOK starting PT2")
 
-                cmd = f"{snap_gpt} {int_graph_2} -Pinput_ml={inter_prod} -Poutput_db={out_prod1} -Poutput_ls={out_prod2}"
-                root.info(cmd)
-                p = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
-                out2 = p.stdout.read()
-                root.info(f"{in_scene} {scene_name} PROCESSED to dB + LSM")
-                root.info(out2)
-            except Exception as e:
-                raise Exception(out1 + out2, e)
+            cmd = [{snap_gpt}, {int_graph_2}, f"-Pinput_ml={inter_prod}", f"-Poutput_db={out_prod1}", f"-Poutput_ls={out_prod2}"]
+            root.info(cmd)
+            run_snap_command(cmd)
+            root.info(f"{in_scene} {scene_name} PROCESSED to dB + LSM")
 
         # CONVERT TO COGS TO TEMP COG DIRECTORY**
         try:
