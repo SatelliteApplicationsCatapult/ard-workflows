@@ -256,11 +256,12 @@ def yaml_prep_landsat(scene_dir):
 
     new_id = str(uuid.uuid5(uuid.NAMESPACE_URL, scene_name))
 
-    platform_code = ""
     if "LE08_" in scene_name:
         platform_code = "LANDSAT_8"
+        instrument_name = "OLI"
     elif "LE07_" in scene_name:
         platform_code = "LANDSAT_7"
+        instrument_name = "ETM"
     else:
         raise Exception(f"Unknown platform {scene_name}")
 
@@ -273,7 +274,7 @@ def yaml_prep_landsat(scene_dir):
             'code': platform_code
         },
         'instrument': {
-            'name': 'OLI'
+            'name': instrument_name
         },
         'extent': create_metadata_extent(extent, t0, t1),
         'format': {
