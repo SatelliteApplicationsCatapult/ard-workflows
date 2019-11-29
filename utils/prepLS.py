@@ -145,7 +145,7 @@ def conv_sgl_cog(in_path, out_path):
     :param out_path: path to new cog file
     :return: 
     """
-    logging.debug(in_path, out_path)
+    logging.debug(f"in: {in_path}, out: {out_path}")
     # set default cog profile (as recommended by alex leith)
     cog_profile = {
         'driver': 'GTiff',
