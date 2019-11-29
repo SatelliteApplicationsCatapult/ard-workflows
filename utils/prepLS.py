@@ -216,7 +216,7 @@ def find_l8_datetime(scene_dir):
         return str(datetime.strptime(f"{scene_dir.split('_')[-1][:-1]}", '%Y%m%d'))
 
 
-def yaml_prep_l8(scene_dir):
+def yaml_prep_landsat(scene_dir):
     """
     Prepare individual L8 scene directory containing L8 cog products converted
     from ESPA-ordered L1T scenes.
@@ -256,13 +256,21 @@ def yaml_prep_l8(scene_dir):
 
     new_id = str(uuid.uuid5(uuid.NAMESPACE_URL, scene_name))
 
+    platform_code = ""
+    if "LE08_" in scene_name:
+        platform_code = "LANDSAT_8"
+    elif "LE07_" in scene_name:
+        platform_code = "LANDSAT_7"
+    else:
+        raise Exception(f"Unknown platform {scene_name}")
+
     return {
         'id': new_id,
         'processing_level': "espa_l2a2cog_ard",
         'product_type': "optical_ard",
         'creation_dt': str(datetime.today().strftime('%Y-%m-%d %H:%M:%S')),
         'platform': {
-            'code': 'LANDSAT_8'
+            'code': platform_code
         },
         'instrument': {
             'name': 'OLI'
@@ -331,7 +339,7 @@ def prepareLS(in_scene, s3_bucket='cs-odc-data', s3_dir='common_sensing/fiji/def
 
         try:
             root.info(f"{scene_name} Creating yaml")
-            create_yaml(cog_dir, yaml_prep_l8(cog_dir))
+            create_yaml(cog_dir, yaml_prep_landsat(cog_dir))
             root.info(f"{scene_name} Created yaml")
         except Exception as e:
             root.exception(f"{scene_name} yam not created")
