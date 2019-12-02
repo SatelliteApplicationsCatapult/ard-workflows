@@ -69,7 +69,7 @@ def conv_sgl_cog(in_path, out_path):
 
 def clean_up(work_dir):
     # TODO: sort out logging changes...
-    # shutil.rmtree(work_dir)
+    shutil.rmtree(work_dir)
     pass
 
 
@@ -299,13 +299,14 @@ def s3_single_upload(in_path, s3_path, s3_bucket):
     logging.info(f"Local source file: {in_path}")
     logging.info(f"S3 target file: {s3_path}")
 
-    if not os.path.exists(s3_path):  # doesn't work on s3... better function to do this...
-        logging.info(f"Start: {in_path} {str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))}")
+    logging.info(f"Start: {in_path} {str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))}")
 
-        transfer = boto3.s3.transfer.S3Transfer(client=s3_client, config=transfer_config)
-        transfer.upload_file(in_path, bucket.name, s3_path)
+    s3_client.upload_file(in_path, bucket.name, s3_path)
 
-        logging.info(f"Finish: {in_path} {str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))}")
+    # transfer = boto3.s3.transfer.S3Transfer(client=s3_client, config=transfer_config)
+    # transfer.upload_file(in_path, bucket.name, s3_path)
+
+    logging.info(f"Finish: {in_path} {str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))}")
 
 
 def s3_upload_cogs(in_paths, s3_bucket, s3_dir):
