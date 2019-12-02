@@ -2,13 +2,19 @@ import logging
 import os
 import shutil
 from datetime import datetime
-from urllib.request import urlopen, HTTPPasswordMgrWithDefaultRealm, HTTPBasicAuthHandler, build_opener
+from urllib.request import urlopen, HTTPPasswordMgrWithDefaultRealm, HTTPBasicAuthHandler, HTTPDigestAuthHandler, build_opener
+from urllib.error import HTTPError
 
+from asynchronousfilereader import AsynchronousFileReader
 import boto3
 import click
 import gdal
 import rasterio
+import requests
+import platform
+import subprocess
 import yaml
+import base64
 from osgeo import osr
 from rasterio.enums import Resampling
 from rasterio.env import GDALVersion
@@ -64,6 +70,7 @@ def conv_sgl_cog(in_path, out_path):
 def clean_up(work_dir):
     # TODO: sort out logging changes...
     shutil.rmtree(work_dir)
+    pass
 
 
 def setup_logging():
@@ -79,17 +86,65 @@ def setup_logging():
     # Boto Core is also very chatty at debug. Logging entire request text etc
     logging.getLogger("botocore").setLevel("INFO")
     logging.getLogger("boto").setLevel("INFO")
+    logging.getLogger("boto3.resources").setLevel("INFO")
     logging.getLogger("s3transfer").setLevel("INFO")
     logging.getLogger("urllib3").setLevel("INFO")
 
     return root
 
 
+def run_snap_command(command):
+    """
+    Run a snap command. Internal use.
+
+    :param command: the list of arguments to pass to snap
+    :return: None
+    """
+
+    # if we need to prepend the snap executable.
+    if command[0] != os.environ['SNAP_GPT']:
+        full_command = [os.environ['SNAP_GPT']] + command
+    else:
+        full_command = command
+
+    # on linux there is a warning message printed by snap if this environment variable is not set.
+    base_env = os.environ.copy()
+    if "LD_LIBRARY_PATH" not in base_env and platform.system() != "Windows":
+        base_env["LD_LIBRARY_PATH"] = "."
+
+    logging.debug(f"running {full_command}")
+
+    process = subprocess.Popen(full_command, env=base_env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    snap_logger_out = logging.getLogger("snap_stdout")
+    snap_logger_err = logging.getLogger("snap_stderr")
+    std_out_reader = AsynchronousFileReader(process.stdout)
+    std_err_reader = AsynchronousFileReader(process.stderr)
+
+    def pass_logging():
+        while not std_out_reader.queue.empty():
+            line = std_out_reader.queue.get().decode()
+            snap_logger_out.info(line.rstrip('\n'))
+        while not std_err_reader.queue.empty():
+            line = std_err_reader.queue.get().decode()
+            snap_logger_err.info("stderr:" + line.rstrip('\n'))
+
+    while process.poll() is None:
+        pass_logging()
+
+    std_out_reader.join()
+    std_err_reader.join()
+
+    if process.returncode != 0:
+        raise Exception("Snap returned non zero exit status")
+
+
 def get_file(url, output_path, user=None, password=None):
     logging.debug(f"downloading {url} to {output_path}")
     request = get_url(url, user, password)
-    with open(output_path, 'wb') as f:
-        shutil.copyfileobj(request, f)
+    if request:
+        with open(output_path, 'wb') as f:
+            logging.info(f.write(request.content))
 
 
 def get_url(url, user=None, password=None):
@@ -100,17 +155,12 @@ def get_url(url, user=None, password=None):
     :param password: optional http password to apply to the request
     :return: byte array containing the file.
     """
-    if user and password:
-        password_mgr = HTTPPasswordMgrWithDefaultRealm()
-        password_mgr.add_password(None, url, user, password)
-
-        handler = HTTPBasicAuthHandler(password_mgr)
-        opener = build_opener(handler)
-
-        return opener.open(url)
-
-    with urlopen(url) as response:
-        return response
+    r = requests.get(url, auth=(user, password))
+    if not r.ok:
+        logging.error(f"could not make request {r.status_code} {r.content.decode('utf-8')}")
+        raise HTTPError("could not make request")
+    else:
+        return r
 
 
 def split_all(path):
@@ -125,7 +175,7 @@ def split_all(path):
         if parts[0] == path:  # sentinel for absolute paths
             all_parts.insert(0, parts[0])
             break
-        elif parts[1] == path: # sentinel for relative paths
+        elif parts[1] == path:  # sentinel for relative paths
             all_parts.insert(0, parts[1])
             break
         else:
@@ -248,13 +298,14 @@ def s3_single_upload(in_path, s3_path, s3_bucket):
     logging.info(f"Local source file: {in_path}")
     logging.info(f"S3 target file: {s3_path}")
 
-    if not os.path.exists(s3_path):  # doesn't work on s3... better function to do this...
-        logging.info(f"Start: {in_path} {str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))}")
+    logging.info(f"Start: {in_path} {str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))}")
 
-        transfer = boto3.s3.transfer.S3Transfer(client=s3_client, config=transfer_config)
-        transfer.upload_file(in_path, bucket.name, s3_path)
+    s3_client.upload_file(in_path, bucket.name, s3_path)
 
-        logging.info(f"Finish: {in_path} {str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))}")
+    # transfer = boto3.s3.transfer.S3Transfer(client=s3_client, config=transfer_config)
+    # transfer.upload_file(in_path, bucket.name, s3_path)
+
+    logging.info(f"Finish: {in_path} {str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))}")
 
 
 def s3_upload_cogs(in_paths, s3_bucket, s3_dir):

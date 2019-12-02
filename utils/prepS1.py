@@ -1,12 +1,66 @@
 import math
 import zipfile
 from subprocess import Popen, PIPE, STDOUT
-
+from dateutil.parser import parse
+import glob
 import numpy
 import pandas as pd
 from requests import HTTPError
+from http.cookiejar import MozillaCookieJar
+from urllib.request import Request, HTTPHandler, HTTPSHandler, HTTPCookieProcessor, build_opener
+from urllib.error import HTTPError
+import uuid
 
 from utils.prep_utils import *
+
+cookie_jar_path = os.path.join( os.path.expanduser('~'), ".bulk_download_cookiejar.txt")
+cookie_jar = MozillaCookieJar()
+
+
+def get_asf_cookie(user, password):
+
+    logging.info("logging into asf")
+
+    login_url = "https://urs.earthdata.nasa.gov/oauth/authorize"
+    client_id = "BO_n7nTIlMljdvU6kRRB3g"
+    redirect_url = "https://auth.asf.alaska.edu/login"
+
+    user_pass = base64.b64encode(bytes(user + ":" + password, "utf-8"))
+    user_pass = user_pass.decode("utf-8")
+
+    auth_cookie_url = f"{login_url}?client_id={client_id}&redirect_uri={redirect_url}&response_type=code&state="
+    context = {}
+    opener = build_opener(HTTPCookieProcessor(cookie_jar), HTTPHandler(), HTTPSHandler(**context))
+    request = Request(auth_cookie_url, headers={"Authorization": "Basic {0}".format(user_pass)})
+
+    try:
+        response = opener.open(request)
+    except HTTPError as e:
+        if e.code == 401:
+            logging.error("invalid username and password")
+            return False
+        else:
+            # If an error happens here, the user most likely has not confirmed EULA.
+            logging.error(f"Could not log in. {e.code} {e.response}")
+            return False
+
+    if check_cookie_is_logged_in(cookie_jar):
+        # COOKIE SUCCESS!
+        cookie_jar.save(cookie_jar_path)
+        logging.info("successfully logged into asf")
+        return True
+
+    logging.info("failed logging into asf")
+    return False
+
+
+def check_cookie_is_logged_in(cj):
+    for cookie in cj:
+        if cookie.name == 'urs_user_already_logged':
+            # Only get this cookie if we logged in successfully!
+            return True
+
+    return False
 
 
 def get_s1_asf_urls(s1_name_list):
@@ -46,14 +100,28 @@ def get_s1_asf_url(s1_name, retry=3):
             .URL \
             .values[0]
     except HTTPError as e:
-        logging.debug("could not query: {}", e)
+        logging.debug(f"could not query: {e}", )
         if e.code == 503 and retry > 0:
             logging.info("retrying...")
             return get_s1_asf_url(s1_name, retry - 1)
         return 'NaN'
     except Exception as e:
-        logging.debug("could not query: {}", e)
+        logging.debug(f"could not query: {e}")
         return 'NaN'
+
+
+def get_asf_file(url, output_path, chunk_size=16*1024):  # 8 kb default
+    context = {}
+    opener = build_opener(HTTPCookieProcessor(cookie_jar), HTTPHandler(), HTTPSHandler(**context))
+    request = Request(url)
+    response = opener.open(request)
+
+    with open(output_path, "wb") as f:
+        while True:
+            chunk = response.read(chunk_size)
+            if not chunk:
+                break
+            f.write(chunk)
 
 
 def download_extract_s1_scene_asf(s1_name, download_dir):
@@ -81,8 +149,11 @@ def download_extract_s1_scene_asf(s1_name, download_dir):
     zipped = os.path.join(download_dir, s1_name + '.zip')
     safe_dir = os.path.join(download_dir, s1_name + '.SAFE/')
 
+    if not check_cookie_is_logged_in(cookie_jar):
+        get_asf_cookie(asf_user, asf_pwd)
+
     if not os.path.exists(zipped) & (not os.path.exists(safe_dir)):
-        get_file(s1url, zipped, user=asf_user, password=asf_pwd)
+        get_asf_file(s1url, zipped)
 
     if not os.path.exists(safe_dir):
         logging.info('Extracting ASF scene: {}'.format(zipped))
@@ -105,6 +176,8 @@ def band_name_s1(prod_path):
         return 'vv'
     if 'LayoverShadow_MASK' in str(prod_name):
         return 'layovershadow_mask'
+
+    logging.error(f"could not find band name for {prod_path}")
 
     return 'unknown layer'
 
@@ -133,9 +206,8 @@ def conv_s1scene_cogs(noncog_scene_dir, cog_scene_dir, scene_name, overwrite=Fal
 
     # iterate over prods to create parellel processing list
     for prod in prod_paths:
-        logging.info(f"converting {prod} to cog")
-        out_filename = cog_scene_dir + scene_name + '_' + os.path.basename(prod)[:-4] + '.tif'  # - TO DO*****
-
+        out_filename = os.path.join(cog_scene_dir, scene_name + '_' + os.path.basename(prod)[:-4] + '.tif')  # - TO DO*****
+        logging.info(f"converting {prod} to cog at {out_filename}")
         # ensure input file exists
         to_cog(prod, out_filename)
 
@@ -155,7 +227,7 @@ def copy_s1_metadata(out_s1_prod, cog_scene_dir, scene_name):
         else:
             logging.info("Original metadata file already copied to cog_dir: {}".format(n_meta))
     else:
-        logging.warning("Cannot find orignial metadata file: {}".format(meta))
+        logging.warning("Cannot find orignial metadata file: {}".format(out_s1_prod))
 
 
 def yaml_prep_s1(scene_dir):
@@ -168,24 +240,25 @@ def yaml_prep_s1(scene_dir):
     logging.info("Preparing scene {}".format(scene_name))
     logging.info("Scene path {}".format(scene_dir))
 
-    prod_paths = glob.glob(scene_dir + '*.tif')
+    prod_paths = glob.glob(os.path.join(scene_dir, '*.tif'))
 
-    t0 = parse(str(datetime.strptime(os.path.dirname(prod_paths[0]).split("_")[-1], '%Y%m%dT%H%M%S')))
+    logging.info(f"prod_path: {prod_paths}, scene_name: {scene_name}")
+    t0 = parse(str(datetime.strptime(scene_name.split("_")[-2], '%Y%m%dT%H%M%S')))
 
     # get polorisation from each image product (S1 band)
     # should be replaced with a more concise, generalisable parsing
     images = {
         band_name_s1(prod_path): {
-            'path': str(prod_path.split('/')[-1])
+            'path': os.path.split(prod_path)[-1]
         } for prod_path in prod_paths
     }
     logging.debug(images)
 
     # trusting bands coaligned, use one to generate spatial bounds for all
     try:
-        projection, extent = get_geometry('/'.join([str(scene_dir), images['vh']['path']]))
+        projection, extent = get_geometry(os.path.join(str(scene_dir), images['vh']['path']))
     except:
-        projection, extent = get_geometry('/'.join([str(scene_dir), images['vv']['path']]))
+        projection, extent = get_geometry(os.path.join(str(scene_dir), images['vv']['path']))
         logging.warning('no vh band available')
 
     # format metadata (i.e. construct hashtable tree for syntax of file interface)
@@ -252,9 +325,9 @@ def prepareS1(in_scene, s3_bucket='cs-odc-data', s3_dir='yemen/Sentinel_1/', int
     out_prod2 = inter_dir + scene_name + '_Orb_Cal_Deb_ML_TF_TC_lsm.dim'
     out_dir2 = out_prod2[:-4] + '.data/'
 
-    # snap_gpt = os.environ['SNAP_GPT']
-    # int_graph_1 = os.environ['S1_PROCESS_P1']  # ENV VAR
-    # int_graph_2 = os.environ['S1_PROCESS_P2']  # ENV VAR
+    snap_gpt = os.environ['SNAP_GPT']
+    int_graph_1 = os.environ['S1_PROCESS_P1']  # ENV VAR
+    int_graph_2 = os.environ['S1_PROCESS_P2']  # ENV VAR
 
     root = setup_logging()
     root.info('{} {} Starting'.format(in_scene, scene_name))
@@ -278,22 +351,15 @@ def prepareS1(in_scene, s3_bucket='cs-odc-data', s3_dir='yemen/Sentinel_1/', int
                 raise Exception('Download Error ESA', e)
 
         if not os.path.exists(out_prod2):
-            try:
-                cmd = f"{snap_gpt} {int_graph_1} -Pinput_grd={input_mani} -Poutput_ml={inter_prod}"
-                root.info(cmd)
-                p = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
-                out1 = p.stdout.read()
-                root.info(out1)
-                root.info(f"{in_scene} {scene_name} PROCESSED to MULTILOOK starting PT2")
+            cmd = [snap_gpt, int_graph_1, f"-Pinput_grd={input_mani}", f"-Poutput_ml={inter_prod}"]
+            root.info(cmd)
+            run_snap_command(cmd)
+            root.info(f"{in_scene} {scene_name} PROCESSED to MULTILOOK starting PT2")
 
-                cmd = f"{snap_gpt} {int_graph_2} -Pinput_ml={inter_prod} -Poutput_db={out_prod1} -Poutput_ls={out_prod2}"
-                root.info(cmd)
-                p = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
-                out2 = p.stdout.read()
-                root.info(f"{in_scene} {scene_name} PROCESSED to dB + LSM")
-                root.info(out2)
-            except Exception as e:
-                raise Exception(out1 + out2, e)
+            cmd = [snap_gpt, int_graph_2, f"-Pinput_ml={inter_prod}", f"-Poutput_db={out_prod1}", f"-Poutput_ls={out_prod2}"]
+            root.info(cmd)
+            run_snap_command(cmd)
+            root.info(f"{in_scene} {scene_name} PROCESSED to dB + LSM")
 
         # CONVERT TO COGS TO TEMP COG DIRECTORY**
         try:
@@ -326,7 +392,7 @@ def prepareS1(in_scene, s3_bucket='cs-odc-data', s3_dir='yemen/Sentinel_1/', int
             # MOVE COG DIRECTORY TO OUTPUT DIRECTORY
         try:
             root.info(f"{in_scene} {scene_name} Uploading to S3 Bucket")
-            s3_upload_cogs(glob.glob(cog_dir + '*'), s3_bucket, s3_dir)
+            s3_upload_cogs(glob.glob(os.path.join(cog_dir, '*')), s3_bucket, s3_dir)
             root.info(f"{in_scene} {scene_name} Uploaded to S3 Bucket")
         except Exception as e:
             root.exception(f"{in_scene} {scene_name} Upload to S3 Failed")
@@ -336,7 +402,7 @@ def prepareS1(in_scene, s3_bucket='cs-odc-data', s3_dir='yemen/Sentinel_1/', int
         clean_up(inter_dir)
 
     except Exception as e:
-        logging.error(f"could not process{scene_name}", e)
+        logging.error(f"could not process{scene_name} {e}")
         clean_up(inter_dir)
 
 

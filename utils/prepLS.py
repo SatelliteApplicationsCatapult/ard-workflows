@@ -1,34 +1,69 @@
 import tarfile
-
+import uuid
 import requests
+import glob
+import os
+import logging
+from dateutil.parser import parse
 
 from utils.prep_utils import *
 
 
 def download_extract_ls_url(ls_url, down_tar, untar_dir):
-    """
-    Download a landsat from ESPA url. 
-    Assumes esa hub creds stored as env variables.
-    
-    :param scene_uuid: S2 download uuid from sentinelsat query
-    :param down_dir: directory in which to create a downloaded product dir
-    :param original_scene_dir: 
-    :return: 
-    """
+
     if not os.listdir(untar_dir):
 
         if not os.path.exists(down_tar):
-            logging.info(f"Downloading tar.gz: {down_tar}")
-            resp = requests.get(ls_url)
-            open(down_tar, 'wb').write(resp.content)
+            logging.info(f"Downloading tar.gz: {down_tar} from {ls_url}")
+            get_file(ls_url, down_tar)
 
         logging.info(f"Extracting tar.gz: {down_tar}")
-        tar = tarfile.open(down_tar, "r:gz")
-        tar.extractall(path=untar_dir)
-        tar.close()
+        with tarfile.open(down_tar, "r:gz") as tar:
+            tar.extractall(path=untar_dir)
 
     else:
         logging.info(f"Scene already downloaded and extracted: {untar_dir}")
+
+
+def band_name_landsat(prod_path):
+    if "LE07_" in prod_path:
+        return band_name_l7(prod_path)
+    elif "LE08_" in prod_path:
+        return band_name_l8(prod_path)
+    else:
+        logging.warning(f"unknown landsat product {prod_path}")
+        raise Exception(f"unknown landsat product {prod_path}")
+
+
+def band_name_l7(prod_path):
+    """
+        Determine l7 band of individual product from product name
+        from path to specific product file
+        """
+
+    prod_name = os.path.basename(prod_path)
+    parts = prod_name.split('_')
+    prod_name = f"{parts[-2]}_{parts[-1][:-4]}"
+
+    logging.debug("Product name is: {}".format(prod_name))
+
+    prod_map = {
+        "bt_band6": 'brightness_temperature_1',
+        "pixel_qa": 'pixel_qa',
+        "cloud_qa": 'sr_cloud_qa',
+        "radsat_qa": 'radsat_qa',
+        "atmos_opacity": 'sr_atmos_opacity',
+        "sr_band1": 'blue',
+        "sr_band2": 'green',
+        "sr_band3": 'red',
+        "sr_band4": 'nir',
+        "sr_band5": 'swir1',
+        "sr_band7": 'swir2',
+    }
+
+    layer_name = prod_map[prod_name]
+
+    return layer_name
 
 
 def band_name_l8(prod_path):
@@ -38,7 +73,8 @@ def band_name_l8(prod_path):
     """
 
     prod_name = os.path.basename(prod_path)
-    prod_name = f"{prod_name.split('_')[-2]}_{prod_name.split('_')[-1][:-4]}"
+    parts = prod_name.split('_')
+    prod_name = f"{parts[-2]}_{parts[-1][:-4]}"
 
     logging.debug("Product name is: {}".format(prod_name))
 
@@ -47,7 +83,6 @@ def band_name_l8(prod_path):
         "bt_band11": 'brightness_temperature_2',
         "pixel_qa": 'pixel_qa',
         "radsat_qa": 'radsat_qa',
-        "sr_aerosol": 'sr_aerosol',
         "sr_aerosol": 'sr_aerosol',
         "sr_band1": 'coastal_aerosol',
         "sr_band2": 'blue',
@@ -110,7 +145,7 @@ def conv_sgl_cog(in_path, out_path):
     :param out_path: path to new cog file
     :return: 
     """
-    logging.debug(in_path, out_path)
+    logging.debug(f"in: {in_path}, out: {out_path}")
     # set default cog profile (as recommended by alex leith)
     cog_profile = {
         'driver': 'GTiff',
@@ -145,14 +180,7 @@ def conv_sgl_cog(in_path, out_path):
 
 
 def copy_l8_metadata(untar_dir, cog_dir):
-    """
-    Parse through LS metadata files.
-    
-    :param original_scene_dir: downloaded S2 dir in which to find original metadata (MTD_*.xml) file.
-    :param cog_scene_dir: dir in which to copy MTD into
-    :param scene_name: shortened S2 scene name (i.e. S2A_MSIL2A_20190124T221941_T60KYF from S2A_MSIL2A_20190124T221941_N0211_R029_T60KYF_20190124T234344)
-    :return: 
-    """
+
     metas = [fn for fn in glob.glob(f"{untar_dir}*") if
              (".tif" not in os.path.basename(fn)) & ("." in os.path.basename(fn))]
     logging.debug(metas)
@@ -188,13 +216,13 @@ def find_l8_datetime(scene_dir):
         return str(datetime.strptime(f"{scene_dir.split('_')[-1][:-1]}", '%Y%m%d'))
 
 
-def yaml_prep_l8(scene_dir):
+def yaml_prep_landsat(scene_dir):
     """
     Prepare individual L8 scene directory containing L8 cog products converted
     from ESPA-ordered L1T scenes.
     """
     # scene_name = scene_dir.split('/')[-2][:26]
-    scene_name = scene_dir.split('/')[-2]
+    scene_name = split_all(scene_dir)[-2]
     logging.info(f"Preparing scene {scene_name}")
     logging.info(f"Scene path {scene_dir}")
 
@@ -202,21 +230,21 @@ def yaml_prep_l8(scene_dir):
     prod_paths = glob.glob(scene_dir + '*.tif')
     # print ( 'paths: {}'.format(prod_paths) )
     # for i in prod_paths: print ( i )
-
+    logging.info(prod_paths)
     # date time assumed eqv for start and stop - this isn't true and could be
     # pulled from .xml file (or scene dir) not done yet for sake of progression
     t0 = parse(find_l8_datetime(scene_dir))
-    t1 = t0
 
     # get polorisation from each image product (S2 band)
     images = {
-        band_name_l8(prod_path): {
-            'path': str(prod_path.split('/')[-1])
+        band_name_landsat(prod_path): {
+            'path': str(split_all(prod_path)[-1])
         } for prod_path in prod_paths
     }
+    logging.info(images)
 
     # trusting bands coaligned, use one to generate spatial bounds for all
-    projection, extent = get_geometry('/'.join([str(scene_dir), images['blue']['path']]))
+    projection, extent = get_geometry(os.path.join(str(scene_dir), images['blue']['path']))
 
     # parse esa l2a prod metadata file for reference
     scene_genesis = glob.glob(scene_dir + '*.xml')[0]
@@ -226,6 +254,22 @@ def yaml_prep_l8(scene_dir):
         scene_genesis = ' '
 
     new_id = str(uuid.uuid5(uuid.NAMESPACE_URL, scene_name))
+    platform_code = ""
+    instrument_name = ""
+    if "LE08_" in scene_name:
+        logging.info(f"{scene_name} detected as landsat 8")
+        platform_code = "LANDSAT_8"
+        instrument_name = "OLI"
+    elif "LE07_" in scene_name:
+        logging.info(f"{scene_name} detected as landsat 7")
+        platform_code = "LANDSAT_7"
+        instrument_name = "ETM"
+    elif "LE05_" in scene_name:
+        logging.info(f"{scene_name} detected as landsat 5")
+        platform_code = "LANDSAT_5"
+        instrument_name = "TM"
+    else:
+        raise Exception(f"Unknown platform {scene_name}")
 
     return {
         'id': new_id,
@@ -233,12 +277,12 @@ def yaml_prep_l8(scene_dir):
         'product_type': "optical_ard",
         'creation_dt': str(datetime.today().strftime('%Y-%m-%d %H:%M:%S')),
         'platform': {
-            'code': 'LANDSAT_8'
+            'code': platform_code
         },
         'instrument': {
-            'name': 'OLI'
+            'name': instrument_name
         },
-        'extent': create_metadata_extent(extent, t0, t1),
+        'extent': create_metadata_extent(extent, t0, t0),
         'format': {
             'name': 'GeoTiff'
         },
@@ -251,31 +295,15 @@ def yaml_prep_l8(scene_dir):
         'lineage': {
             'source_datasets': scene_genesis,
         }
-
     }
 
 
 def prepareLS(in_scene, s3_bucket='cs-odc-data', s3_dir='common_sensing/fiji/default',
               inter_dir='/tmp/data/intermediate/', prodlevel='L2A'):
-    """
-    Prepare IN_SCENE of Sentinel-2 satellite data into OUT_DIR for ODC indexing. 
+    root = setup_logging()
 
-    :param in_scene: input Sentinel-2 scene name (either L1C or L2A) i.e. "S2A_MSIL1C_20180820T223011_N0206_R072_T60KWE_20180821T013410[.SAFE]"
-    :param s3_bucket: name of the s3 bucket in which to upload preppared products
-    :param s3_dir: bucket dir in which to upload prepared products
-    :param inter_dir: dir in which to store intermeriary products - this will be nuked at the end of processing, error or not
-    :param --prodlevel: Desired Sentinel-2 product level. Defaults to 'L1C'. Use 'L2A' for ARD equivalent
-    :return: None
-    
-    Assumptions:
-    - env set at SEN2COR_8: i.e. Sen2Cor-02.08.00-Linux64/bin/L2A_Process"
-    - env set COPERNICUS_USERNAME
-    - env set COPERNICUS_PWD
-    - env set AWS_ACCESS
-    - env set AWS_SECRET
-    """
     ls_url = in_scene
-    down_basename = ls_url.split('/')[-1]
+    down_basename = split_all(ls_url)[-1]
     scene_name = f"{down_basename[:4]}_L1TP_{down_basename[4:10]}_{down_basename[10:18]}"
     inter_dir = f"{inter_dir}{scene_name}_tmp/"
     os.makedirs(inter_dir, exist_ok=True)
@@ -284,10 +312,8 @@ def prepareLS(in_scene, s3_bucket='cs-odc-data', s3_dir='common_sensing/fiji/def
     os.makedirs(untar_dir, exist_ok=True)
     cog_dir = f"{inter_dir}{scene_name}/"
     os.makedirs(cog_dir, exist_ok=True)
+
     logging.info(f"scene: {scene_name}\nuntar: {untar_dir}\ncog_dir: {cog_dir}")
-
-    root = setup_logging()
-
     root.info(f"{scene_name} Starting")
 
     try:
@@ -318,7 +344,7 @@ def prepareLS(in_scene, s3_bucket='cs-odc-data', s3_dir='common_sensing/fiji/def
 
         try:
             root.info(f"{scene_name} Creating yaml")
-            create_yaml(cog_dir, yaml_prep_l8(cog_dir))
+            create_yaml(cog_dir, yaml_prep_landsat(cog_dir))
             root.info(f"{scene_name} Created yaml")
         except Exception as e:
             root.exception(f"{scene_name} yam not created")
@@ -334,8 +360,12 @@ def prepareLS(in_scene, s3_bucket='cs-odc-data', s3_dir='common_sensing/fiji/def
             raise Exception('S3  upload error', e)
 
         # DELETE ANYTHING WITIN TEH TEMP DIRECTORY
-        clean_up(inter_dir)
+        # clean_up(inter_dir)
 
     except Exception as e:
-        logging.error(f"Could not process {scene_name}", e)
-        clean_up(inter_dir)
+        logging.error(f"Could not process {scene_name}, {e}")
+        # clean_up(inter_dir)
+
+
+if __name__ == '__main__':
+    prepareLS("https://edclpdsftp.cr.usgs.gov/orders/espa-Sarah.Cheesbrough@sa.catapult.org.uk-11292019-051915-532/LE070740712012032201T1-SC20191129113302.tar.gz")
