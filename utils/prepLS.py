@@ -50,9 +50,9 @@ def band_name_l7(prod_path):
     prod_map = {
         "bt_band6": 'brightness_temperature_1',
         "pixel_qa": 'pixel_qa',
-        "cloud_qa": 'cloud_qa',
+        "cloud_qa": 'sr_cloud_qa',
         "radsat_qa": 'radsat_qa',
-        "atmos_opacity": 'sr_aerosol',
+        "atmos_opacity": 'sr_atmos_opacity',
         "sr_band1": 'blue',
         "sr_band2": 'green',
         "sr_band3": 'red',
@@ -264,6 +264,10 @@ def yaml_prep_landsat(scene_dir):
         logging.info(f"{scene_name} detected as landsat 7")
         platform_code = "LANDSAT_7"
         instrument_name = "ETM"
+    elif "LE05_" in scene_name:
+        logging.info(f"{scene_name} detected as landsat 5")
+        platform_code = "LANDSAT_5"
+        instrument_name = "TM"
     else:
         raise Exception(f"Unknown platform {scene_name}")
 
@@ -291,7 +295,6 @@ def yaml_prep_landsat(scene_dir):
         'lineage': {
             'source_datasets': scene_genesis,
         }
-
     }
 
 
@@ -309,7 +312,6 @@ def prepareLS(in_scene, s3_bucket='cs-odc-data', s3_dir='common_sensing/fiji/def
     os.makedirs(untar_dir, exist_ok=True)
     cog_dir = f"{inter_dir}{scene_name}/"
     os.makedirs(cog_dir, exist_ok=True)
-
 
     logging.info(f"scene: {scene_name}\nuntar: {untar_dir}\ncog_dir: {cog_dir}")
     root.info(f"{scene_name} Starting")
