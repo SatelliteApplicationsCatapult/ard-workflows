@@ -222,7 +222,7 @@ def yaml_prep_landsat(scene_dir):
     from ESPA-ordered L1T scenes.
     """
     # scene_name = scene_dir.split('/')[-2][:26]
-    scene_name = split_all(scene_dir)[-1]
+    scene_name = split_all(scene_dir)[-2]
     logging.info(f"Preparing scene {scene_name}")
     logging.info(f"Scene path {scene_dir}")
 
@@ -234,7 +234,6 @@ def yaml_prep_landsat(scene_dir):
     # date time assumed eqv for start and stop - this isn't true and could be
     # pulled from .xml file (or scene dir) not done yet for sake of progression
     t0 = parse(find_l8_datetime(scene_dir))
-    t1 = t0
 
     # get polorisation from each image product (S2 band)
     images = {
@@ -276,7 +275,7 @@ def yaml_prep_landsat(scene_dir):
         'instrument': {
             'name': instrument_name
         },
-        'extent': create_metadata_extent(extent, t0, t1),
+        'extent': create_metadata_extent(extent, t0, t0),
         'format': {
             'name': 'GeoTiff'
         },
