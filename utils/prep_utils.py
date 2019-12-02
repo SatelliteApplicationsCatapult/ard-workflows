@@ -155,7 +155,6 @@ def get_url(url, user=None, password=None):
     :param password: optional http password to apply to the request
     :return: byte array containing the file.
     """
-    logging.info(f"u: {user} p: {password}")
     r = requests.get(url, auth=(user, password))
     if not r.ok:
         logging.error(f"could not make request {r.status_code} {r.content.decode('utf-8')}")
