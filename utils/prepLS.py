@@ -26,7 +26,7 @@ def download_extract_ls_url(ls_url, down_tar, untar_dir):
 
 
 def band_name_landsat(prod_path):
-    if "LE07_" in prod_path:
+    if "LE07_" in prod_path or "LT04_" in prod_path or "LT05_" in prod_path:
         return band_name_l7(prod_path)
     elif "LE08_" in prod_path:
         return band_name_l8(prod_path)
@@ -39,6 +39,8 @@ def band_name_l7(prod_path):
     """
         Determine l7 band of individual product from product name
         from path to specific product file
+
+        Note this is used for Landsat 4, 5, and 7 as the bands we care about are the same in all three cases.
         """
 
     prod_name = os.path.basename(prod_path)
@@ -264,9 +266,13 @@ def yaml_prep_landsat(scene_dir):
         logging.info(f"{scene_name} detected as landsat 7")
         platform_code = "LANDSAT_7"
         instrument_name = "ETM"
-    elif "LE05_" in scene_name:
+    elif "LT05_" in scene_name:
         logging.info(f"{scene_name} detected as landsat 5")
         platform_code = "LANDSAT_5"
+        instrument_name = "TM"
+    elif "LT04_" in scene_name:
+        logging.info(f"{scene_name} detected as landsat 4")
+        platform_code = "LANDSAT_4"
         instrument_name = "TM"
     else:
         raise Exception(f"Unknown platform {scene_name}")
@@ -368,4 +374,5 @@ def prepareLS(in_scene, s3_bucket='cs-odc-data', s3_dir='common_sensing/fiji/def
 
 
 if __name__ == '__main__':
-    prepareLS("https://edclpdsftp.cr.usgs.gov/orders/espa-Sarah.Cheesbrough@sa.catapult.org.uk-11292019-051915-532/LE070740712012032201T1-SC20191129113302.tar.gz")
+    # prepareLS("https://edclpdsftp.cr.usgs.gov/orders/espa-Sarah.Cheesbrough@sa.catapult.org.uk-11292019-051915-532/LE070740712012032201T1-SC20191129113302.tar.gz")
+    prepareLS("https://edclpdsftp.cr.usgs.gov/orders/espa-Sarah.Cheesbrough@sa.catapult.org.uk-12022019-042034-386/LT040750721993010401T1-SC20191202114123.tar.gz")
