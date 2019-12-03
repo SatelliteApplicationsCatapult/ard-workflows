@@ -360,11 +360,11 @@ def prepareLS(in_scene, s3_bucket='cs-odc-data', s3_dir='common_sensing/fiji/def
             raise Exception('S3  upload error', e)
 
         # DELETE ANYTHING WITIN TEH TEMP DIRECTORY
-        # clean_up(inter_dir)
+        clean_up(inter_dir)
 
     except Exception as e:
         logging.error(f"Could not process {scene_name}, {e}")
-        # clean_up(inter_dir)
+        clean_up(inter_dir)
 
 
 if __name__ == '__main__':
