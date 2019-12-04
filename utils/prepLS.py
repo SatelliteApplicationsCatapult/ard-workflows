@@ -271,10 +271,8 @@ def yaml_prep_landsat(scene_dir):
         platform_code = "LANDSAT_5"
         instrument_name = "TM"
     elif "LT04_" in scene_name:
-        # Yes this is the same as above. At the moment we want to handle them the same, but in case we want to change
-        # that in the future this is here.
         logging.info(f"{scene_name} detected as landsat 4")
-        platform_code = "LANDSAT_5"
+        platform_code = "LANDSAT_4"
         instrument_name = "TM"
     else:
         raise Exception(f"Unknown platform {scene_name}")
@@ -355,10 +353,9 @@ def prepareLS(in_scene, s3_bucket='cs-odc-data', s3_dir='common_sensing/fiji/def
             create_yaml(cog_dir, yaml_prep_landsat(cog_dir))
             root.info(f"{scene_name} Created yaml")
         except Exception as e:
-            root.exception(f"{scene_name} yam not created")
+            root.exception(f"{scene_name} yaml not created {e}")
             raise Exception('Yaml error', e)
 
-        # MOVE COG DIRECTORY TO OUTPUT DIRECTORY
         try:
             root.info(f"{scene_name} Uploading to S3 Bucket")
             s3_upload_cogs(glob.glob(cog_dir + '*'), s3_bucket, s3_dir)
@@ -367,7 +364,6 @@ def prepareLS(in_scene, s3_bucket='cs-odc-data', s3_dir='common_sensing/fiji/def
             root.exception(f"{scene_name} Upload to S3 Failed")
             raise Exception('S3  upload error', e)
 
-        # DELETE ANYTHING WITIN TEH TEMP DIRECTORY
         clean_up(inter_dir)
 
     except Exception as e:
