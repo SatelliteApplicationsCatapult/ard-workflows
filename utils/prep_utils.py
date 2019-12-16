@@ -1,7 +1,9 @@
 import logging
 import os
+import re
 import shutil
 from datetime import datetime
+from os import path
 from urllib.request import urlopen, HTTPPasswordMgrWithDefaultRealm, HTTPBasicAuthHandler, HTTPDigestAuthHandler, build_opener
 from urllib.error import HTTPError
 
@@ -222,6 +224,15 @@ def get_geometry(path):
         extent = {key: transform(p) for key, p in corners.items()}
 
         return projection, extent
+
+
+def find_files(base_path, reg_expression):
+    result = []
+    r = re.compile(reg_expression)
+    for (dir_path, _, filenames) in os.walk(base_path):
+        result += [f for f in [path.join(dir_path, f) for f in filenames] if r.match(f)]
+
+    return result
 
 
 def create_metadata_extent(extent, t0, t1):

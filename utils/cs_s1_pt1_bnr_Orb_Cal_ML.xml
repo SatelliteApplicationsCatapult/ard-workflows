@@ -7,6 +7,21 @@
       <file>$input_grd</file>
     </parameters>
   </node>
+  <node id="Subset">
+    <operator>Subset</operator>
+    <sources>
+        <sourceProduct refid="Read"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+        <sourceBands/>
+        <region>$region</region>
+        <subSamplingX>1</subSamplingX>
+        <subSamplingY>1</subSamplingY>
+        <fullSwath>false</fullSwath>
+        <tiePointGridNames/>
+        <copyMetadata>true</copyMetadata>
+    </parameters>
+  </node>
   <node id="Remove-GRD-Border-Noise">
     <operator>Remove-GRD-Border-Noise</operator>
     <sources>
@@ -64,7 +79,7 @@
   <node id="ThermalNoiseRemoval">
     <operator>ThermalNoiseRemoval</operator>
     <sources>
-      <sourceProduct refid="Read"/>
+      <sourceProduct refid="Subset"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <selectedPolarisations/>

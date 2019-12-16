@@ -1,4 +1,5 @@
 import math
+import re
 import zipfile
 from subprocess import Popen, PIPE, STDOUT
 from dateutil.parser import parse
@@ -11,14 +12,15 @@ from urllib.request import Request, HTTPHandler, HTTPSHandler, HTTPCookieProcess
 from urllib.error import HTTPError
 import uuid
 
+from utils import safe
+from utils.safe import densifygrid
 from utils.prep_utils import *
 
-cookie_jar_path = os.path.join( os.path.expanduser('~'), ".bulk_download_cookiejar.txt")
+cookie_jar_path = os.path.join(os.path.expanduser('~'), ".bulk_download_cookiejar.txt")
 cookie_jar = MozillaCookieJar()
 
 
 def get_asf_cookie(user, password):
-
     logging.info("logging into asf")
 
     login_url = "https://urs.earthdata.nasa.gov/oauth/authorize"
@@ -110,7 +112,7 @@ def get_s1_asf_url(s1_name, retry=3):
         return 'NaN'
 
 
-def get_asf_file(url, output_path, chunk_size=16*1024):  # 8 kb default
+def get_asf_file(url, output_path, chunk_size=16 * 1024):  # 16 kb default
     context = {}
     opener = build_opener(HTTPCookieProcessor(cookie_jar), HTTPHandler(), HTTPSHandler(**context))
     request = Request(url)
@@ -149,10 +151,10 @@ def download_extract_s1_scene_asf(s1_name, download_dir):
     zipped = os.path.join(download_dir, s1_name + '.zip')
     safe_dir = os.path.join(download_dir, s1_name + '.SAFE/')
 
-    if not check_cookie_is_logged_in(cookie_jar):
-        get_asf_cookie(asf_user, asf_pwd)
-
     if not os.path.exists(zipped) & (not os.path.exists(safe_dir)):
+        if not check_cookie_is_logged_in(cookie_jar):
+            get_asf_cookie(asf_user, asf_pwd)
+
         get_asf_file(s1url, zipped)
 
     if not os.path.exists(safe_dir):
@@ -206,7 +208,8 @@ def conv_s1scene_cogs(noncog_scene_dir, cog_scene_dir, scene_name, overwrite=Fal
 
     # iterate over prods to create parellel processing list
     for prod in prod_paths:
-        out_filename = os.path.join(cog_scene_dir, scene_name + '_' + os.path.basename(prod)[:-4] + '.tif')  # - TO DO*****
+        out_filename = os.path.join(cog_scene_dir,
+                                    scene_name + '_' + os.path.basename(prod)[:-4] + '.tif')  # - TO DO*****
         logging.info(f"converting {prod} to cog at {out_filename}")
         # ensure input file exists
         to_cog(prod, out_filename)
@@ -290,6 +293,10 @@ def yaml_prep_s1(scene_dir):
     }
 
 
+_fat_swath = 10.0
+_chunks = 6
+
+
 def prepareS1(in_scene, s3_bucket='cs-odc-data', s3_dir='yemen/Sentinel_1/', inter_dir='/tmp/data/intermediate/',
               source='asf'):
     """
@@ -344,22 +351,68 @@ def prepareS1(in_scene, s3_bucket='cs-odc-data', s3_dir='yemen/Sentinel_1/', int
             root.exception(f"{in_scene} {scene_name} UNAVAILABLE via ASF, try ESA")
             try:
                 root.info(f"{in_scene} {scene_name} AVAILABLE via ESA")
-                # download_extract_s1_esa(s1id, inter_dir, down_dir) # TBC
+                download_extract_s1_esa(in_scene, inter_dir, down_dir)  # TBC
                 root.info(f"{in_scene} {scene_name} DOWNLOADED via ESA")
             except Exception as e:
                 root.exception(f"{in_scene} {scene_name} UNAVAILABLE via ESA too")
                 raise Exception('Download Error ESA', e)
 
-        if not os.path.exists(out_prod2):
-            cmd = [snap_gpt, int_graph_1, f"-Pinput_grd={input_mani}", f"-Poutput_ml={inter_prod}"]
-            root.info(cmd)
-            run_snap_command(cmd)
-            root.info(f"{in_scene} {scene_name} PROCESSED to MULTILOOK starting PT2")
+        # work out the number of splits...
 
-            cmd = [snap_gpt, int_graph_2, f"-Pinput_ml={inter_prod}", f"-Poutput_db={out_prod1}", f"-Poutput_ls={out_prod2}"]
-            root.info(cmd)
-            run_snap_command(cmd)
-            root.info(f"{in_scene} {scene_name} PROCESSED to dB + LSM")
+        manifest = safe.get_manifest(input_mani)
+        extent = safe.get_scene_extent(manifest)
+        safe_dir = os.path.join(inter_dir, in_scene)
+        files = find_files(safe_dir, '.*[\\\\/]annotation[\\\\/]s1.*vv.*\\.xml')
+        logging.debug(files)
+
+        manifest.update(safe.get_annotation(files[0]))
+        manifest.update(safe.get_geolocation_grid(files[0]))
+
+        splits = []
+
+        if extent['lon']['max'] - extent['lon']['min'] > _fat_swath:
+            # re-grid the tie points
+            densifygrid.DensifyGrid().process(find_files(safe_dir, '.*[\\\\/]annotation[\\\\/]s1.*\\.xml'), grid_pts=250)
+            # generate splits
+
+            gcps = safe.split_gcps(manifest['gcps'])
+            chunk_size = int(math.ceil(float(manifest['image']['lines']) / float(_chunks)))
+            for hemisphere in ['east', 'west']:
+                start_row = 0
+                offset = 10  # ensure subsets overlap
+                while start_row < manifest['image']['lines']:
+                    block = {'start': max(start_row - offset, 0),
+                             'end': min(start_row + chunk_size + offset, manifest['image']['lines'] - 1),
+                             'samples': manifest['image']['samples'],
+                             'lines': manifest['image']['lines']}
+
+                    splits += safe.get_subset(gcps[hemisphere], block)
+
+        else:
+            # generate a base "split"
+            gcps = manifest['gcps']
+            block = {'start': 0, 'end': manifest['image']['lines'] - 1, 'samples': manifest['image']['samples'],
+                       'lines': manifest['image']['lines']}
+            splits += safe.get_subset(gcps, block)
+
+        for s in splits:
+            # run the chain
+            if not os.path.exists(out_section):
+                cmd = [snap_gpt, int_graph_1, f"-Pinput_grd={input_mani}", f"-Poutput_ml={inter_prod}_{s}.dim", f"-Pregion={s}"]
+                root.info(cmd)
+                run_snap_command(cmd)
+                root.info(f"{in_scene} {scene_name} PROCESSED to MULTILOOK starting PT2")
+
+                cmd = [snap_gpt, int_graph_2, f"-Pinput_ml={inter_prod}_{s}.dim", f"-Poutput_db={out_prod1}_{s}.dim",
+                       f"-Poutput_ls={out_prod2}_{s}.dim"]
+                root.info(cmd)
+                run_snap_command(cmd)
+                root.info(f"{in_scene} {scene_name} PROCESSED to dB + LSM")
+        # if there was a split
+        #  join the tiles back together.
+        if len(splits) > 0:
+            # TODO: Add joining back up here.
+            pass
 
         # CONVERT TO COGS TO TEMP COG DIRECTORY**
         try:
@@ -402,10 +455,11 @@ def prepareS1(in_scene, s3_bucket='cs-odc-data', s3_dir='yemen/Sentinel_1/', int
         clean_up(inter_dir)
 
     except Exception as e:
-        logging.error(f"could not process{scene_name} {e}")
+        logging.error(f"could not process {scene_name} {e}")
         clean_up(inter_dir)
+        raise e
 
 
 if __name__ == '__main__':
-    prepareS1('S1A_IW_GRDH_1SDV_20191001T064008_20191001T064044_029261_035324_C74C',
-              s3_dir='fiji/Sentinel_1_dockertest/', inter_dir='../S1_ARD/')
+    prepareS1('S1A_IW_GRDH_1SDV_20191001T173212_20191001T173241_029268_03535A_5270',
+              s3_dir='emily/Sentinel_1_dockertest/', inter_dir='../S1_ARD/')
