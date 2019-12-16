@@ -391,7 +391,7 @@ def prepareS1(in_scene, s3_bucket='cs-odc-data', s3_dir='yemen/Sentinel_1/', int
             gcps = manifest['gcps']
             block = {'start': 0, 'end': manifest['image']['lines'] - 1, 'samples': manifest['image']['samples'],
                        'lines': manifest['image']['lines']}
-            splits += safe.get_subset(gcps, block)
+            splits += safe.get_subset([gcps], block)
 
         for s in splits:
             # run the chain
