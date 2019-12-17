@@ -265,7 +265,7 @@ def s3_create_client(s3_bucket):
 
     if endpoint is not None:
         endpoint_url="http://" + endpoint
-        s3 = session.resource('s3', region_name='uk-1', endpoint_url=endpoint_url)
+        s3 = session.resource('s3', endpoint_url=endpoint_url)
         logging.debug('Endpoint URL: {}'.format(endpoint_url))
     else:
         s3 = session.resource('s3', region_name='eu-west-2')
@@ -277,7 +277,6 @@ def s3_create_client(s3_bucket):
             's3',
             aws_access_key_id=access,
             aws_secret_access_key=secret,
-            region_name='uk-1',
             endpoint_url=endpoint_url
         )
     else:
