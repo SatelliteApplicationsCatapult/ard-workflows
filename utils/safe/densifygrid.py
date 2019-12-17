@@ -9,7 +9,7 @@ from threading import Thread
 from datetime import datetime
 
 from osgeo import gdal, osr
-from pyproj import Proj, transform
+from pyproj import Proj, transform, Transformer
 from scipy.interpolate import griddata
 
 import pdb
@@ -29,7 +29,7 @@ class DensifyGrid:
 
         return
 
-    def process(self, annotation_files, grid_pts=100, writeback=False):
+    def process(self, annotation_files, grid_pts=100):
 
         """
         entry point into class functionality
@@ -67,9 +67,7 @@ class DensifyGrid:
 
                 dense_grid['gcps'] = self.interpolateTiePoints(geo_transform, dense_grid['pixel'], dense_grid['line'])
                 logging.info("done interpolation")
-                # optionally visualize dense grid map coordinates
-                if writeback:
-                    self.plotDenseGrid(dense_grid, grid_pts)
+
                 logging.info("writing annotation file...")
                 # write denser tie point grid to updated annotation file and geotiff
                 self.writeAnnotationFile(doc, dense_grid)
@@ -222,6 +220,9 @@ class DensifyGrid:
         """
         reproject geographic coordinates to antemeridian friendly mercator SRS
         """
+        srs_s = Proj(init=projection['source'])
+        srs_t = Proj(init=projection['target'])
+        transformer = Transformer.from_proj(srs_s, srs_t)
 
         def executeTask(task, gcps, projection, records):
 
@@ -230,8 +231,6 @@ class DensifyGrid:
             """
 
             # get geographic and tm projection objects
-            srs_s = Proj(init=projection['source'])
-            srs_t = Proj(init=projection['target'])
             gcps_warp = []
 
             # process subset of gcp list
@@ -240,8 +239,7 @@ class DensifyGrid:
             count = 0
             while idx <= (task['offset'] + task['items']) and idx < num_gcps:
                 # reproject coordinates from source to target srs
-                x, y, z = transform(srs_s,
-                                    srs_t,
+                x, y, z = transformer.transform(
                                     gcps['X'][idx],
                                     gcps['Y'][idx],
                                     gcps['Z'][idx])
