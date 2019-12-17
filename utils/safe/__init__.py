@@ -3,6 +3,7 @@ from datetime import datetime
 
 import gdal
 import xmltodict
+from math import trunc
 
 
 def get_manifest(manifest_path):
@@ -191,9 +192,9 @@ def get_subset(gcps, block):
     if 'x2' not in subset:
         subset['x2'] = (block['samples'] - 1) - subset['x1']
 
-    logging.debug(f"{subset['x1']},{subset['y1']},{subset['x2']},{subset['y2'] - subset['y1']}")
+    logging.debug(f"{int(subset['x1'])},{subset['y1']},{subset['x2']},{subset['y2'] - subset['y1']}")
 
-    return f"{subset['x1']},{subset['y1']},{subset['x2']},{subset['y2'] - subset['y1']}"
+    return f"{int(subset['x1'])},{subset['y1']},{subset['x2']},{subset['y2'] - subset['y1']}"
 
 
 def split_gcps(gcps):
