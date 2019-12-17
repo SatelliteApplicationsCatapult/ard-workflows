@@ -377,15 +377,18 @@ def prepareS1(in_scene, s3_bucket='cs-odc-data', s3_dir='yemen/Sentinel_1/', int
             logging.info("creating chunks...")
             chunk_size = int(math.ceil(float(manifest['image']['lines']) / float(_chunks)))
             for hemisphere in ['east', 'west']:
+                logging.info(f"processing hemisphere {hemisphere}")
                 start_row = 0
                 offset = 10  # ensure subsets overlap
                 while start_row < manifest['image']['lines']:
+
                     block = {'start': max(start_row - offset, 0),
                              'end': min(start_row + chunk_size + offset, manifest['image']['lines'] - 1),
                              'samples': manifest['image']['samples'],
                              'lines': manifest['image']['lines']}
 
                     splits += safe.get_subset(gcps[hemisphere], block)
+                    start_row += chunk_size
             logging.info("DONE creating chunks...")
         else:
             # generate a base "split"
