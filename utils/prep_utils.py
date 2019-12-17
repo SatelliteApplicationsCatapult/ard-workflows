@@ -264,9 +264,11 @@ def s3_create_client(s3_bucket):
     endpoint = os.getenv("AWS_S3_ENDPOINT")
 
     if endpoint is not None:
-        endpoint_url="http://" + endpoint
-        s3 = session.resource('s3', endpoint_url=endpoint_url)
+        endpoint_url=f"http://{endpoint}"
         logging.debug('Endpoint URL: {}'.format(endpoint_url))
+
+    if endpoint is not None:
+        s3 = session.resource('s3', endpoint_url=endpoint_url)
     else:
         s3 = session.resource('s3', region_name='eu-west-2')
 
