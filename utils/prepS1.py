@@ -387,7 +387,7 @@ def prepareS1(in_scene, s3_bucket='cs-odc-data', s3_dir='yemen/Sentinel_1/', int
                              'samples': manifest['image']['samples'],
                              'lines': manifest['image']['lines']}
 
-                    splits += safe.get_subset(gcps[hemisphere], block)
+                    splits += [safe.get_subset(gcps[hemisphere], block)]
                     start_row += chunk_size
             logging.info("DONE creating chunks...")
         else:
