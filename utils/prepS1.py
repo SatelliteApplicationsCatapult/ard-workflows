@@ -397,11 +397,11 @@ def prepareS1(in_scene, s3_bucket='cs-odc-data', s3_dir='yemen/Sentinel_1/', int
                        'lines': manifest['image']['lines']}
             splits += safe.get_subset([gcps], block)
 
-        logging.info(f"processing {len(splits)} splits for ")
+        logging.info(f"processing {len(splits)} splits for {splits}")
 
         for s in splits:
             # run the chain
-            logging.info(f"processing split {s}")
+            logging.info(f"processing split {s} }")
             if not os.path.exists(f"{out_prod1}_{s}.dim"):
                 cmd = [snap_gpt, int_graph_1, f"-Pinput_grd={input_mani}", f"-Poutput_ml={inter_prod}_{s}.dim", f"-Pregion={s}"]
                 root.info(cmd)
