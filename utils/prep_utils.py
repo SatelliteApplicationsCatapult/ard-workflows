@@ -260,14 +260,33 @@ def s3_create_client(s3_bucket):
         access,
         secret,
     )
-    s3 = session.resource('s3', region_name='eu-west-2')
+
+    endpoint = os.getenv("AWS_S3_ENDPOINT")
+
+    if endpoint is not None:
+        endpoint_url=f"http://{endpoint}"
+        logging.debug('Endpoint URL: {}'.format(endpoint_url))
+
+    if endpoint is not None:
+        s3 = session.resource('s3', endpoint_url=endpoint_url)
+    else:
+        s3 = session.resource('s3', region_name='eu-west-2')
+
     bucket = s3.Bucket(s3_bucket)
 
-    s3_client = boto3.client(
-        's3',
-        aws_access_key_id=access,
-        aws_secret_access_key=secret
-    )
+    if endpoint is not None:
+        s3_client = boto3.client(
+            's3',
+            aws_access_key_id=access,
+            aws_secret_access_key=secret,
+            endpoint_url=endpoint_url
+        )
+    else:
+        s3_client = boto3.client(
+            's3',
+            aws_access_key_id=access,
+            aws_secret_access_key=secret
+        )
 
     return s3_client, bucket
 
