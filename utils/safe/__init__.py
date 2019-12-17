@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 
 import gdal
@@ -189,6 +190,8 @@ def get_subset(gcps, block):
 
     if 'x2' not in subset:
         subset['x2'] = (block['samples'] - 1) - subset['x1']
+
+    logging.debug(subset)
 
     return f"{subset['x1']},{subset['y1']},{subset['x2']},{subset['y2'] - subset['y1']}"
 
