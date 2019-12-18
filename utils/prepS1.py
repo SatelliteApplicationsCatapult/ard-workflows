@@ -456,8 +456,11 @@ def prepareS1(in_scene, s3_bucket='cs-odc-data', s3_dir='yemen/Sentinel_1/', int
         # if there was a split
         #  join the tiles back together.
         if len(splits) > 0:
+            logging.info("joining splits back together")
             kwargs = {'srcNodata': 0.0, 'dstSRS': 'epsg:3460'}
-            gdal.Warp(f"{out_prod2}.dim", [f"{out_prod2}_{s}.dim" for s in splits], **kwargs)
+            inputs = [f"{out_prod2}_{s}.dim" for s in splits]
+            logging.info(f"joining {inputs}")
+            gdal.Warp(f"{out_prod2}.dim", inputs, **kwargs)
 
         # CONVERT TO COGS TO TEMP COG DIRECTORY**
         try:
