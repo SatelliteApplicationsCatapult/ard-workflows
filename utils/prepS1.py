@@ -112,6 +112,17 @@ def get_s1_asf_url(s1_name, retry=3):
         return 'NaN'
 
 
+def get_s1_esa_id(s1_name, retry=3):
+    u = os.environ['COPERNICUS_USERNAME']
+    p = os.environ['COPERNICUS_PWD']
+    url_result = get_url(f"https://scihub.copernicus.eu/dhus/odata/v1/Products?$filter=Name eq '{s1_name}'&$format=text/csv", u, p)
+
+    return pd \
+        .read_csv(url_result.content) \
+        .uuid \
+        .values[0]
+
+
 def get_asf_file(url, output_path, chunk_size=16 * 1024):  # 16 kb default
     context = {}
     opener = build_opener(HTTPCookieProcessor(cookie_jar), HTTPHandler(), HTTPSHandler(**context))
@@ -159,6 +170,34 @@ def download_extract_s1_scene_asf(s1_name, download_dir):
 
     if not os.path.exists(safe_dir):
         logging.info('Extracting ASF scene: {}'.format(zipped))
+        zip_ref = zipfile.ZipFile(zipped, 'r')
+        zip_ref.extractall(os.path.dirname(download_dir))
+        zip_ref.close()
+
+
+def download_extract_s1_esa(s1_name, download_dir):
+    """
+    Downloads single S1_NAME Sentinel-1 scene into DOWLOAD_DIR.
+
+    :param s1_name: Scene ID for Sentinel Tile (i.e. "S1A_IW_SLC__1SDV_20190411T063207_20190411T063242_026738_0300B4_6882")
+    :param download_dir: path to directory for downloaded S1 granule
+    :return:
+    """
+
+    if s1_name.endswith('.SAFE'):
+        s1_name = s1_name[:-5]
+
+    s1id = get_s1_esa_id(s1_name)
+    if s1id == 'NaN':
+        logging.error(f"did not get a valid id. Aborting download of {s1_name}")
+        return
+
+    get_file(f"https://scihub.copernicus.eu/dhus/odata/v1/Products('{s1id}')/$value", download_dir)
+
+    zipped = os.path.join(download_dir, s1_name + '.zip')
+    safe_dir = os.path.join(download_dir, s1_name + '.SAFE/')
+    if not os.path.exists(safe_dir):
+        logging.info(f"Extracting ESA scene: {zipped}")
         zip_ref = zipfile.ZipFile(zipped, 'r')
         zip_ref.extractall(os.path.dirname(download_dir))
         zip_ref.close()
@@ -351,7 +390,7 @@ def prepareS1(in_scene, s3_bucket='cs-odc-data', s3_dir='yemen/Sentinel_1/', int
             root.exception(f"{in_scene} {scene_name} UNAVAILABLE via ASF, try ESA")
             try:
                 root.info(f"{in_scene} {scene_name} AVAILABLE via ESA")
-                download_extract_s1_esa(in_scene, inter_dir, down_dir)  # TBC
+                download_extract_s1_esa(in_scene, inter_dir)  # TBC
                 root.info(f"{in_scene} {scene_name} DOWNLOADED via ESA")
             except Exception as e:
                 root.exception(f"{in_scene} {scene_name} UNAVAILABLE via ESA too")
@@ -418,7 +457,6 @@ def prepareS1(in_scene, s3_bucket='cs-odc-data', s3_dir='yemen/Sentinel_1/', int
         if len(splits) > 0:
             kwargs = {'srcNodata': 0.0, 'dstSRS': 'epsg:3460'}
             gdal.Warp(f"{out_prod2}.dim", [f"{out_prod2}_{s}.dim" for s in splits], **kwargs)
-            pass
 
         # CONVERT TO COGS TO TEMP COG DIRECTORY**
         try:
