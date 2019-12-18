@@ -159,8 +159,8 @@ def get_url(url, user=None, password=None):
     """
     r = requests.get(url, auth=(user, password))
     if not r.ok:
-        logging.error(f"could not make request {r.status_code} {r.content.decode('utf-8')}")
-        raise HTTPError("could not make request")
+        logging.error(f"could not make request to {url} {r.status_code} {r.content.decode('utf-8')}")
+        raise Exception("could not make request")
     else:
         return r
 

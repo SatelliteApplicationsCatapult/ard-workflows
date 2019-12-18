@@ -1,3 +1,4 @@
+import io
 import math
 import re
 import zipfile
@@ -116,11 +117,8 @@ def get_s1_esa_id(s1_name, retry=3):
     u = os.environ['COPERNICUS_USERNAME']
     p = os.environ['COPERNICUS_PWD']
     url_result = get_url(f"https://scihub.copernicus.eu/dhus/odata/v1/Products?$filter=Name eq '{s1_name}'&$format=text/csv", u, p)
-
-    return pd \
-        .read_csv(url_result.content) \
-        .uuid \
-        .values[0]
+    df = pd.read_csv(io.StringIO(url_result.content.decode('utf-8')))
+    return df.Id.values[0]
 
 
 def get_asf_file(url, output_path, chunk_size=16 * 1024):  # 16 kb default
@@ -191,11 +189,14 @@ def download_extract_s1_esa(s1_name, download_dir):
     if s1id == 'NaN':
         logging.error(f"did not get a valid id. Aborting download of {s1_name}")
         return
-
-    get_file(f"https://scihub.copernicus.eu/dhus/odata/v1/Products('{s1id}')/$value", download_dir)
+    u = os.environ['COPERNICUS_USERNAME']
+    p = os.environ['COPERNICUS_PWD']
 
     zipped = os.path.join(download_dir, s1_name + '.zip')
     safe_dir = os.path.join(download_dir, s1_name + '.SAFE/')
+
+    get_file(f"https://scihub.copernicus.eu/dhus/odata/v1/Products('{s1id}')/$value", zipped, u, p)
+
     if not os.path.exists(safe_dir):
         logging.info(f"Extracting ESA scene: {zipped}")
         zip_ref = zipfile.ZipFile(zipped, 'r')
