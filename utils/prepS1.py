@@ -461,7 +461,7 @@ def prepareS1(in_scene, s3_bucket='cs-odc-data', s3_dir='yemen/Sentinel_1/', int
             kwargs = {'srcNodata': 0.0, 'dstSRS': 'epsg:3460'}
             inputs = [f"{out_prod2}_{s.replace(',', '_')}.dim" for s in splits]
             logging.info(f"joining {inputs}")
-            gdal.Warp(f"{out_prod2}.dim", inputs, **kwargs)
+            gdal.Warp(f"{out_prod2}.tif", inputs, **kwargs)
 
         # CONVERT TO COGS TO TEMP COG DIRECTORY**
         try:
