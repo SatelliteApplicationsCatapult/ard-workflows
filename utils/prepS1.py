@@ -505,7 +505,7 @@ def prepareS1(in_scene, s3_bucket='cs-odc-data', s3_dir='yemen/Sentinel_1/', int
 
     except Exception as e:
         logging.error(f"could not process {scene_name} {e}")
-        clean_up(inter_dir)
+        # clean_up(inter_dir)
         raise e
 
 
