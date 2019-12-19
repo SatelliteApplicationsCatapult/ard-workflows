@@ -442,14 +442,15 @@ def prepareS1(in_scene, s3_bucket='cs-odc-data', s3_dir='yemen/Sentinel_1/', int
         for s in splits:
             # run the chain
             logging.info(f"processing split {s}")
+            file_chunk = s.replace(",", "_")
             if not os.path.exists(f"{out_prod1}_{s}.dim"):
-                cmd = [snap_gpt, int_graph_1, f"-Pinput_grd={input_mani}", f"-Poutput_ml={inter_prod}_{s}.dim", f"-Pregion={s}"]
+                cmd = [snap_gpt, int_graph_1, f"-Pinput_grd={input_mani}", f"-Poutput_ml={inter_prod}_{file_chunk}.dim", f"-Pregion={s}"]
                 root.info(cmd)
                 run_snap_command(cmd)
                 root.info(f"{in_scene} {scene_name} PROCESSED to MULTILOOK starting PT2")
 
-                cmd = [snap_gpt, int_graph_2, f"-Pinput_ml={inter_prod}_{s}.dim", f"-Poutput_db={out_prod1}_{s}.dim",
-                       f"-Poutput_ls={out_prod2}_{s}.dim"]
+                cmd = [snap_gpt, int_graph_2, f"-Pinput_ml={inter_prod}_{file_chunk}.dim", f"-Poutput_db={out_prod1}_{file_chunk}.dim",
+                       f"-Poutput_ls={out_prod2}_{file_chunk}.dim"]
                 root.info(cmd)
                 run_snap_command(cmd)
                 root.info(f"{in_scene} {scene_name} PROCESSED to dB + LSM")
@@ -458,7 +459,7 @@ def prepareS1(in_scene, s3_bucket='cs-odc-data', s3_dir='yemen/Sentinel_1/', int
         if len(splits) > 0:
             logging.info("joining splits back together")
             kwargs = {'srcNodata': 0.0, 'dstSRS': 'epsg:3460'}
-            inputs = [f"{out_prod2}_{s}.dim" for s in splits]
+            inputs = [f"{out_prod2}_{s.replace(',', '_')}.dim" for s in splits]
             logging.info(f"joining {inputs}")
             gdal.Warp(f"{out_prod2}.dim", inputs, **kwargs)
 
@@ -471,7 +472,7 @@ def prepareS1(in_scene, s3_bucket='cs-odc-data', s3_dir='yemen/Sentinel_1/', int
             root.exception(f"{in_scene} {scene_name} COG conversion FAILED")
             raise Exception('COG Error', e)
 
-            # PARSE METADATA TO TEMP COG DIRECTORY**
+        # PARSE METADATA TO TEMP COG DIRECTORY**
         try:
             root.info(f"{in_scene} {scene_name} Copying original METADATA")
             copy_s1_metadata(out_prod1, cog_dir, scene_name)
