@@ -243,7 +243,7 @@ def conv_s1scene_cogs(noncog_scene_dir, cog_scene_dir, scene_name, overwrite=Fal
                  "LayoverShadow_MASK_VH"]  # to ammend once outputs finalised - TO DO*****
 
     # find all individual prods to convert to cog (ignore true colour images (TCI))
-    prod_paths = glob.glob(noncog_scene_dir + '*TF_TC*/*.img')  # - TO DO*****
+    prod_paths = glob.glob(noncog_scene_dir + '*TF_TC*/*.tif')  # - TO DO*****
     prod_paths = [x for x in prod_paths if os.path.basename(x)[:-4] in des_prods]
 
     # iterate over prods to create parellel processing list
@@ -505,7 +505,8 @@ def prepareS1(in_scene, s3_bucket='cs-odc-data', s3_dir='yemen/Sentinel_1/', int
             raise Exception('S3  upload error', e)
 
         # DELETE ANYTHING WITHIN THE TEMP DIRECTORY
-        clean_up(inter_dir)
+        # TODO: COMMENTED OUT FOR TESTING
+        # clean_up(inter_dir)
 
     except Exception as e:
         logging.error(f"could not process {scene_name} {e}")
