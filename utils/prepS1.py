@@ -444,24 +444,28 @@ def prepareS1(in_scene, s3_bucket='cs-odc-data', s3_dir='yemen/Sentinel_1/', int
             logging.info(f"processing split {s}")
             file_chunk = s.replace(",", "_")
             if not os.path.exists(f"{out_prod1}_{s}.dim"):
-                cmd = [snap_gpt, int_graph_1, f"-Pinput_grd={input_mani}", f"-Poutput_ml={inter_prod}_{file_chunk}.dim", f"-Pregion={s}"]
+                cmd = [snap_gpt, int_graph_1,
+                       f"-Pinput_grd={input_mani}",
+                       f"-Poutput_ml={inter_prod}_{file_chunk}.dim",
+                       f"-Pregion={s}"]
                 root.info(cmd)
                 run_snap_command(cmd)
                 root.info(f"{in_scene} {scene_name} PROCESSED to MULTILOOK starting PT2")
 
-                cmd = [snap_gpt, int_graph_2, f"-Pinput_ml={inter_prod}_{file_chunk}.dim", f"-Poutput_db={out_prod1}_{file_chunk}.dim",
-                       f"-Poutput_ls={out_prod2}_{file_chunk}.dim"]
+                cmd = [snap_gpt, int_graph_2,
+                       f"-Pinput_ml={inter_prod}_{file_chunk}.dim",
+                       f"-Poutput_db={out_prod1}_{file_chunk}.tif",
+                       f"-Poutput_ls={out_prod2}_{file_chunk}.tif"]
                 root.info(cmd)
                 run_snap_command(cmd)
                 root.info(f"{in_scene} {scene_name} PROCESSED to dB + LSM")
-        # if there was a split
-        #  join the tiles back together.
-        if len(splits) > 0:
-            logging.info("joining splits back together")
-            kwargs = {'srcNodata': 0.0, 'dstSRS': 'epsg:3460'}
-            inputs = [f"{out_prod2}_{s.replace(',', '_')}.dim" for s in splits]
-            logging.info(f"joining {inputs}")
-            gdal.Warp(f"{out_prod2}.tif", inputs, **kwargs)
+
+        # join the tiles back together. Do this even if there was one tile to make sure the reprojection happens.
+        logging.info("joining splits back together")
+        kwargs = {'srcNodata': 0.0, 'dstSRS': 'epsg:3460'}
+        inputs = [f"{out_prod2}_{s.replace(',', '_')}.tif" for s in splits]
+        logging.info(f"joining {inputs}")
+        gdal.Warp(f"{out_prod2}.tif", inputs, **kwargs)
 
         # CONVERT TO COGS TO TEMP COG DIRECTORY**
         try:

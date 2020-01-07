@@ -160,7 +160,7 @@
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <file>$output_ls</file>
-      <formatName>BEAM-DIMAP</formatName>
+      <formatName>GeoTIFF</formatName>
     </parameters>
   </node>
   <node id="Write">
@@ -170,7 +170,7 @@
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <file>$output_db</file>
-      <formatName>BEAM-DIMAP</formatName>
+      <formatName>GeoTIFF</formatName>
     </parameters>
   </node>
   <applicationData id="Presentation">
