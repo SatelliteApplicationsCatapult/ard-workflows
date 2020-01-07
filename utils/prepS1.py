@@ -443,7 +443,7 @@ def prepareS1(in_scene, s3_bucket='cs-odc-data', s3_dir='yemen/Sentinel_1/', int
             # run the chain
             logging.info(f"processing split {s}")
             file_chunk = s.replace(",", "_")
-            if not os.path.exists(f"{out_prod1}_{file_chunk}.dim"):
+            if not os.path.exists(f"{out_prod1}_{file_chunk}.tif"):
                 cmd = [snap_gpt, int_graph_1,
                        f"-Pinput_grd={input_mani}",
                        f"-Poutput_ml={inter_prod}_{file_chunk}.dim",
