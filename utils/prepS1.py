@@ -450,7 +450,7 @@ def prepareS1(in_scene, s3_bucket='cs-odc-data', s3_dir='yemen/Sentinel_1/', int
             # run the chain
             logging.info(f"processing split {s}")
             file_chunk = s.replace(",", "_")
-            if not os.path.exists(f"{out_prod1}_{file_chunk}.tif"):
+            if not os.path.exists(f"{inter_prod_dir}{scene_name}_ls_{file_chunk}.tif"):
                 cmd = [snap_gpt, int_graph_1,
                        f"-Pinput_grd={input_mani}",
                        f"-Poutput_ml={inter_prod}_{file_chunk}.dim",
@@ -461,8 +461,8 @@ def prepareS1(in_scene, s3_bucket='cs-odc-data', s3_dir='yemen/Sentinel_1/', int
 
                 cmd = [snap_gpt, int_graph_2,
                        f"-Pinput_ml={inter_prod}_{file_chunk}.dim",
-                       f"-Poutput_db={inter_prod_dir}/{scene_name}_{file_chunk}.tif",
-                       f"-Poutput_ls={inter_prod_dir}/{scene_name}_{file_chunk}.tif"]
+                       f"-Poutput_db={inter_prod_dir}{scene_name}_db_{file_chunk}.tif",
+                       f"-Poutput_ls={inter_prod_dir}{scene_name}_ls_{file_chunk}.tif"]
                 root.info(cmd)
                 run_snap_command(cmd)
                 root.info(f"{in_scene} {scene_name} PROCESSED to dB + LSM")
@@ -470,8 +470,8 @@ def prepareS1(in_scene, s3_bucket='cs-odc-data', s3_dir='yemen/Sentinel_1/', int
         # join the tiles back together. Do this even if there was one tile to make sure the reprojection happens.
         logging.info("joining splits back together")
 
-        join_chunks(f"{out_prod1}.tif", f"{inter_prod_dir}/{scene_name}", splits)
-        join_chunks(f"{out_prod2}.tif", f"{inter_prod_dir}/{scene_name}", splits)
+        join_chunks(f"{out_prod1}.tif", f"{inter_prod_dir}{scene_name}_db", splits)
+        join_chunks(f"{out_prod2}.tif", f"{inter_prod_dir}{scene_name}_ls", splits)
 
         # CONVERT TO COGS TO TEMP COG DIRECTORY**
         try:
