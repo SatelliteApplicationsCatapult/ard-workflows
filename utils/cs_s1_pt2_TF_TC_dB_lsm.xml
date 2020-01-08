@@ -160,7 +160,7 @@
       <sourceProduct refid="LinearToFromdB"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <selectedPolarisations>VH</selectedPolarisations>
+      <selectedPolarisations/>
       <sourceBands/>
       <bandNamePattern>.*VH</bandNamePattern>
     </parameters>
@@ -171,7 +171,7 @@
       <sourceProduct refid="LinearToFromdB"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <selectedPolarisations>VV</selectedPolarisations>
+      <selectedPolarisations/>
       <sourceBands/>
       <bandNamePattern>.*VV</bandNamePattern>
     </parameters>
@@ -183,7 +183,7 @@
       <sourceProduct refid="Terrain-Correction(2)"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <selectedPolarisations>VH</selectedPolarisations>
+      <selectedPolarisations/>
       <sourceBands/>
       <bandNamePattern>.*VH</bandNamePattern>
     </parameters>
@@ -194,7 +194,7 @@
       <sourceProduct refid="Terrain-Correction(2)"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <selectedPolarisations>VV</selectedPolarisations>
+      <selectedPolarisations/>
       <sourceBands/>
       <bandNamePattern>.*VV</bandNamePattern>
     </parameters>
