@@ -177,7 +177,7 @@
     </parameters>
   </node>
 
-  <node id="BandSelect_lin_vh">
+ <!-- <node id="BandSelect_lin_vh">
     <operator>BandSelect</operator>
     <sources>
       <sourceProduct refid="Terrain-Correction(2)"/>
@@ -219,7 +219,7 @@
       <file>${output_ls}_vv.tif</file>
       <formatName>GeoTIFF</formatName>
     </parameters>
-  </node>
+  </node>-->
   <node id="Write_db_vh">
     <operator>Write</operator>
     <sources>
