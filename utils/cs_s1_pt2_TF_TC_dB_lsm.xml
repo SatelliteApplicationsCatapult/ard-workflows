@@ -153,48 +153,91 @@
       <externalAuxFile/>
     </parameters>
   </node>
-  <node id="Write_ln_vh">
-    <operator>Write</operator>
+
+  <node id="BandSelect_db_vh">
+    <operator>BandSelect</operator>
+    <sources>
+      <sourceProduct refid="LinearToFromdB"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <selectedPolarisations>VH</selectedPolarisations>
+      <sourceBands/>
+      <bandNamePattern/>
+    </parameters>
+  </node>
+  <node id="BandSelect_db_vv">
+    <operator>BandSelect</operator>
+    <sources>
+      <sourceProduct refid="LinearToFromdB"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <selectedPolarisations>VV</selectedPolarisations>
+      <sourceBands/>
+      <bandNamePattern/>
+    </parameters>
+  </node>
+
+  <node id="BandSelect_lin_vh">
+    <operator>BandSelect</operator>
     <sources>
       <sourceProduct refid="Terrain-Correction(2)"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <selectedPolarisations>VH</selectedPolarisations>
+      <sourceBands/>
+      <bandNamePattern/>
+    </parameters>
+  </node>
+  <node id="BandSelect_lin_vv">
+    <operator>BandSelect</operator>
+    <sources>
+      <sourceProduct refid="Terrain-Correction(2)"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <selectedPolarisations>VV</selectedPolarisations>
+      <sourceBands/>
+      <bandNamePattern/>
+    </parameters>
+  </node>
+
+  <node id="Write_ln_vh">
+    <operator>Write</operator>
+    <sources>
+      <sourceProduct refid="BandSelect_lin_vh"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <file>$output_ls_vv.tif</file>
       <formatName>GeoTIFF</formatName>
-      <sourceBands>Gamma0_VH</sourceBands>
     </parameters>
   </node>
    <node id="Write_ln_vv">
     <operator>Write</operator>
     <sources>
-      <sourceProduct refid="Terrain-Correction(2)"/>
+      <sourceProduct refid="BandSelect_lin_vv"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <file>${output_ls}_vv.tif</file>
       <formatName>GeoTIFF</formatName>
-      <sourceBands>Gamma0_VV</sourceBands>
     </parameters>
   </node>
   <node id="Write_db_vh">
     <operator>Write</operator>
     <sources>
-      <sourceProduct refid="LinearToFromdB"/>
+      <sourceProduct refid="BandSelect_db_vh"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <file>$output_db_vv.tif</file>
       <formatName>GeoTIFF</formatName>
-      <sourceBands>Gamma0_VH</sourceBands>
     </parameters>
   </node>
   <node id="Write_db_vv">
     <operator>Write</operator>
     <sources>
-      <sourceProduct refid="LinearToFromdB"/>
+      <sourceProduct refid="BandSelect_db_vv"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <file>$output_db_vv.tif</file>
       <formatName>GeoTIFF</formatName>
-      <sourceBands>Gamma0_VV</sourceBands>
     </parameters>
   </node>
   <applicationData id="Presentation">
