@@ -162,7 +162,7 @@
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <selectedPolarisations/>
       <sourceBands/>
-      <bandNamePattern>.*[vV][hH].*</bandNamePattern>
+      <bandNamePattern>^.*[vV][hH].*$</bandNamePattern>
     </parameters>
   </node>
   <node id="BandSelect_db_vv">
@@ -173,7 +173,7 @@
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <selectedPolarisations/>
       <sourceBands/>
-      <bandNamePattern>.*[vV][vV].*</bandNamePattern>
+      <bandNamePattern>^.*[vV][vV].*$</bandNamePattern>
     </parameters>
   </node>
 
@@ -185,7 +185,7 @@
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <selectedPolarisations/>
       <sourceBands/>
-      <bandNamePattern>.*[vV][hH].*</bandNamePattern>
+      <bandNamePattern>^.*[vV][hH].*$</bandNamePattern>
     </parameters>
   </node>
   <node id="BandSelect_lin_vv">
@@ -196,7 +196,7 @@
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <selectedPolarisations/>
       <sourceBands/>
-      <bandNamePattern>.*[vV][vV].*</bandNamePattern>
+      <bandNamePattern>^.*[vV][vV].*$</bandNamePattern>
     </parameters>
   </node>
 
