@@ -333,6 +333,13 @@ def yaml_prep_s1(scene_dir):
     }
 
 
+def join_chunks(out_name, path, splits):
+    kwargs = {'srcNodata': 0.0, 'dstSRS': 'epsg:3460'}
+    inputs = [f"{path}_{s.replace(',', '_')}.tif" for s in splits]
+    logging.info(f"joining {inputs}")
+    gdal.Warp(out_name, inputs, **kwargs)
+
+
 _fat_swath = 10.0
 _chunks = 6
 
@@ -454,18 +461,17 @@ def prepareS1(in_scene, s3_bucket='cs-odc-data', s3_dir='yemen/Sentinel_1/', int
 
                 cmd = [snap_gpt, int_graph_2,
                        f"-Pinput_ml={inter_prod}_{file_chunk}.dim",
-                       f"-Poutput_db={out_prod1}_{file_chunk}.tif",
-                       f"-Poutput_ls={out_prod2}_{file_chunk}.tif"]
+                       f"-Poutput_db={inter_prod_dir}/{scene_name}_{file_chunk}.tif",
+                       f"-Poutput_ls={inter_prod_dir}/{scene_name}_{file_chunk}.tif"]
                 root.info(cmd)
                 run_snap_command(cmd)
                 root.info(f"{in_scene} {scene_name} PROCESSED to dB + LSM")
 
         # join the tiles back together. Do this even if there was one tile to make sure the reprojection happens.
         logging.info("joining splits back together")
-        kwargs = {'srcNodata': 0.0, 'dstSRS': 'epsg:3460'}
-        inputs = [f"{out_prod2}_{s.replace(',', '_')}.tif" for s in splits]
-        logging.info(f"joining {inputs}")
-        gdal.Warp(f"{out_prod2}.tif", inputs, **kwargs)
+
+        join_chunks(f"{out_prod1}.tif", f"{inter_prod_dir}/{scene_name}", splits)
+        join_chunks(f"{out_prod2}.tif", f"{inter_prod_dir}/{scene_name}", splits)
 
         # CONVERT TO COGS TO TEMP COG DIRECTORY**
         try:
