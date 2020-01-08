@@ -177,7 +177,7 @@
     </parameters>
   </node>
 
- <!-- <node id="BandSelect_lin_vh">
+  <node id="BandSelect_shad">
     <operator>BandSelect</operator>
     <sources>
       <sourceProduct refid="Terrain-Correction(2)"/>
@@ -185,48 +185,28 @@
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <selectedPolarisations/>
       <sourceBands/>
-      <bandNamePattern>^.*[vV][hH].*$</bandNamePattern>
-    </parameters>
-  </node>
-  <node id="BandSelect_lin_vv">
-    <operator>BandSelect</operator>
-    <sources>
-      <sourceProduct refid="Terrain-Correction(2)"/>
-    </sources>
-    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <selectedPolarisations/>
-      <sourceBands/>
-      <bandNamePattern>^.*[vV][vV].*$</bandNamePattern>
+      <bandNamePattern>^.*LayoverShadow_MASK.*$</bandNamePattern>
     </parameters>
   </node>
 
-  <node id="Write_ln_vh">
+  <node id="Write_shad">
     <operator>Write</operator>
     <sources>
-      <sourceProduct refid="BandSelect_lin_vh"/>
+      <sourceProduct refid="BandSelect_shad"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <file>$output_ls_vv.tif</file>
+      <file>${output_ls}_ls.tif</file>
       <formatName>GeoTIFF</formatName>
     </parameters>
   </node>
-   <node id="Write_ln_vv">
-    <operator>Write</operator>
-    <sources>
-      <sourceProduct refid="BandSelect_lin_vv"/>
-    </sources>
-    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <file>${output_ls}_vv.tif</file>
-      <formatName>GeoTIFF</formatName>
-    </parameters>
-  </node>-->
+
   <node id="Write_db_vh">
     <operator>Write</operator>
     <sources>
       <sourceProduct refid="BandSelect_db_vh"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <file>$output_db_vv.tif</file>
+      <file>${output_db}_vv.tif</file>
       <formatName>GeoTIFF</formatName>
     </parameters>
   </node>
@@ -236,7 +216,7 @@
       <sourceProduct refid="BandSelect_db_vv"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <file>$output_db_vv.tif</file>
+      <file>${output_db}_vv.tif</file>
       <formatName>GeoTIFF</formatName>
     </parameters>
   </node>

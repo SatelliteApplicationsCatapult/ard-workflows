@@ -335,7 +335,7 @@ def yaml_prep_s1(scene_dir):
 
 def join_chunks(out_name, path, suffix, splits):
     kwargs = {'srcNodata': 0.0, 'dstSRS': 'epsg:3460'}
-    inputs = [f"{path}_{s.replace(',', '_')}_{suffix}.tif" for s in splits]
+    inputs = [f"{path}_{s.replace(',', '_')}{suffix}.tif" for s in splits]
     logging.info(f"joining {inputs}")
     gdal.Warp(out_name, inputs, **kwargs)
 
@@ -470,10 +470,9 @@ def prepareS1(in_scene, s3_bucket='cs-odc-data', s3_dir='yemen/Sentinel_1/', int
         # join the tiles back together. Do this even if there was one tile to make sure the reprojection happens.
         logging.info("joining splits back together")
 
-        join_chunks(f"{out_prod1}.tif", f"{inter_prod_dir}{scene_name}_db", "vh", splits)
-        join_chunks(f"{out_prod1}.tif", f"{inter_prod_dir}{scene_name}_db", "vv", splits)
-        join_chunks(f"{out_prod2}.tif", f"{inter_prod_dir}{scene_name}_ls", "vh", splits)
-        join_chunks(f"{out_prod2}.tif", f"{inter_prod_dir}{scene_name}_ls", "vv", splits)
+        join_chunks(f"{out_prod1}.tif", f"{inter_prod_dir}{scene_name}_db", "_vh", splits)
+        join_chunks(f"{out_prod1}.tif", f"{inter_prod_dir}{scene_name}_db", "_vv", splits)
+        join_chunks(f"{out_prod2}.tif", f"{inter_prod_dir}{scene_name}_ls", "", splits)
 
         # CONVERT TO COGS TO TEMP COG DIRECTORY**
         try:
