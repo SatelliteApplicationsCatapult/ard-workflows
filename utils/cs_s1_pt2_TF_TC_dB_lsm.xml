@@ -153,24 +153,48 @@
       <externalAuxFile/>
     </parameters>
   </node>
-  <node id="Write(2)">
+  <node id="Write_ln_vh">
     <operator>Write</operator>
     <sources>
       <sourceProduct refid="Terrain-Correction(2)"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <file>$output_ls</file>
+      <file>$output_ls_vv.tif</file>
       <formatName>GeoTIFF</formatName>
+      <sourceBands>Gamma0_VH</sourceBands>
     </parameters>
   </node>
-  <node id="Write">
+   <node id="Write_ln_vv">
+    <operator>Write</operator>
+    <sources>
+      <sourceProduct refid="Terrain-Correction(2)"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <file>${output_ls}_vv.tif</file>
+      <formatName>GeoTIFF</formatName>
+      <sourceBands>Gamma0_VV</sourceBands>
+    </parameters>
+  </node>
+  <node id="Write_db_vh">
     <operator>Write</operator>
     <sources>
       <sourceProduct refid="LinearToFromdB"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <file>$output_db</file>
+      <file>$output_db_vv.tif</file>
       <formatName>GeoTIFF</formatName>
+      <sourceBands>Gamma0_VH</sourceBands>
+    </parameters>
+  </node>
+  <node id="Write_db_vv">
+    <operator>Write</operator>
+    <sources>
+      <sourceProduct refid="LinearToFromdB"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <file>$output_db_vv.tif</file>
+      <formatName>GeoTIFF</formatName>
+      <sourceBands>Gamma0_VV</sourceBands>
     </parameters>
   </node>
   <applicationData id="Presentation">
