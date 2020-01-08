@@ -161,7 +161,7 @@
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <selectedPolarisations>VH</selectedPolarisations>
-      <sourceBands/>
+      <sourceBands>Gamma0_vh</sourceBands>
       <bandNamePattern/>
     </parameters>
   </node>
@@ -172,7 +172,7 @@
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <selectedPolarisations>VV</selectedPolarisations>
-      <sourceBands/>
+      <sourceBands>Gamma0_vv</sourceBands>
       <bandNamePattern/>
     </parameters>
   </node>
@@ -184,7 +184,7 @@
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <selectedPolarisations>VH</selectedPolarisations>
-      <sourceBands/>
+      <sourceBands>Gamma0_vh</sourceBands>
       <bandNamePattern/>
     </parameters>
   </node>
@@ -195,7 +195,7 @@
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <selectedPolarisations>VV</selectedPolarisations>
-      <sourceBands/>
+      <sourceBands>Gamma0_vv</sourceBands>
       <bandNamePattern/>
     </parameters>
   </node>
