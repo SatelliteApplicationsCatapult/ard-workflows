@@ -216,7 +216,7 @@ def get_geometry(path):
         t = osr.CoordinateTransformation(spatial_ref, spatial_ref.CloneGeogCS())
 
         def transform(p):
-            # GDAL 3 swapped the parameters around here. 
+            # GDAL 3 swapped the parameters around here.
             # https://github.com/OSGeo/gdal/issues/1546
             lon, lat, z = t.TransformPoint(p['y'], p['x'])
             return {'lon': lon, 'lat': lat}

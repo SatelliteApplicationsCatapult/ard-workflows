@@ -59,8 +59,8 @@ def band_name_l7(prod_path):
         "sr_band2": 'green',
         "sr_band3": 'red',
         "sr_band4": 'nir',
-        "sr_band5": 'swir1',
-        "sr_band7": 'swir2',
+        "sr_band5": 'swir_1',
+        "sr_band7": 'swir_2',
     }
 
     layer_name = prod_map[prod_name]
@@ -91,8 +91,8 @@ def band_name_l8(prod_path):
         "sr_band3": 'green',
         "sr_band4": 'red',
         "sr_band5": 'nir',
-        "sr_band6": 'swir1',
-        "sr_band7": 'swir2'
+        "sr_band6": 'swir_1',
+        "sr_band7": 'swir_2'
     }
 
     layer_name = prod_map[prod_name]
