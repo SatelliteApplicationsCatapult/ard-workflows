@@ -258,7 +258,7 @@ def yaml_prep_landsat(scene_dir):
     new_id = str(uuid.uuid5(uuid.NAMESPACE_URL, scene_name))
     platform_code = ""
     instrument_name = ""
-    if "LE08_" in scene_name:
+    if "LC08_" in scene_name:
         logging.info(f"{scene_name} detected as landsat 8")
         platform_code = "LANDSAT_8"
         instrument_name = "OLI"
