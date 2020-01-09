@@ -28,7 +28,7 @@ def download_extract_ls_url(ls_url, down_tar, untar_dir):
 def band_name_landsat(prod_path):
     if "LE07_" in prod_path or "LT04_" in prod_path or "LT05_" in prod_path:
         return band_name_l7(prod_path)
-    elif "LE08_" in prod_path:
+    elif "LC08_" in prod_path:
         return band_name_l8(prod_path)
     else:
         logging.warning(f"unknown landsat product {prod_path}")
