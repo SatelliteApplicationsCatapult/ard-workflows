@@ -159,7 +159,7 @@ def get_url(url, user=None, password=None):
     """
     retry = 0
     max_retry = int(os.getenv("DOWNLOAD_RETRY", "3"))
-    min_delay = int(os.getenv("DOWNLOAD_MAX_WAIT", "60"))
+    min_delay = int(os.getenv("DOWNLOAD_MIN_WAIT", "60"))
     max_delay = int(os.getenv("DOWNLOAD_MAX_WAIT", "6000"))
 
     while retry < max_retry:
