@@ -87,11 +87,11 @@ def band_name_s2(prod_path):
             "B06": 'vegetation_red_edge_2',
             "B07": 'vegetation_red_edge_3',
             "B08": 'nir',
-            "B8A": 'water_vapour',
-            "B09": 'swir_1',
+            "B8A": 'vegetation_red_edge_4',
+            "B09": 'water_vapour',
             "B10": 'swir_cirrus',
-            "B11": 'swir_2',
-            "B12": 'narrow_nir',
+            "B11": 'swir1',
+            "B12": 'swir2',
             "TCI": 'true_colour'
         }
 
@@ -107,10 +107,10 @@ def band_name_s2(prod_path):
             "B06_20m": 'vegetation_red_edge_2',
             "B07_20m": 'vegetation_red_edge_3',
             "B08_10m": 'nir',
-            "B8A_20m": 'water_vapour',
-            "B09_60m": 'swir_1',
-            "B11_20m": 'swir_2',
-            "B12_20m": 'narrow_nir',
+            "B8A_20m": 'vegetation_red_edge_4',
+            "B09_60m": 'water_vapour',
+            "B11_20m": 'swir1',
+            "B12_20m": 'swir2',
             "SCL_20m": 'scene_classification',
             "WVP_10m": 'wvp'
         }
