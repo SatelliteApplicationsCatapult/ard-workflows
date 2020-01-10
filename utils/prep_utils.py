@@ -2,6 +2,8 @@ import logging
 import os
 import shutil
 from datetime import datetime
+from random import randint
+from time import sleep
 from urllib.request import urlopen, HTTPPasswordMgrWithDefaultRealm, HTTPBasicAuthHandler, HTTPDigestAuthHandler, build_opener
 from urllib.error import HTTPError
 
@@ -155,12 +157,26 @@ def get_url(url, user=None, password=None):
     :param password: optional http password to apply to the request
     :return: byte array containing the file.
     """
-    r = requests.get(url, auth=(user, password))
-    if not r.ok:
-        logging.error(f"could not make request {r.status_code} {r.content.decode('utf-8')}")
-        raise HTTPError("could not make request")
-    else:
-        return r
+    retry = 0
+    max_retry = int(os.getenv("DOWNLOAD_RETRY", "3"))
+    min_delay = int(os.getenv("DOWNLOAD_MAX_WAIT", "60"))
+    max_delay = int(os.getenv("DOWNLOAD_MAX_WAIT", "6000"))
+
+    while retry < max_retry:
+        retry += 1
+        r = requests.get(url, auth=(user, password))
+        if not r.ok:
+            if r.status_code == 429:
+                delay = randint(min_delay, max_delay)
+                logging.error(f"Too many requests. {r.status_code} {r.content.decode('utf-8')}")
+                logging.info(f"sleeping for {delay} seconds")
+                sleep(delay)
+                logging.info("trying again...")
+            else:
+                logging.error(f"could not make request {r.status_code} {r.content.decode('utf-8')}")
+                raise HTTPError(f"could not make request {r.status_code}")
+        else:
+            return r
 
 
 def split_all(path):
