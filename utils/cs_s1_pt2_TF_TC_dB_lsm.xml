@@ -195,7 +195,7 @@
       <sourceProduct refid="BandSelect_shad"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <file>${output_ls}_ls.tif</file>
+      <file>${output_ls}.tif</file>
       <formatName>GeoTIFF</formatName>
     </parameters>
   </node>
