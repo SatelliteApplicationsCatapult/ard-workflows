@@ -206,7 +206,7 @@
       <sourceProduct refid="BandSelect_db_vh"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <file>${output_db}_vv.tif</file>
+      <file>${output_db}_vh.tif</file>
       <formatName>GeoTIFF</formatName>
     </parameters>
   </node>
