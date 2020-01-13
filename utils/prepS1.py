@@ -243,7 +243,7 @@ def conv_s1scene_cogs(noncog_scene_dir, cog_scene_dir, scene_name, overwrite=Fal
                  "LayoverShadow_MASK_VH"]  # to ammend once outputs finalised - TO DO*****
 
     # find all individual prods to convert to cog (ignore true colour images (TCI))
-    prod_paths = glob.glob(noncog_scene_dir + '*TF_TC*/*.tif')  # - TO DO*****
+    prod_paths = glob.glob(noncog_scene_dir + '/*.tif')  # - TO DO*****
     prod_paths = [x for x in prod_paths if os.path.basename(x)[:-4] in des_prods]
 
     # iterate over prods to create parellel processing list
@@ -477,7 +477,7 @@ def prepareS1(in_scene, s3_bucket='cs-odc-data', s3_dir='yemen/Sentinel_1/', int
         # CONVERT TO COGS TO TEMP COG DIRECTORY**
         try:
             root.info(f"{in_scene} {scene_name} Converting COGs")
-            conv_s1scene_cogs(inter_dir, cog_dir, scene_name)
+            conv_s1scene_cogs(inter_prod_dir, cog_dir, scene_name)
             root.info(f"{in_scene} {scene_name} COGGED")
         except Exception as e:
             root.exception(f"{in_scene} {scene_name} COG conversion FAILED")
