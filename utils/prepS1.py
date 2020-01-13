@@ -238,18 +238,20 @@ def conv_s1scene_cogs(noncog_scene_dir, cog_scene_dir, scene_name, overwrite=Fal
         logging.warning('Creating scene cog directory: {}'.format(cog_scene_dir))
         os.mkdir(cog_scene_dir)
 
-    des_prods = ["Gamma0_VV_db",
-                 "Gamma0_VH_db",
-                 "LayoverShadow_MASK_VH"]  # to ammend once outputs finalised - TO DO*****
-
     logging.info(f"looking for tif files to cog in {noncog_scene_dir}")
     # find all individual prods to convert to cog (ignore true colour images (TCI))
     prod_paths = glob.glob(noncog_scene_dir + '/*.tif')  # - TO DO*****
     logging.info(f"found {prod_paths}")
-    prod_paths = [x for x in prod_paths if os.path.basename(x)[:-4] in des_prods]
+
+    targets = []
+    for x in prod_paths:
+        if os.path.basename(x)[-6:-4] == 'vv' or os.path.basename(x)[-6:-4] == 'vh':
+            targets += x
+        elif os.path.basename(x)[-11:-8] == 'lsm':
+            targets += x
 
     # iterate over prods to create parellel processing list
-    for prod in prod_paths:
+    for prod in targets:
         out_filename = os.path.join(cog_scene_dir,
                                     scene_name + '_' + os.path.basename(prod)[:-4] + '.tif')  # - TO DO*****
         logging.info(f"converting {prod} to cog at {out_filename}")
