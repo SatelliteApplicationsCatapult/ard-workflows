@@ -245,9 +245,9 @@ def conv_s1scene_cogs(noncog_scene_dir, cog_scene_dir, scene_name, overwrite=Fal
     targets = []
     for x in prod_paths:
         if os.path.basename(x)[-6:-4] == 'vv' or os.path.basename(x)[-6:-4] == 'vh':
-            targets += x
+            targets += [x]
         elif os.path.basename(x)[-11:-8] == 'lsm':
-            targets += x
+            targets += [x]
 
     logging.info(f"found {targets}")
     # iterate over prods to create parellel processing list
