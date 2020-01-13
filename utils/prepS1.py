@@ -212,11 +212,11 @@ def band_name_s1(prod_path):
 
     prod_name = str(prod_path.split('/')[-1])
 
-    if 'VH' in str(prod_name):
+    if 'VH' in str(prod_name) or 'vh' in str(prod_name):
         return 'vh'
-    if 'VV' in str(prod_name):
+    if 'VV' in str(prod_name) or 'vv' in str(prod_name):
         return 'vv'
-    if 'LayoverShadow_MASK' in str(prod_name):
+    if 'LayoverShadow_MASK' in str(prod_name)  or 'ls' in str(prod_name):
         return 'layovershadow_mask'
 
     logging.error(f"could not find band name for {prod_path}")
