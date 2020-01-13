@@ -472,8 +472,8 @@ def prepareS1(in_scene, s3_bucket='cs-odc-data', s3_dir='yemen/Sentinel_1/', int
         # join the tiles back together. Do this even if there was one tile to make sure the reprojection happens.
         logging.info("joining splits back together")
 
-        join_chunks(f"{out_prod1}.tif", f"{inter_prod_dir}{scene_name}_db", "_vh", splits)
-        join_chunks(f"{out_prod1}.tif", f"{inter_prod_dir}{scene_name}_db", "_vv", splits)
+        join_chunks(f"{out_prod1}_vh.tif", f"{inter_prod_dir}{scene_name}_db", "_vh", splits)
+        join_chunks(f"{out_prod1}_vv.tif", f"{inter_prod_dir}{scene_name}_db", "_vv", splits)
         join_chunks(f"{out_prod2}.tif", f"{inter_prod_dir}{scene_name}_ls", "", splits)
 
         # CONVERT TO COGS TO TEMP COG DIRECTORY**
