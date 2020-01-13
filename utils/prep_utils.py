@@ -248,7 +248,7 @@ def create_yaml(scene_dir, metadata):
     """
     Create yaml for single scene directory containing cogs.
     """
-    yaml_path = str(scene_dir + 'datacube-metadata.yaml')
+    yaml_path = str(os.path.join(scene_dir, 'datacube-metadata.yaml'))
 
     # not sure why default_flow_style is now required - strange...
     with open(yaml_path, 'w') as stream:
