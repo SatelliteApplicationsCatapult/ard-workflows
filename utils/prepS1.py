@@ -242,8 +242,10 @@ def conv_s1scene_cogs(noncog_scene_dir, cog_scene_dir, scene_name, overwrite=Fal
                  "Gamma0_VH_db",
                  "LayoverShadow_MASK_VH"]  # to ammend once outputs finalised - TO DO*****
 
+    logging.info(f"looking for tif files to cog in {noncog_scene_dir}")
     # find all individual prods to convert to cog (ignore true colour images (TCI))
     prod_paths = glob.glob(noncog_scene_dir + '/*.tif')  # - TO DO*****
+    logging.info(f"found {prod_paths}")
     prod_paths = [x for x in prod_paths if os.path.basename(x)[:-4] in des_prods]
 
     # iterate over prods to create parellel processing list
@@ -336,7 +338,7 @@ def yaml_prep_s1(scene_dir):
 def join_chunks(out_name, path, suffix, splits):
     kwargs = {'srcNodata': 0.0, 'dstSRS': 'epsg:3460'}
     inputs = [f"{path}_{s.replace(',', '_')}{suffix}.tif" for s in splits]
-    logging.info(f"joining {inputs}")
+    logging.info(f"joining {inputs} to {out_name}")
     gdal.Warp(out_name, inputs, **kwargs)
 
 
@@ -477,7 +479,7 @@ def prepareS1(in_scene, s3_bucket='cs-odc-data', s3_dir='yemen/Sentinel_1/', int
         # CONVERT TO COGS TO TEMP COG DIRECTORY**
         try:
             root.info(f"{in_scene} {scene_name} Converting COGs")
-            conv_s1scene_cogs(inter_prod_dir, cog_dir, scene_name)
+            conv_s1scene_cogs(inter_dir, cog_dir, scene_name)
             root.info(f"{in_scene} {scene_name} COGGED")
         except Exception as e:
             root.exception(f"{in_scene} {scene_name} COG conversion FAILED")
