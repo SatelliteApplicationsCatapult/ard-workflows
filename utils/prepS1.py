@@ -422,6 +422,7 @@ def prepareS1(in_scene, s3_bucket='cs-odc-data', s3_dir='yemen/Sentinel_1/', int
 
         splits = []
         gcps = safe.split_gcps(manifest['gcps'])
+        logging.info(f"extent size: {extent['lon']['max'] - extent['lon']['min']}")
         if extent['lon']['max'] - extent['lon']['min'] > _fat_swath:
             # re-grid the tie points
             densifygrid.DensifyGrid().process(find_files(safe_dir, '.*[\\\\/]annotation[\\\\/]s1.*\\.xml'), grid_pts=250)
