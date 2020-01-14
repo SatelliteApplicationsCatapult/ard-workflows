@@ -149,10 +149,10 @@ def get_subset(gcps, block):
         prev_row = 0
         for idx, gcp_row in enumerate(gcps):
 
-            if gcp_row[0].GCPLine > block['start'] and 'min' not in lines:
+            if gcp_row[0].GCPLine >= block['start'] and 'min' not in lines:
                 lines['min'] = idx - 1
 
-            if gcp_row[0].GCPLine > block['end'] and 'max' not in lines:
+            if gcp_row[0].GCPLine >= block['end'] and 'max' not in lines:
                 lines['max'] = idx
 
         if 'max' not in lines:
