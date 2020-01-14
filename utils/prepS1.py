@@ -448,6 +448,7 @@ def prepareS1(in_scene, s3_bucket='cs-odc-data', s3_dir='yemen/Sentinel_1/', int
             gcps = manifest['gcps']
             block = {'start': 0, 'end': manifest['image']['lines'] - 1, 'samples': manifest['image']['samples'],
                        'lines': manifest['image']['lines']}
+            logging.info(f"gcps: {gcps} block: {block}")
             splits += safe.get_subset([gcps], block)
 
         logging.info(f"processing {len(splits)} splits for {splits}")
