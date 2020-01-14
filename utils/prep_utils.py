@@ -4,6 +4,8 @@ import re
 import shutil
 from datetime import datetime
 from os import path
+from random import randint
+from time import sleep
 from urllib.request import urlopen, HTTPPasswordMgrWithDefaultRealm, HTTPBasicAuthHandler, HTTPDigestAuthHandler, build_opener
 from urllib.error import HTTPError
 
@@ -157,12 +159,26 @@ def get_url(url, user=None, password=None):
     :param password: optional http password to apply to the request
     :return: byte array containing the file.
     """
-    r = requests.get(url, auth=(user, password))
-    if not r.ok:
-        logging.error(f"could not make request to {url} {r.status_code} {r.content.decode('utf-8')}")
-        raise Exception("could not make request")
-    else:
-        return r
+    retry = 0
+    max_retry = int(os.getenv("DOWNLOAD_RETRY", "3"))
+    min_delay = int(os.getenv("DOWNLOAD_MIN_WAIT", "60"))
+    max_delay = int(os.getenv("DOWNLOAD_MAX_WAIT", "6000"))
+
+    while retry < max_retry:
+        retry += 1
+        r = requests.get(url, auth=(user, password))
+        if not r.ok:
+            if r.status_code == 429:
+                delay = randint(min_delay, max_delay)
+                logging.error(f"Too many requests. {r.status_code} {r.content.decode('utf-8')}")
+                logging.info(f"sleeping for {delay} seconds")
+                sleep(delay)
+                logging.info("trying again...")
+            else:
+                logging.error(f"could not make request to {url} {r.status_code} {r.content.decode('utf-8')}")
+                raise HTTPError(f"could not make request {r.status_code}")
+        else:
+            return r
 
 
 def split_all(path):
@@ -218,7 +234,9 @@ def get_geometry(path):
         t = osr.CoordinateTransformation(spatial_ref, spatial_ref.CloneGeogCS())
 
         def transform(p):
-            lon, lat, z = t.TransformPoint(p['x'], p['y'])
+            # GDAL 3 swapped the parameters around here.
+            # https://github.com/OSGeo/gdal/issues/1546
+            lon, lat, z = t.TransformPoint(p['y'], p['x'])
             return {'lon': lon, 'lat': lat}
 
         extent = {key: transform(p) for key, p in corners.items()}
@@ -271,14 +289,33 @@ def s3_create_client(s3_bucket):
         access,
         secret,
     )
-    s3 = session.resource('s3', region_name='eu-west-2')
+
+    endpoint = os.getenv("AWS_S3_ENDPOINT")
+
+    if endpoint is not None:
+        endpoint_url=f"http://{endpoint}"
+        logging.debug('Endpoint URL: {}'.format(endpoint_url))
+
+    if endpoint is not None:
+        s3 = session.resource('s3', endpoint_url=endpoint_url)
+    else:
+        s3 = session.resource('s3', region_name='eu-west-2')
+
     bucket = s3.Bucket(s3_bucket)
 
-    s3_client = boto3.client(
-        's3',
-        aws_access_key_id=access,
-        aws_secret_access_key=secret
-    )
+    if endpoint is not None:
+        s3_client = boto3.client(
+            's3',
+            aws_access_key_id=access,
+            aws_secret_access_key=secret,
+            endpoint_url=endpoint_url
+        )
+    else:
+        s3_client = boto3.client(
+            's3',
+            aws_access_key_id=access,
+            aws_secret_access_key=secret
+        )
 
     return s3_client, bucket
 
