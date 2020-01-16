@@ -346,7 +346,7 @@ def join_chunks(out_name, path, suffix, splits):
 
 
 _fat_swath = 10.0
-_chunks = 6
+_chunks = 13
 
 
 def prepareS1(in_scene, s3_bucket='cs-odc-data', s3_dir='yemen/Sentinel_1/', inter_dir='/tmp/data/intermediate/',
