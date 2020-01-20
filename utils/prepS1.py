@@ -362,9 +362,9 @@ def find_dem(subset):
         return "SRTM 1Sec HGT", ""
 
     if subset['hemisphere'] == "east":
-        return "external", os.path.join(dem_path, "SRTM_Fiji_175_-20_180_-15.tif")
+        return "External DEM", os.path.join(dem_path, "SRTM_Fiji_175_-20_180_-15.tif")
     elif subset['hemisphere'] == "west":
-        return "external", os.path.join(dem_path, "SRTM_Fiji_-180_-20_-175_-15.tif")
+        return "External DEM", os.path.join(dem_path, "SRTM_Fiji_-180_-20_-175_-15.tif")
     else:
         return "SRTM 1Sec HGT", ""
 
