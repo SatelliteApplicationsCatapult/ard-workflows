@@ -121,6 +121,7 @@
       <externalDEMFile>${external_dem}</externalDEMFile>
       <externalDEMNoDataValue>0.0</externalDEMNoDataValue>
       <externalDEMApplyEGM>true</externalDEMApplyEGM>
+      <reGridMethod>false</reGridMethod>
       <demResamplingMethod>BILINEAR_INTERPOLATION</demResamplingMethod>
       <imgResamplingMethod>BILINEAR_INTERPOLATION</imgResamplingMethod>
       <pixelSpacingInMeter>20.0</pixelSpacingInMeter>
