@@ -14,9 +14,9 @@
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <sourceBands/>
-      <demName>SRTM 1Sec HGT</demName>
+      <demName>${dem_name}</demName>
       <demResamplingMethod>BILINEAR_INTERPOLATION</demResamplingMethod>
-      <externalDEMFile/>
+      <externalDEMFile>${external_dem}</externalDEMFile>
       <externalDEMNoDataValue>0.0</externalDEMNoDataValue>
       <externalDEMApplyEGM>false</externalDEMApplyEGM>
       <outputSimulatedImage>false</outputSimulatedImage>
@@ -83,9 +83,9 @@
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <sourceBands/>
-      <demName>SRTM 1Sec HGT</demName>
+      <demName>${dem_name}</demName>
       <demResamplingMethod>BICUBIC_INTERPOLATION</demResamplingMethod>
-      <externalDEMFile/>
+       <externalDEMFile>${external_dem}</externalDEMFile>
       <externalDEMNoDataValue>0.0</externalDEMNoDataValue>
       <externalDEMApplyEGM>true</externalDEMApplyEGM>
       <saveLayoverShadowMask>true</saveLayoverShadowMask>
