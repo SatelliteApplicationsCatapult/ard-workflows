@@ -506,7 +506,7 @@ def prepareS1(in_scene, s3_bucket='cs-odc-data', s3_dir='yemen/Sentinel_1/', int
                 cmd = [snap_gpt, int_graph_1,
                        f"-Pinput_grd={input_mani}",
                        f"-Poutput_ml={inter_prod}_{file_chunk}.dim",
-                       f"-Pregion={s.chunk}"]
+                       f"-Pregion={s['chunk']}"]
                 root.info(cmd)
                 run_snap_command(cmd)
 
