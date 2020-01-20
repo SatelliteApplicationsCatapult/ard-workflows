@@ -117,8 +117,8 @@
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <sourceBands/>
-      <demName>SRTM 1Sec HGT</demName>
-      <externalDEMFile/>
+      <demName>${dem_name}</demName>
+      <externalDEMFile>${external_dem}</externalDEMFile>
       <externalDEMNoDataValue>0.0</externalDEMNoDataValue>
       <externalDEMApplyEGM>true</externalDEMApplyEGM>
       <demResamplingMethod>BILINEAR_INTERPOLATION</demResamplingMethod>

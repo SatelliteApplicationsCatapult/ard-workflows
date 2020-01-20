@@ -116,7 +116,8 @@ def get_s1_asf_url(s1_name, retry=3):
 def get_s1_esa_id(s1_name, retry=3):
     u = os.environ['COPERNICUS_USERNAME']
     p = os.environ['COPERNICUS_PWD']
-    url_result = get_url(f"https://scihub.copernicus.eu/dhus/odata/v1/Products?$filter=Name eq '{s1_name}'&$format=text/csv", u, p)
+    url_result = get_url(
+        f"https://scihub.copernicus.eu/dhus/odata/v1/Products?$filter=Name eq '{s1_name}'&$format=text/csv", u, p)
     df = pd.read_csv(io.StringIO(url_result.content.decode('utf-8')))
     return df.Id.values[0]
 
@@ -216,7 +217,7 @@ def band_name_s1(prod_path):
         return 'vh'
     if 'VV' in str(prod_name) or 'vv' in str(prod_name):
         return 'vv'
-    if 'LayoverShadow_MASK' in str(prod_name)  or 'ls' in str(prod_name):
+    if 'LayoverShadow_MASK' in str(prod_name) or 'ls' in str(prod_name):
         return 'layovershadow_mask'
 
     logging.error(f"could not find band name for {prod_path}")
@@ -345,6 +346,30 @@ def join_chunks(out_name, path, suffix, splits):
     gdal.Warp(out_name, inputs, **kwargs)
 
 
+def find_dem(subset):
+    """
+    Find the appropriate dem file for the processing.
+
+    If one cant be found it will return the default srtm
+
+    NOTE: This is a complete hack to test if this fixes the problem
+
+    :param subset: subset of the image to process.
+    :return: dem name and path
+    """
+    dem_path = os.getenv("DEM_PATH", "none")
+    if dem_path == "none":
+        return "SRTM 1Sec HGT", ""
+
+    if subset.hemisphere == "east":
+        return "", os.path.join(dem_path, "SRTM_Fiji_175_-20_180_-15.tif")
+    elif subset.hemisphere == "west":
+        return "", os.path.join(dem_path, "SRTM_Fiji_-180_-20_-175_-15.tif")
+    else:
+        return "SRTM 1Sec HGT", ""
+
+
+
 _fat_swath = 10.0
 _chunks = 13
 
@@ -425,7 +450,8 @@ def prepareS1(in_scene, s3_bucket='cs-odc-data', s3_dir='yemen/Sentinel_1/', int
         logging.info(f"extent size: {extent['lon']['max'] - extent['lon']['min']}")
         if extent['lon']['max'] - extent['lon']['min'] > _fat_swath:
             # re-grid the tie points
-            densifygrid.DensifyGrid().process(find_files(safe_dir, '.*[\\\\/]annotation[\\\\/]s1.*\\.xml'), grid_pts=250)
+            densifygrid.DensifyGrid().process(find_files(safe_dir, '.*[\\\\/]annotation[\\\\/]s1.*\\.xml'),
+                                              grid_pts=250)
             # generate splits
             logging.info("creating chunks...")
             chunk_size = int(math.ceil(float(manifest['image']['lines']) / float(_chunks)))
@@ -440,35 +466,60 @@ def prepareS1(in_scene, s3_bucket='cs-odc-data', s3_dir='yemen/Sentinel_1/', int
                              'samples': manifest['image']['samples'],
                              'lines': manifest['image']['lines']}
 
-                    splits += [safe.get_subset(gcps[hemisphere], block)]
-                    start_row += chunk_size
+                    # TODO: work this out for each strip this will get us close enough for now
+                    chunk_lat = extent['lat']['min']
+
+                    chunk_lon = extent['lon']['min']
+                    if hemisphere == 'west':
+                        chunk_lon = extent['lon']['max']
+
+                    splits += [
+                        {
+                            "chunk": safe.get_subset(gcps[hemisphere], block),
+                            "hemisphere": hemisphere,
+                            "lat": chunk_lat,
+                            "lon": chunk_lon
+                        }
+                    ]
+
+                    start_row +=  chunk_size
             logging.info("DONE creating chunks...")
         else:
             # generate a base "split"
             gcps = manifest['gcps']
             block = {'start': 0, 'end': manifest['image']['lines'] - 1, 'samples': manifest['image']['samples'],
-                       'lines': manifest['image']['lines']}
-            splits += [safe.get_subset([gcps], block)]
+                     'lines': manifest['image']['lines']}
+            splits += [{
+                "chunk": safe.get_subset([gcps], block),
+                "hemisphere": "none",
+                "lat": 0,  # TODO: if this works fill this in.
+                "lon": 0
+            }]
 
         logging.info(f"processing {len(splits)} splits for {splits}")
 
         for s in splits:
             # run the chain
-            logging.info(f"processing split {s}")
+            logging.info(f"processing split {s.chunk}")
             file_chunk = s.replace(",", "_")
             if not os.path.exists(f"{inter_prod_dir}{scene_name}_ls_{file_chunk}.tif"):
                 cmd = [snap_gpt, int_graph_1,
                        f"-Pinput_grd={input_mani}",
                        f"-Poutput_ml={inter_prod}_{file_chunk}.dim",
-                       f"-Pregion={s}"]
+                       f"-Pregion={s.chunk}"]
                 root.info(cmd)
                 run_snap_command(cmd)
+
                 root.info(f"{in_scene} {scene_name} PROCESSED to MULTILOOK starting PT2")
+                dem_name, external_dem = find_dem(s)
 
                 cmd = [snap_gpt, int_graph_2,
                        f"-Pinput_ml={inter_prod}_{file_chunk}.dim",
                        f"-Poutput_db={inter_prod_dir}{scene_name}_db_{file_chunk}",
-                       f"-Poutput_ls={inter_prod_dir}{scene_name}_ls_{file_chunk}"]
+                       f"-Poutput_ls={inter_prod_dir}{scene_name}_ls_{file_chunk}",
+                       f"-Pdem_name={dem_name}"
+                       f"-Pexternal_dem={external_dem}"
+                       ]
                 root.info(cmd)
                 run_snap_command(cmd)
                 root.info(f"{in_scene} {scene_name} PROCESSED to dB + LSM")
