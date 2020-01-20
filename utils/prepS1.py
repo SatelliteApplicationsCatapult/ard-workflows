@@ -361,9 +361,9 @@ def find_dem(subset):
     if dem_path == "none":
         return "SRTM 1Sec HGT", ""
 
-    if subset.hemisphere == "east":
+    if subset['hemisphere'] == "east":
         return "", os.path.join(dem_path, "SRTM_Fiji_175_-20_180_-15.tif")
-    elif subset.hemisphere == "west":
+    elif subset['hemisphere'] == "west":
         return "", os.path.join(dem_path, "SRTM_Fiji_-180_-20_-175_-15.tif")
     else:
         return "SRTM 1Sec HGT", ""
@@ -482,7 +482,7 @@ def prepareS1(in_scene, s3_bucket='cs-odc-data', s3_dir='yemen/Sentinel_1/', int
                         }
                     ]
 
-                    start_row +=  chunk_size
+                    start_row += chunk_size
             logging.info("DONE creating chunks...")
         else:
             # generate a base "split"
@@ -500,7 +500,7 @@ def prepareS1(in_scene, s3_bucket='cs-odc-data', s3_dir='yemen/Sentinel_1/', int
 
         for s in splits:
             # run the chain
-            logging.info(f"processing split {s.chunk}")
+            logging.info(f"processing split {s['chunk']}")
             file_chunk = s.replace(",", "_")
             if not os.path.exists(f"{inter_prod_dir}{scene_name}_ls_{file_chunk}.tif"):
                 cmd = [snap_gpt, int_graph_1,
