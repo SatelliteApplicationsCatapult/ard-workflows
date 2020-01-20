@@ -362,9 +362,9 @@ def find_dem(subset):
         return "SRTM 1Sec HGT", ""
 
     if subset['hemisphere'] == "east":
-        return "external", os.path.join(dem_path, "SRTM_Fiji_175_-20_180_-15.tif")
+        return "", os.path.join(dem_path, "SRTM_Fiji_175_-20_180_-15.tif")
     elif subset['hemisphere'] == "west":
-        return "external", os.path.join(dem_path, "SRTM_Fiji_-180_-20_-175_-15.tif")
+        return "", os.path.join(dem_path, "SRTM_Fiji_-180_-20_-175_-15.tif")
     else:
         return "SRTM 1Sec HGT", ""
 
@@ -516,8 +516,8 @@ def prepareS1(in_scene, s3_bucket='cs-odc-data', s3_dir='yemen/Sentinel_1/', int
                        f"-Pinput_ml={inter_prod}_{file_chunk}.dim",
                        f"-Poutput_db={inter_prod_dir}{scene_name}_db_{file_chunk}",
                        f"-Poutput_ls={inter_prod_dir}{scene_name}_ls_{file_chunk}",
-                       f"-Pdem_name={dem_name}"
-                       f"-Pexternal_dem={external_dem}"
+                       f"-Pdem_name={dem_name}",
+                       f"-Pexternal_dem={external_dem}",
                        ]
                 root.info(cmd)
                 run_snap_command(cmd)
