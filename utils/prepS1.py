@@ -341,7 +341,7 @@ def yaml_prep_s1(scene_dir):
 
 def join_chunks(out_name, path, suffix, splits):
     kwargs = {'srcNodata': 0.0, 'dstSRS': 'epsg:3460'}
-    inputs = [f"{path}_{s.replace(',', '_')}{suffix}.tif" for s in splits]
+    inputs = [f"{path}_{s['chunk'].replace(',', '_')}{suffix}.tif" for s in splits]
     logging.info(f"joining {inputs} to {out_name}")
     gdal.Warp(out_name, inputs, **kwargs)
 
@@ -501,7 +501,7 @@ def prepareS1(in_scene, s3_bucket='cs-odc-data', s3_dir='yemen/Sentinel_1/', int
         for s in splits:
             # run the chain
             logging.info(f"processing split {s['chunk']}")
-            file_chunk = s.replace(",", "_")
+            file_chunk = s['chunk'].replace(",", "_")
             if not os.path.exists(f"{inter_prod_dir}{scene_name}_ls_{file_chunk}.tif"):
                 cmd = [snap_gpt, int_graph_1,
                        f"-Pinput_grd={input_mani}",
