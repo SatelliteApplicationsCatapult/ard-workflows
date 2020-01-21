@@ -321,7 +321,7 @@ def s3_single_upload(in_path, s3_path, s3_bucket):
     :param s3_path: where in S3 to put the file.
     :return: None
     """
-
+    
     # prep session & creds
     s3_client, bucket = s3_create_client(s3_bucket)
 

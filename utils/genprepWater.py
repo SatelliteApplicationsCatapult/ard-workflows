@@ -16,6 +16,7 @@ import uuid
 import geopandas as gpd
 import rasterio
 import rasterio.features
+import gdal
 
 from . dc_water_classifier import wofs_classify
 from . dc_clean_mask import landsat_qa_clean_mask
@@ -29,7 +30,7 @@ def rename_bands(in_xr, des_bands, position):
     return in_xr
     
     
-def conv_sgl_wofs_cog(in_path, out_path):
+def conv_sgl_wofs_cog(in_path, out_path, nodata=-9999):
     """
     Convert a single input file to COG format. Default settings via cogeo repository (funcs within prep_utils). 
     COG val TBC
@@ -56,14 +57,13 @@ def conv_sgl_wofs_cog(in_path, out_path):
         out_path,
         cog_profile,
         overview_level=5,
-        overview_resampling='average',
-        nodata=-9999
+        overview_resampling='average'
     )
     
 #     ds = gdal.Open(in_path, gdal.GA_Update)
 #     if ds is not None:
 #         b = ds.GetRasterBand(1)
-#         b.SetNoDataValue(-9999)
+#         b.SetNoDataValue(nodata)
 #         b.FlushCache()
 #         b = None
 #         ds = None 
@@ -191,7 +191,10 @@ def per_scene_wofs(optical_yaml_path, s3_source=True, s3_bucket='public-eo-data'
     
     des_band_refs = {
         "LANDSAT_8": ['blue','green','red','nir','swir1','swir2','pixel_qa'],
-        "SENTINEL_2": ['blue','green','red','nir','swir_1','swir_2','scene_classification'],
+        "LANDSAT_7": ['blue','green','red','nir','swir1','swir2','pixel_qa'],
+        "LANDSAT_5": ['blue','green','red','nir','swir1','swir2','pixel_qa'],
+        "LANDSAT_4": ['blue','green','red','nir','swir1','swir2','pixel_qa'],
+        "SENTINEL_2": ['blue','green','red','nir','swir1','swir2','scene_classification'],
         "SENTINEL_1": ['VV','VH','somethinglayover shadow']}
     
     try:
@@ -243,8 +246,8 @@ def per_scene_wofs(optical_yaml_path, s3_source=True, s3_bucket='public-eo-data'
             root.info(f"{scene_name} Applying masks")            
             clearsky_masks = landsat_qa_clean_mask(bands_data, satellite) # easy amendment in this function to inc. sentinel-2...?
             clearsky_scenes = bands_data.where(clearsky_masks)
-            if satellite == 'SENTINEL_2':
-                clearsky_scenes = clearsky_scenes.rename_vars({'swir_1': 'swir1', 'swir_2': 'swir2'})
+#             if satellite == 'SENTINEL_2':
+#                 clearsky_scenes = clearsky_scenes.rename_vars({'swir_1': 'swir1', 'swir_2': 'swir2'})
             root.info(f"{scene_name} Loading & Reformatting bands")
         except:
             root.exception(f"{scene_name} Masks not applied")
@@ -281,9 +284,15 @@ def per_scene_wofs(optical_yaml_path, s3_source=True, s3_bucket='public-eo-data'
         try:
             root.info(f"{scene_name} Exporting water product")            
             dataset_to_output = water_classes
-            output_file_name = f'{inter_dir}{"_".join(yml_meta["image"]["bands"]["blue"]["path"].split("_")[:7])}_waternc.tif' # can't write directly to cog...(?)
+            if 'MSIL2A' in inter_dir:
+                output_file_name = f'{inter_dir}{"_".join(yml_meta["image"]["bands"]["blue"]["path"].split("_")[:4])}_waternc.tif' # can't
+            else:
+                output_file_name = f'{inter_dir}{"_".join(yml_meta["image"]["bands"]["blue"]["path"].split("_")[:7])}_waternc.tif' # can't write directly to cog...(?)
             export_xarray_to_geotiff(dataset_to_output, output_file_name, x_coord='x', y_coord='y', crs=bands_data.attrs['crs'])
-            output_cog_name = f'{cog_dir}{"_".join(yml_meta["image"]["bands"]["blue"]["path"].split("_")[:7])}_water.tif'
+            if 'MSIL2A' in inter_dir:
+                output_cog_name = f'{cog_dir}{"_".join(yml_meta["image"]["bands"]["blue"]["path"].split("_")[:4])}_water.tif'
+            else:
+                output_cog_name = f'{cog_dir}{"_".join(yml_meta["image"]["bands"]["blue"]["path"].split("_")[:7])}_water.tif'
             conv_sgl_wofs_cog(output_file_name, output_cog_name)
             root.info(f"{scene_name} Exported COG water product")
         except:

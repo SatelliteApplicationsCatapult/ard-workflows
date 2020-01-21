@@ -186,8 +186,8 @@ def landsat_qa_clean_mask(dataset, platform, cover_types=['clear', 'water']):
     else: 
         
         for i, cover_type in enumerate(cover_types):
-                cover_type_clean_mask = processing_options[platform](dataset.pixel_qa, cover_type)
-                clean_mask = cover_type_clean_mask if i == 0 else xr_or(clean_mask, cover_type_clean_mask)
+            cover_type_clean_mask = processing_options[platform](dataset.pixel_qa, cover_type)
+            clean_mask = cover_type_clean_mask if i == 0 else xr_or(clean_mask, cover_type_clean_mask)
     
 #         for i, cover_type in enumerate(cover_types):
         

@@ -384,7 +384,7 @@ def ls8_unpack_qa( data_array , cover_type):
 def sen2_unpack_qa( data_array , cover_type):
     print('trying to unpack')
     land_cover_endcoding = dict( fill         =[0, 1] ,
-                                 clear        =[4, 5],
+                                 clear        =[4, 5, 7, 2],
                                  water        =[6],
                                  shadow       =[3],
                                  snow         =[11],
