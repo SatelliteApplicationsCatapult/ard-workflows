@@ -489,6 +489,19 @@ def ls5_unpack_qa( data_array , cover_type):
                                )
     return unpack_bits(land_cover_endcoding, data_array, cover_type)
 
+def ls4_unpack_qa( data_array , cover_type):
+
+    land_cover_endcoding = dict( fill     =  [1],
+                                 clear    =  [66,  130],
+                                 water    =  [68,  132],
+                                 shadow   =  [72,  136],
+                                 snow     =  [80,  112, 144, 176],
+                                 cloud    =  [96,  112, 160, 176, 224],
+                                 low_conf =  [66,  68,  72,  80,  96,  112],
+                                 med_conf =  [130, 132, 136, 144, 160, 176],
+                                 high_conf=  [224]
+                               )
+    return unpack_bits(land_cover_endcoding, data_array, cover_type)
 
 def create_hdmedians_multiple_band_mosaic(dataset_in,
                                           clean_mask=None,

@@ -243,8 +243,23 @@ def per_scene_wofs(optical_yaml_path, s3_source=True, s3_bucket='public-eo-data'
             raise Exception('Data formatting error')
 
         try:
-            root.info(f"{scene_name} Applying masks")            
-            clearsky_masks = landsat_qa_clean_mask(bands_data, satellite) # easy amendment in this function to inc. sentinel-2...?
+            root.info(f"{scene_name} Applying masks")
+            # if landsat in satellite:
+            if 'LANDSAT' in satellite:
+                clearsky_masks = landsat_qa_clean_mask(bands_data, satellite) # easy amendment in this function to inc. sentinel-2...?
+            elif 'SENTINEL_2' in satellite:
+                clearsky_masks = (
+                    (bands_data.scene_classification == 2) | # DARK_AREA_PIXELS
+                    (bands_data.scene_classification == 4) | # VEGETATION
+                    (bands_data.scene_classification == 5) | # NON_VEGETATION
+                    (bands_data.scene_classification == 6) | # WATER
+                    (bands_data.scene_classification == 7)   # UNCLASSIFIED
+                )
+            else:
+                raise Exception('clearsky masking not possible')
+            # elif sentinel-1 in satellite:
+#             clearsky_masks = landsat_qa_clean_mask(bands_data, satellite) # easy amendment in this function to inc. sentinel-2...?
+            
             clearsky_scenes = bands_data.where(clearsky_masks)
 #             if satellite == 'SENTINEL_2':
 #                 clearsky_scenes = clearsky_scenes.rename_vars({'swir_1': 'swir1', 'swir_2': 'swir2'})

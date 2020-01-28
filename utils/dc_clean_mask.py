@@ -1,4 +1,4 @@
-from .dc_mosaic import (ls7_unpack_qa, ls8_unpack_qa, ls5_unpack_qa, sen2_unpack_qa)
+from .dc_mosaic import (ls7_unpack_qa, ls8_unpack_qa, ls5_unpack_qa, ls4_unpack_qa, sen2_unpack_qa)
 import numpy as np
 import xarray as xr
 from xarray.ufuncs import logical_or  as xr_or
@@ -169,6 +169,7 @@ def landsat_qa_clean_mask(dataset, platform, cover_types=['clear', 'water']):
         An xarray DataArray with the same number and order of coordinates as in `dataset`.
     """
     processing_options = {
+        "LANDSAT_4": ls4_unpack_qa,
         "LANDSAT_5": ls5_unpack_qa,
         "LANDSAT_7": ls7_unpack_qa,
         "LANDSAT_8": ls8_unpack_qa,
@@ -204,7 +205,6 @@ def landsat_qa_clean_mask(dataset, platform, cover_types=['clear', 'water']):
 ## End Landsat ##
 
 ## Sentinel 2 ##
-
 def sentinel2_fmask_clean_mask(dataset, cover_types=['valid', 'water']):
     """
     Returns a clean_mask for `dataset` that masks out various types of terrain cover using the
