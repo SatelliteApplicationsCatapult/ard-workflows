@@ -22,6 +22,7 @@ from rasterio.enums import Resampling
 from rasterio.env import GDALVersion
 from rasterio.io import MemoryFile
 from rasterio.shutil import copy
+import numpy as np
 
 
 def to_cog(input_file, output_file):
@@ -320,7 +321,7 @@ def s3_single_upload(in_path, s3_path, s3_bucket):
     :param s3_path: where in S3 to put the file.
     :return: None
     """
-
+    
     # prep session & creds
     s3_client, bucket = s3_create_client(s3_bucket)
 
@@ -365,6 +366,13 @@ def s3_list_objects(s3_bucket, prefix):
     return response
 
 
+def s3_list_objects_paths(s3_bucket, prefix):
+    """List of paths only returned, not full object responses - tested only for S3"""
+    client, bucket = s3_create_client(s3_bucket)
+    
+    return [e['Key'] for p in client.get_paginator("list_objects_v2").paginate(Bucket=s3_bucket, Prefix=prefix) for e in p['Contents']]
+
+
 def s3_calc_scene_size(scene_name, s3_bucket, prefix):
     """
     Assumes prefix is directory of scenes like scene_name...
@@ -373,6 +381,19 @@ def s3_calc_scene_size(scene_name, s3_bucket, prefix):
     r = s3_list_objects(s3_bucket, f'{prefix}{scene_name}/')
 
     return r
+
+
+def s3_download(s3_bucket, s3_obj_path, dest_path):
+    """ - tested only for S3"""
+    client, bucket = s3_create_client(s3_bucket)
+    
+    try:
+        bucket.download_file(s3_obj_path, dest_path)
+    except botocore.exceptions.ClientError as e:
+        if e.response['Error']['Code'] == "404":
+            print("The object does not exist.")
+        else:
+            raise
 
 
 """rio_cogeo.cogeo: translate a file to a cloud optimized geotiff."""
@@ -433,8 +454,8 @@ def cog_translate(
 
                         if nodata is not None:
                             mask_value = (
-                                    numpy.all(matrix != nodata, axis=0).astype(
-                                        numpy.uint8
+                                    np.all(matrix != nodata, axis=0).astype(
+                                        np.uint8
                                     )
                                     * 255
                             )
