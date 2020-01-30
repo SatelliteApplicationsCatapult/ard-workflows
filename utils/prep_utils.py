@@ -2,6 +2,8 @@ import logging
 import os
 import shutil
 from datetime import datetime
+from random import randint
+from time import sleep
 from urllib.request import urlopen, HTTPPasswordMgrWithDefaultRealm, HTTPBasicAuthHandler, HTTPDigestAuthHandler, build_opener
 from urllib.error import HTTPError
 
@@ -20,6 +22,7 @@ from rasterio.enums import Resampling
 from rasterio.env import GDALVersion
 from rasterio.io import MemoryFile
 from rasterio.shutil import copy
+import numpy as np
 
 
 def to_cog(input_file, output_file):
@@ -155,12 +158,26 @@ def get_url(url, user=None, password=None):
     :param password: optional http password to apply to the request
     :return: byte array containing the file.
     """
-    r = requests.get(url, auth=(user, password))
-    if not r.ok:
-        logging.error(f"could not make request {r.status_code} {r.content.decode('utf-8')}")
-        raise HTTPError("could not make request")
-    else:
-        return r
+    retry = 0
+    max_retry = int(os.getenv("DOWNLOAD_RETRY", "3"))
+    min_delay = int(os.getenv("DOWNLOAD_MIN_WAIT", "60"))
+    max_delay = int(os.getenv("DOWNLOAD_MAX_WAIT", "6000"))
+
+    while retry < max_retry:
+        retry += 1
+        r = requests.get(url, auth=(user, password))
+        if not r.ok:
+            if r.status_code == 429:
+                delay = randint(min_delay, max_delay)
+                logging.error(f"Too many requests. {r.status_code} {r.content.decode('utf-8')}")
+                logging.info(f"sleeping for {delay} seconds")
+                sleep(delay)
+                logging.info("trying again...")
+            else:
+                logging.error(f"could not make request {r.status_code} {r.content.decode('utf-8')}")
+                raise HTTPError(f"could not make request {r.status_code}")
+        else:
+            return r
 
 
 def split_all(path):
@@ -216,7 +233,9 @@ def get_geometry(path):
         t = osr.CoordinateTransformation(spatial_ref, spatial_ref.CloneGeogCS())
 
         def transform(p):
-            lon, lat, z = t.TransformPoint(p['x'], p['y'])
+            # GDAL 3 swapped the parameters around here. 
+            # https://github.com/OSGeo/gdal/issues/1546
+            lat, lon, z = t.TransformPoint(p['x'], p['y'])
             return {'lon': lon, 'lat': lat}
 
         extent = {key: transform(p) for key, p in corners.items()}
@@ -260,14 +279,33 @@ def s3_create_client(s3_bucket):
         access,
         secret,
     )
-    s3 = session.resource('s3', region_name='eu-west-2')
+
+    endpoint = os.getenv("AWS_S3_ENDPOINT")
+
+    if endpoint is not None:
+        endpoint_url=f"http://{endpoint}"
+        logging.debug('Endpoint URL: {}'.format(endpoint_url))
+
+    if endpoint is not None:
+        s3 = session.resource('s3', endpoint_url=endpoint_url)
+    else:
+        s3 = session.resource('s3', region_name='eu-west-2')
+
     bucket = s3.Bucket(s3_bucket)
 
-    s3_client = boto3.client(
-        's3',
-        aws_access_key_id=access,
-        aws_secret_access_key=secret
-    )
+    if endpoint is not None:
+        s3_client = boto3.client(
+            's3',
+            aws_access_key_id=access,
+            aws_secret_access_key=secret,
+            endpoint_url=endpoint_url
+        )
+    else:
+        s3_client = boto3.client(
+            's3',
+            aws_access_key_id=access,
+            aws_secret_access_key=secret
+        )
 
     return s3_client, bucket
 
@@ -283,7 +321,7 @@ def s3_single_upload(in_path, s3_path, s3_bucket):
     :param s3_path: where in S3 to put the file.
     :return: None
     """
-
+    
     # prep session & creds
     s3_client, bucket = s3_create_client(s3_bucket)
 
@@ -328,6 +366,13 @@ def s3_list_objects(s3_bucket, prefix):
     return response
 
 
+def s3_list_objects_paths(s3_bucket, prefix):
+    """List of paths only returned, not full object responses - tested only for S3"""
+    client, bucket = s3_create_client(s3_bucket)
+    
+    return [e['Key'] for p in client.get_paginator("list_objects_v2").paginate(Bucket=s3_bucket, Prefix=prefix) for e in p['Contents']]
+
+
 def s3_calc_scene_size(scene_name, s3_bucket, prefix):
     """
     Assumes prefix is directory of scenes like scene_name...
@@ -336,6 +381,19 @@ def s3_calc_scene_size(scene_name, s3_bucket, prefix):
     r = s3_list_objects(s3_bucket, f'{prefix}{scene_name}/')
 
     return r
+
+
+def s3_download(s3_bucket, s3_obj_path, dest_path):
+    """ - tested only for S3"""
+    client, bucket = s3_create_client(s3_bucket)
+    
+    try:
+        bucket.download_file(s3_obj_path, dest_path)
+    except botocore.exceptions.ClientError as e:
+        if e.response['Error']['Code'] == "404":
+            print("The object does not exist.")
+        else:
+            raise
 
 
 """rio_cogeo.cogeo: translate a file to a cloud optimized geotiff."""
@@ -396,8 +454,8 @@ def cog_translate(
 
                         if nodata is not None:
                             mask_value = (
-                                    numpy.all(matrix != nodata, axis=0).astype(
-                                        numpy.uint8
+                                    np.all(matrix != nodata, axis=0).astype(
+                                        np.uint8
                                     )
                                     * 255
                             )
