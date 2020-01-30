@@ -113,13 +113,13 @@ def yaml_prep_wofs(scene_dir, original_yml):
 #     else:
 #         scene_genesis = ' '
     
-    new_id = str(uuid.uuid5(uuid.NAMESPACE_URL, scene_name))
+    new_id = str(uuid.uuid5(uuid.NAMESPACE_URL, f"{scene_name}_water"))
 #     print ('New uuid: {}'.format(new_id))
     
     return {
         'id': new_id,
         'processing_level': original_yml['processing_level'],
-        'product_type': "water",
+        'product_type': "wofs",
         'creation_dt': str(datetime.today().strftime('%Y-%m-%d %H:%M:%S')),
         'platform': {  
             'code': original_yml['platform']['code']
@@ -340,31 +340,31 @@ def per_scene_wofs(optical_yaml_path, s3_source=True, s3_bucket='public-eo-data'
         water_classes.close()
         dataset_to_output.close()
         
-#         # Tidy up log file to ensure upload
-#         shutil.move(log_file, cog_dir + 'log_file.txt')
-#         s3_upload_cogs(glob.glob(cog_dir + '*log_file.txt'), s3_bucket, s3_dir)
+        # Tidy up log file to ensure upload
+        shutil.move(log_file, cog_dir + 'log_file.txt')
+        s3_upload_cogs(glob.glob(cog_dir + '*log_file.txt'), s3_bucket, s3_dir)
                 
-#         # DELETE ANYTHING WITIN TEH TEMP DIRECTORY
-#         cmd = 'rm -frv {}'.format(inter_dir)
-#         p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
-#         out = p.stdout.read()
+        # DELETE ANYTHING WITIN TEH TEMP DIRECTORY
+        cmd = 'rm -frv {}'.format(inter_dir)
+        p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
+        out = p.stdout.read()
         
-#         if os.path.exists(inter_dir):
-#             print(out)
+        if os.path.exists(inter_dir):
+            print(out)
                 
         print('not boo')
 
             
     except:
         print('boo')
-#         root.exception("Processing INCOMPLETE so tidying up")
-#         root.removeHandler(handler)
-#         handler.close()
+        root.exception("Processing INCOMPLETE so tidying up")
+        root.removeHandler(handler)
+        handler.close()
 
-#         shutil.move(log_file, cog_dir + 'log_file.txt')
+        shutil.move(log_file, cog_dir + 'log_file.txt')
         
-#         s3_upload_cogs(glob.glob(cog_dir + '*log_file.txt'), s3_bucket, s3_dir)        
+        s3_upload_cogs(glob.glob(cog_dir + '*log_file.txt'), s3_bucket, s3_dir)        
                 
-#         cmd = 'rm -frv {}'.format(inter_dir)
-#         p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
-#         out = p.stdout.read()
+        cmd = 'rm -frv {}'.format(inter_dir)
+        p   = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
+        out = p.stdout.read()
