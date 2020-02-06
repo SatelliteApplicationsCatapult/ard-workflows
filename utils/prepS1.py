@@ -290,7 +290,7 @@ def yaml_prep_s1(scene_dir):
     }
 
 
-def prepareS1(in_scene, s3_bucket='cs-odc-data', s3_dir='yemen/Sentinel_1/', inter_dir='/tmp/data/intermediate/',
+def prepareS1(in_scene, ext_dem=None, s3_bucket='public-eo-data', s3_dir='common_sensing/sentinel_1/', inter_dir='/tmp/data/intermediate/',
               source='asf'):
     """
     Prepare IN_SCENE of Sentinel-1 satellite data into OUT_DIR for ODC indexing. 
@@ -327,8 +327,12 @@ def prepareS1(in_scene, s3_bucket='cs-odc-data', s3_dir='yemen/Sentinel_1/', int
 
     snap_gpt = os.environ['SNAP_GPT']
     int_graph_1 = os.environ['S1_PROCESS_P1']  # ENV VAR
-    int_graph_2 = os.environ['S1_PROCESS_P2']  # ENV VAR
-
+    if ext_dem:
+        int_graph_2 = os.environ['S1_PROCESS_P2A']  # ENV VAR
+        ext_dem_path = inter_dir + 'ext_dem.tif'
+    else:
+        int_graph_2 = os.environ['S1_PROCESS_P2B']  # ENV VAR
+        
     root = setup_logging()
     root.info('{} {} Starting'.format(in_scene, scene_name))
 
@@ -355,8 +359,11 @@ def prepareS1(in_scene, s3_bucket='cs-odc-data', s3_dir='yemen/Sentinel_1/', int
             root.info(cmd)
             run_snap_command(cmd)
             root.info(f"{in_scene} {scene_name} PROCESSED to MULTILOOK starting PT2")
-
-            cmd = [snap_gpt, int_graph_2, f"-Pinput_ml={inter_prod}", f"-Poutput_db={out_prod1}", f"-Poutput_ls={out_prod2}"]
+            if ext_dem:
+                s3_download(s3_bucket, ext_dem, ext_dem_path)
+                cmd = [snap_gpt, int_graph_2, f"-Pinput_ml={inter_prod}", f"-Pext_dem={ext_dem_path}", f"-Poutput_db={out_prod1}", f"-Poutput_ls={out_prod2}"]
+            else:
+                cmd = [snap_gpt, int_graph_2, f"-Pinput_ml={inter_prod}", f"-Poutput_db={out_prod1}", f"-Poutput_ls={out_prod2}"]
             root.info(cmd)
             run_snap_command(cmd)
             root.info(f"{in_scene} {scene_name} PROCESSED to dB + LSM")
@@ -397,13 +404,15 @@ def prepareS1(in_scene, s3_bucket='cs-odc-data', s3_dir='yemen/Sentinel_1/', int
         except Exception as e:
             root.exception(f"{in_scene} {scene_name} Upload to S3 Failed")
             raise Exception('S3  upload error', e)
+        print('not boo')
 
         # DELETE ANYTHING WITHIN THE TEMP DIRECTORY
-        clean_up(inter_dir)
+#         clean_up(inter_dir)
 
     except Exception as e:
         logging.error(f"could not process{scene_name} {e}")
-        clean_up(inter_dir)
+        print('boo')
+#         clean_up(inter_dir)
 
 
 if __name__ == '__main__':

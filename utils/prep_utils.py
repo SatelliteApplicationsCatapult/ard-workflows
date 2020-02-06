@@ -96,7 +96,7 @@ def setup_logging():
     return root
 
 
-def run_snap_command(command):
+def run_snap_command(command, timeout =  60*45):
     """
     Run a snap command. Internal use.
 
@@ -118,7 +118,7 @@ def run_snap_command(command):
     logging.debug(f"running {full_command}")
 
     process = subprocess.Popen(full_command, env=base_env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
+    process.timeout = timeout
     snap_logger_out = logging.getLogger("snap_stdout")
     snap_logger_err = logging.getLogger("snap_stderr")
     std_out_reader = AsynchronousFileReader(process.stdout)
@@ -131,13 +131,15 @@ def run_snap_command(command):
         while not std_err_reader.queue.empty():
             line = std_err_reader.queue.get().decode()
             snap_logger_err.info("stderr:" + line.rstrip('\n'))
+    try:
+        while process.poll() is None:
+            pass_logging()
 
-    while process.poll() is None:
-        pass_logging()
-
-    std_out_reader.join()
-    std_err_reader.join()
-
+        std_out_reader.join()
+        std_err_reader.join()
+    except subprocess.TimeoutExpired as e :
+        logging.error(f"IGNORING subprocess timeout running {command}")
+        return
     if process.returncode != 0:
         raise Exception("Snap returned non zero exit status")
 
