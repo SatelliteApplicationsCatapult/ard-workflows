@@ -170,9 +170,9 @@ def band_name_s1(prod_path):
 
     prod_name = str(prod_path.split('/')[-1])
 
-    if 'VH' in str(prod_name):
+    if 'Gamma0_VH' in str(prod_name):
         return 'vh'
-    if 'VV' in str(prod_name):
+    if 'Gamma0_VV' in str(prod_name):
         return 'vv'
     if 'LayoverShadow_MASK' in str(prod_name):
         return 'layovershadow_mask'
@@ -184,8 +184,7 @@ def band_name_s1(prod_path):
 
 def conv_s1scene_cogs(noncog_scene_dir, cog_scene_dir, scene_name, overwrite=False):
     """
-    Convert S2 scene products to cogs + validate.
-    TBD whether consistent for L1C + L2A prcoessing levels.
+    Convert S1 scene products to cogs [+ validate].
     """
 
     if not os.path.exists(noncog_scene_dir):
@@ -209,7 +208,7 @@ def conv_s1scene_cogs(noncog_scene_dir, cog_scene_dir, scene_name, overwrite=Fal
         out_filename = os.path.join(cog_scene_dir, scene_name + '_' + os.path.basename(prod)[:-4] + '.tif')  # - TO DO*****
         logging.info(f"converting {prod} to cog at {out_filename}")
         # ensure input file exists
-        to_cog(prod, out_filename)
+        to_cog(prod, out_filename, nodata=-9999)
 
 
 def copy_s1_metadata(out_s1_prod, cog_scene_dir, scene_name):
@@ -220,7 +219,7 @@ def copy_s1_metadata(out_s1_prod, cog_scene_dir, scene_name):
     if os.path.exists(out_s1_prod):
 
         meta_base = os.path.basename(out_s1_prod)
-        n_meta = cog_scene_dir + scene_name + '_' + meta_base
+        n_meta = os.path.join(cog_scene_dir + '/' + scene_name + '_' + meta_base)
         logging.info("Copying original metadata file to cog dir: {}".format(n_meta))
         if not os.path.exists(n_meta):
             shutil.copyfile(out_s1_prod, n_meta)
@@ -318,20 +317,22 @@ def prepareS1(in_scene, ext_dem=None, s3_bucket='public-eo-data', s3_dir='common
     os.makedirs(cog_dir, exist_ok=True)
     # s1-specific relative inputs
     input_mani = inter_dir + in_scene + '/manifest.safe'
-    inter_prod = inter_dir + scene_name + '_Orb_Cal_Deb_ML.dim'
-    inter_prod_dir = inter_prod[:-4] + '.data/'
+    inter_prod1 = inter_dir + scene_name + '_Orb_Cal_Deb_ML.dim'
+    inter_prod1_dir = inter_prod1[:-4] + '.data/'
+    inter_prod2 = inter_dir + scene_name + '_Orb_Cal_Deb_ML_TF.dim'
+    inter_prod2_dir = inter_prod2[:-4] + '.data/'
     out_prod1 = inter_dir + scene_name + '_Orb_Cal_Deb_ML_TF_TC_dB.dim'
     out_dir1 = out_prod1[:-4] + '.data/'
     out_prod2 = inter_dir + scene_name + '_Orb_Cal_Deb_ML_TF_TC_lsm.dim'
     out_dir2 = out_prod2[:-4] + '.data/'
 
     snap_gpt = os.environ['SNAP_GPT']
-    int_graph_1 = os.environ['S1_PROCESS_P1']  # ENV VAR
+    int_graph_1 = os.environ['S1_PROCESS_P1A']  # ENV VAR
     if ext_dem:
-        int_graph_2 = os.environ['S1_PROCESS_P2A']  # ENV VAR
         ext_dem_path = inter_dir + 'ext_dem.tif'
-    else:
-        int_graph_2 = os.environ['S1_PROCESS_P2B']  # ENV VAR
+        int_graph_2 = os.environ['S1_PROCESS_P2A']  # ENV VAR
+        int_graph_3 = os.environ['S1_PROCESS_P3A']  # ENV VAR
+        int_graph_4 = os.environ['S1_PROCESS_P4A']  # ENV VAR
         
     root = setup_logging()
     root.info('{} {} Starting'.format(in_scene, scene_name))
@@ -354,19 +355,30 @@ def prepareS1(in_scene, ext_dem=None, s3_bucket='public-eo-data', s3_dir='common
                 root.exception(f"{in_scene} {scene_name} UNAVAILABLE via ESA too")
                 raise Exception('Download Error ESA', e)
 
-        if not os.path.exists(out_prod2):
-            cmd = [snap_gpt, int_graph_1, f"-Pinput_grd={input_mani}", f"-Poutput_ml={inter_prod}"]
-            root.info(cmd)
-            run_snap_command(cmd)
-            root.info(f"{in_scene} {scene_name} PROCESSED to MULTILOOK starting PT2")
+        cmd = [snap_gpt, int_graph_1, f"-Pinput_grd={input_mani}", f"-Poutput_ml={inter_prod1}"]
+        root.info(cmd)
+        run_snap_command(cmd)
+        root.info(f"{in_scene} {scene_name} PROCESSED to MULTILOOK starting PT2")
+                
+        if not os.path.exists(out_prod1):
             if ext_dem:
-                s3_download(s3_bucket, ext_dem, ext_dem_path)
-                cmd = [snap_gpt, int_graph_2, f"-Pinput_ml={inter_prod}", f"-Pext_dem={ext_dem_path}", f"-Poutput_db={out_prod1}", f"-Poutput_ls={out_prod2}"]
-            else:
-                cmd = [snap_gpt, int_graph_2, f"-Pinput_ml={inter_prod}", f"-Poutput_db={out_prod1}", f"-Poutput_ls={out_prod2}"]
-            root.info(cmd)
-            run_snap_command(cmd)
-            root.info(f"{in_scene} {scene_name} PROCESSED to dB + LSM")
+                s3_download(s3_bucket, ext_dem, ext_dem_path) # inc. function to subset by S1 scene extent on fly due to cog   
+            
+                cmd = [snap_gpt, int_graph_2, f"-Pinput_ml={inter_prod1}", f"-Pext_dem={ext_dem_path}", f"-Poutput_tf={inter_prod2}"]
+                root.info(cmd)
+                run_snap_command(cmd)
+                root.info(f"{in_scene} {scene_name} PROCESSED to TERRAIN FLATTEN starting PT3")
+
+
+                cmd = [snap_gpt, int_graph_3, f"-Pinput_tf={inter_prod2}", f"-Pext_dem={ext_dem_path}", f"-Poutput_db={out_prod1}"]
+                root.info(cmd)
+                run_snap_command(cmd)
+                root.info(f"{in_scene} {scene_name} PROCESSED to dB starting PT4")
+
+                cmd = [snap_gpt, int_graph_4, f"-Pinput_tf={inter_prod2}", f"-Pext_dem={ext_dem_path}", f"-Poutput_ls={out_prod2}"]
+                root.info(cmd)
+                run_snap_command(cmd)
+                root.info(f"{in_scene} {scene_name} PROCESSED to lsm starting COG conversion")
 
         # CONVERT TO COGS TO TEMP COG DIRECTORY**
         try:
@@ -406,7 +418,7 @@ def prepareS1(in_scene, ext_dem=None, s3_bucket='public-eo-data', s3_dir='common
             raise Exception('S3  upload error', e)
         print('not boo')
 
-        # DELETE ANYTHING WITHIN THE TEMP DIRECTORY
+#         # DELETE ANYTHING WITHIN THE TEMP DIRECTORY
 #         clean_up(inter_dir)
 
     except Exception as e:
