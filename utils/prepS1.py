@@ -419,12 +419,12 @@ def prepareS1(in_scene, ext_dem=None, s3_bucket='public-eo-data', s3_dir='common
         print('not boo')
 
 #         # DELETE ANYTHING WITHIN THE TEMP DIRECTORY
-#         clean_up(inter_dir)
+        clean_up(inter_dir)
 
     except Exception as e:
         logging.error(f"could not process{scene_name} {e}")
         print('boo')
-#         clean_up(inter_dir)
+        clean_up(inter_dir)
 
 
 if __name__ == '__main__':
