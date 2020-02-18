@@ -237,7 +237,7 @@ def get_geometry(path):
         def transform(p):
             # GDAL 3 swapped the parameters around here. 
             # https://github.com/OSGeo/gdal/issues/1546
-            lat, lon, z = t.TransformPoint(p['x'], p['y'])
+            lon, lat, z = t.TransformPoint(p['x'], p['y'])
             return {'lon': lon, 'lat': lat}
 
         extent = {key: transform(p) for key, p in corners.items()}
