@@ -1,0 +1,26 @@
+name: s1g_gamma0_scene
+description: Sentinel-1A/B SAR Gamma0 scenes, processed to ARD.
+metadata_type: eo
+
+metadata:
+    platform:
+        code: SENTINEL_1
+    instrument:
+        name: SAR
+    product_type: gamma0
+    format:
+        name: GeoTiff
+
+measurements:
+    - name: vh
+      dtype: float32
+      units: 'DN'
+      nodata: 0
+    - name: vv
+      dtype: float32
+      units: 'DN'
+      nodata: 0
+    - name: layovershadow_mask
+      dtype: float32
+      units: 'DN'
+      nodata: 0

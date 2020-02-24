@@ -1,0 +1,110 @@
+name: ls8_water_classification
+description: Mapping Water Observations from Space in wofs-like products for Landsat 8.
+metadata_type: eo
+
+metadata:
+    platform:
+        code: LANDSAT_8
+    product_type: wofs
+    format:
+        name: GeoTIFF
+
+measurements:
+    - name: 'water'
+      aliases: [wofs, water_classification]
+      dtype: int16
+      units: '1'
+      nodata: -9999
+      flags_definition:
+        water_classification:
+          description: Binary water masks.
+          bits: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
+          values:
+            '-9999': NO_DATA
+            '0': no_water_observed
+            '1': water_observed
+
+---
+
+name: ls7_water_classification
+description: Mapping Water Observations from Space in wofs-like products for Landsat 7.
+metadata_type: eo
+
+metadata:
+    platform:
+        code: LANDSAT_7
+    product_type: wofs
+    format:
+        name: GeoTIFF
+
+measurements:
+    - name: 'water'
+      aliases: [wofs, water_classification]
+      dtype: int16
+      units: '1'
+      nodata: -9999
+      flags_definition:
+        water_classification:
+          description: Binary water masks.
+          bits: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
+          values:
+            '-9999': NO_DATA
+            '0': no_water_observed
+            '1': water_observed
+
+---
+
+name: ls5_water_classification
+description: Mapping Water Observations from Space in wofs-like products for Landsat 5.
+metadata_type: eo
+
+metadata:
+    platform:
+        code: LANDSAT_5
+    product_type: wofs
+    format:
+        name: GeoTIFF
+
+measurements:
+    - name: 'water'
+      aliases: [wofs, water_classification]
+      dtype: int16
+      units: '1'
+      nodata: -9999
+      flags_definition:
+        water_classification:
+          description: Binary water masks.
+          bits: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
+          values:
+            '-9999': NO_DATA
+            '0': no_water_observed
+            '1': water_observed
+
+---
+
+name: ls4_water_classification
+description: Mapping Water Observations from Space in wofs-like products for Landsat 4.
+metadata_type: eo
+
+metadata:
+    platform:
+        code: LANDSAT_4
+    product_type: wofs
+    format:
+        name: GeoTIFF
+
+measurements:
+    - name: 'water'
+      aliases: [wofs, water_classification]
+      dtype: int16
+      units: '1'
+      nodata: -9999
+      flags_definition:
+        water_classification:
+          description: Binary water masks.
+          bits: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
+          values:
+            '-9999': NO_DATA
+            '0': no_water_observed
+            '1': water_observed
+
