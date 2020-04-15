@@ -12,7 +12,3 @@ services:
       - "8888:8888"
     volumes:
       - ../:/home/dataprep
-    deploy:
-      resources:
-        limits:
-          memory: 8G

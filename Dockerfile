@@ -28,7 +28,8 @@ RUN pip install --no-cache-dir \
     asynchronousfilereader \
     redis \
 	salem \
-	sklearn-xarray
+	sklearn-xarray \
+	rioxarray
 # ------------------------------------------
 
 RUN conda install --quiet --yes --freeze-installed \
