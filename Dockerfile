@@ -2,6 +2,12 @@ FROM continuumio/miniconda3:4.7.12
 
 LABEL maintainer="Luigi Di Fraia"
 
+RUN apt-get update \
+  && apt-get install -y python3-pip python3-dev \
+  && cd /usr/local/bin \
+  && ln -s /usr/bin/python3 python \
+  && pip3 install --upgrade pip
+
 RUN conda update conda --quiet --yes --freeze-installed \
     && conda clean --all -f -y \
     && find /opt/conda/ -follow -type f -name '*.a' -delete \
@@ -29,7 +35,9 @@ RUN pip install --no-cache-dir \
     redis \
 	salem \
 	sklearn-xarray \
-	rioxarray
+	rioxarray \
+	boto3
+
 # ------------------------------------------
 
 RUN conda install --quiet --yes --freeze-installed \
