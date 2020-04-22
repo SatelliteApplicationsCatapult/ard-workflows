@@ -9,6 +9,7 @@ from urllib.error import HTTPError
 
 from asynchronousfilereader import AsynchronousFileReader
 import boto3
+import botocore
 import click
 import gdal
 import rasterio

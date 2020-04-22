@@ -425,9 +425,9 @@ def genprepmlwater(optical_yaml_path, summary_yaml_path, inter_dir='../data/', s
         vars_0 = None
         X_t = None
 
-        # Tidy up log file to ensure upload
-        shutil.move(log_file, inter_prodir + 'log_file.txt')
-        s3_upload_cogs(glob.glob(inter_prodir + '*log_file.txt'), s3_bucket, s3_dir)
+#         # Tidy up log file to ensure upload
+#         shutil.move(log_file, inter_prodir + 'log_file.txt')
+#         s3_upload_cogs(glob.glob(inter_prodir + '*log_file.txt'), s3_bucket, s3_dir)
         
         shutil.rmtree(inter_dir)
         gc.collect()
@@ -455,9 +455,9 @@ def genprepmlwater(optical_yaml_path, summary_yaml_path, inter_dir='../data/', s
         vars_0 = None
         X_t = None
 
-        # Tidy up log file to ensure upload
-        shutil.move(log_file, inter_prodir + 'log_file.txt')
-        s3_upload_cogs(glob.glob(inter_prodir + '*log_file.txt'), s3_bucket, s3_dir)
+#         # Tidy up log file to ensure upload
+#         shutil.move(log_file, inter_prodir + 'log_file.txt')
+#         s3_upload_cogs(glob.glob(inter_prodir + '*log_file.txt'), s3_bucket, s3_dir)
         
         shutil.rmtree(inter_dir)
         gc.collect()
