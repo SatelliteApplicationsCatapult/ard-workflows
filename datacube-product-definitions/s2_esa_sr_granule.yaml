@@ -1,0 +1,107 @@
+name: s2_esa_sr_granule
+description:  Sentinel2 ESA L2A product, converted to cogs & indexed by SAC. Native maximum resolutions, native crs.
+metadata_type: eo
+
+metadata:
+    platform:
+        code: SENTINEL_2
+    instrument:
+        name: MSI
+    product_type: optical_ard
+    format:
+        name: GeoTiff
+
+measurements:
+    - name: 'aerosol_optical_thickness'
+      aliases: [aot_10m, aot]
+      dtype: uint16
+      nodata: 0
+      units: 'reflectance'
+    - name: 'coastal_aerosol'
+      aliases: [b01_60m, b01]
+      dtype: uint16
+      nodata: 0
+      units: 'reflectance'
+    - name: 'blue'
+      aliases: [b02_10m, b02]
+      dtype: uint16
+      nodata: 0
+      units: 'reflectance'
+    - name: 'green'
+      aliases: [b03_10m, b03]
+      dtype: uint16
+      nodata: 0
+      units: 'reflectance'
+    - name: 'red'
+      aliases: [b04_10m, b04]
+      dtype: uint16
+      nodata: 0
+      units: 'reflectance'
+    - name: 'vegetation_red_edge_1'
+      aliases: [b05_20m, b05]
+      dtype: uint16
+      nodata: 0
+      units: 'reflectance'
+    - name: 'vegetation_red_edge_2'
+      aliases: [b06_20m, b06]
+      dtype: uint16
+      nodata: 0
+      units: 'reflectance'
+    - name: 'vegetation_red_edge_3'
+      aliases: [b07_20m, b07]
+      dtype: uint16
+      nodata: 0
+      units: 'reflectance'
+    - name: 'nir'
+      aliases: [b08_10m, b08]
+      dtype: uint16
+      nodata: 0
+      units: 'reflectance'
+    - name: 'water_vapour'
+      aliases: [b09_60m, b09]
+      dtype: uint16
+      nodata: 0
+      units: 'reflectance'
+    - name: 'swir1'
+      aliases: [b11_20m, b11]
+      dtype: uint16
+      nodata: 0
+      units: 'reflectance'
+    - name: 'swir2'
+      aliases: [b12_20m, b12]
+      dtype: uint16
+      nodata: 0
+      units: 'reflectance'
+    - name: 'vegetation_red_edge_4'
+      aliases: [b8a_20m, b8a]
+      dtype: uint16
+      nodata: 0
+      units: 'reflectance'
+    - name: 'wvp'
+      aliases: [wvp_10m, wvp]
+      dtype: uint16
+      nodata: 0
+      units: 'reflectance'
+    - name: 'scene_classification'
+      aliases: [scl_20m, scl]
+      dtype: uint8
+      nodata: 0
+      units: '1'
+      flags_definition:
+        scene_classification:
+          bits: [0,1,2,3,4,5,6,7]
+          description: ESA L2A Scene Classification
+          values:
+            '0': NO_DATA
+            '1': SATURATED_OR_DEFECTIVE
+            '2': DARK_AREA_PIXELS
+            '3': CLOUD_SHADOWS
+            '4': VEGETATION
+            '5': NOT_VEGETATED
+            '6': WATER
+            '7': UNCLASSIFIED
+            '8': CLOUD_MEDIUM_PROBABILITY
+            '9': CLOUD_HIGH_PROBABILITY
+            '10': THIN_CIRRUS
+            '11': SNOW
+

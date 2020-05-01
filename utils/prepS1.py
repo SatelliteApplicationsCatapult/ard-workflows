@@ -162,6 +162,36 @@ def download_extract_s1_scene_asf(s1_name, download_dir):
         zip_ref.close()
 
 
+def download_extract_s1_esa(s1_name, download_dir):
+    """
+    Downloads single S1_NAME Sentinel-1 scene into DOWLOAD_DIR.
+    :param s1_name: Scene ID for Sentinel Tile (i.e. "S1A_IW_SLC__1SDV_20190411T063207_20190411T063242_026738_0300B4_6882")
+    :param download_dir: path to directory for downloaded S1 granule
+    :return:
+    """
+
+    if s1_name.endswith('.SAFE'):
+        s1_name = s1_name[:-5]
+
+    s1id = get_s1_esa_id(s1_name)
+    if s1id == 'NaN':
+        logging.error(f"did not get a valid id. Aborting download of {s1_name}")
+        return
+    u = os.environ['COPERNICUS_USERNAME']
+    p = os.environ['COPERNICUS_PWD']
+
+    zipped = os.path.join(download_dir, s1_name + '.zip')
+    safe_dir = os.path.join(download_dir, s1_name + '.SAFE/')
+
+    get_file(f"https://scihub.copernicus.eu/dhus/odata/v1/Products('{s1id}')/$value", zipped, u, p)
+
+    if not os.path.exists(safe_dir):
+        logging.info(f"Extracting ESA scene: {zipped}")
+        zip_ref = zipfile.ZipFile(zipped, 'r')
+        zip_ref.extractall(os.path.dirname(download_dir))
+        zip_ref.close()
+
+
 def band_name_s1(prod_path):
     """
     Determine polarisation of individual product from product name
@@ -170,9 +200,9 @@ def band_name_s1(prod_path):
 
     prod_name = str(prod_path.split('/')[-1])
 
-    if 'VH' in str(prod_name):
+    if 'Gamma0_VH' in str(prod_name):
         return 'vh'
-    if 'VV' in str(prod_name):
+    if 'Gamma0_VV' in str(prod_name):
         return 'vv'
     if 'LayoverShadow_MASK' in str(prod_name):
         return 'layovershadow_mask'
@@ -184,8 +214,7 @@ def band_name_s1(prod_path):
 
 def conv_s1scene_cogs(noncog_scene_dir, cog_scene_dir, scene_name, overwrite=False):
     """
-    Convert S2 scene products to cogs + validate.
-    TBD whether consistent for L1C + L2A prcoessing levels.
+    Convert S1 scene products to cogs [+ validate].
     """
 
     if not os.path.exists(noncog_scene_dir):
@@ -209,7 +238,7 @@ def conv_s1scene_cogs(noncog_scene_dir, cog_scene_dir, scene_name, overwrite=Fal
         out_filename = os.path.join(cog_scene_dir, scene_name + '_' + os.path.basename(prod)[:-4] + '.tif')  # - TO DO*****
         logging.info(f"converting {prod} to cog at {out_filename}")
         # ensure input file exists
-        to_cog(prod, out_filename)
+        to_cog(prod, out_filename, nodata=-9999)
 
 
 def copy_s1_metadata(out_s1_prod, cog_scene_dir, scene_name):
@@ -220,7 +249,7 @@ def copy_s1_metadata(out_s1_prod, cog_scene_dir, scene_name):
     if os.path.exists(out_s1_prod):
 
         meta_base = os.path.basename(out_s1_prod)
-        n_meta = cog_scene_dir + scene_name + '_' + meta_base
+        n_meta = os.path.join(cog_scene_dir + '/' + scene_name + '_' + meta_base)
         logging.info("Copying original metadata file to cog dir: {}".format(n_meta))
         if not os.path.exists(n_meta):
             shutil.copyfile(out_s1_prod, n_meta)
@@ -290,7 +319,7 @@ def yaml_prep_s1(scene_dir):
     }
 
 
-def prepareS1(in_scene, s3_bucket='cs-odc-data', s3_dir='yemen/Sentinel_1/', inter_dir='/tmp/data/intermediate/',
+def prepareS1(in_scene, ext_dem=None, s3_bucket='public-eo-data', s3_dir='common_sensing/sentinel_1/', inter_dir='/tmp/data/intermediate/',
               source='asf'):
     """
     Prepare IN_SCENE of Sentinel-1 satellite data into OUT_DIR for ODC indexing. 
@@ -318,17 +347,23 @@ def prepareS1(in_scene, s3_bucket='cs-odc-data', s3_dir='yemen/Sentinel_1/', int
     os.makedirs(cog_dir, exist_ok=True)
     # s1-specific relative inputs
     input_mani = inter_dir + in_scene + '/manifest.safe'
-    inter_prod = inter_dir + scene_name + '_Orb_Cal_Deb_ML.dim'
-    inter_prod_dir = inter_prod[:-4] + '.data/'
+    inter_prod1 = inter_dir + scene_name + '_Orb_Cal_Deb_ML.dim'
+    inter_prod1_dir = inter_prod1[:-4] + '.data/'
+    inter_prod2 = inter_dir + scene_name + '_Orb_Cal_Deb_ML_TF.dim'
+    inter_prod2_dir = inter_prod2[:-4] + '.data/'
     out_prod1 = inter_dir + scene_name + '_Orb_Cal_Deb_ML_TF_TC_dB.dim'
     out_dir1 = out_prod1[:-4] + '.data/'
     out_prod2 = inter_dir + scene_name + '_Orb_Cal_Deb_ML_TF_TC_lsm.dim'
     out_dir2 = out_prod2[:-4] + '.data/'
 
     snap_gpt = os.environ['SNAP_GPT']
-    int_graph_1 = os.environ['S1_PROCESS_P1']  # ENV VAR
-    int_graph_2 = os.environ['S1_PROCESS_P2']  # ENV VAR
-
+    int_graph_1 = os.environ['S1_PROCESS_P1A']  # ENV VAR
+    if ext_dem:
+        ext_dem_path = inter_dir + 'ext_dem.tif'
+        int_graph_2 = os.environ['S1_PROCESS_P2A']  # ENV VAR
+        int_graph_3 = os.environ['S1_PROCESS_P3A']  # ENV VAR
+        int_graph_4 = os.environ['S1_PROCESS_P4A']  # ENV VAR
+        
     root = setup_logging()
     root.info('{} {} Starting'.format(in_scene, scene_name))
 
@@ -344,22 +379,36 @@ def prepareS1(in_scene, s3_bucket='cs-odc-data', s3_dir='yemen/Sentinel_1/', int
             root.exception(f"{in_scene} {scene_name} UNAVAILABLE via ASF, try ESA")
             try:
                 root.info(f"{in_scene} {scene_name} AVAILABLE via ESA")
-                # download_extract_s1_esa(s1id, inter_dir, down_dir) # TBC
+                download_extract_s1_esa(in_scene, inter_dir)
                 root.info(f"{in_scene} {scene_name} DOWNLOADED via ESA")
             except Exception as e:
                 root.exception(f"{in_scene} {scene_name} UNAVAILABLE via ESA too")
                 raise Exception('Download Error ESA', e)
 
-        if not os.path.exists(out_prod2):
-            cmd = [snap_gpt, int_graph_1, f"-Pinput_grd={input_mani}", f"-Poutput_ml={inter_prod}"]
-            root.info(cmd)
-            run_snap_command(cmd)
-            root.info(f"{in_scene} {scene_name} PROCESSED to MULTILOOK starting PT2")
+        cmd = [snap_gpt, int_graph_1, f"-Pinput_grd={input_mani}", f"-Poutput_ml={inter_prod1}"]
+        root.info(cmd)
+        run_snap_command(cmd)
+        root.info(f"{in_scene} {scene_name} PROCESSED to MULTILOOK starting PT2")
+                
+        if not os.path.exists(out_prod1):
+            if ext_dem:
+                s3_download(s3_bucket, ext_dem, ext_dem_path)  # inc. function to subset by S1 scene extent on fly due to cog
+            
+                cmd = [snap_gpt, int_graph_2, f"-Pinput_ml={inter_prod1}", f"-Pext_dem={ext_dem_path}", f"-Poutput_tf={inter_prod2}"]
+                root.info(cmd)
+                run_snap_command(cmd)
+                root.info(f"{in_scene} {scene_name} PROCESSED to TERRAIN FLATTEN starting PT3")
 
-            cmd = [snap_gpt, int_graph_2, f"-Pinput_ml={inter_prod}", f"-Poutput_db={out_prod1}", f"-Poutput_ls={out_prod2}"]
-            root.info(cmd)
-            run_snap_command(cmd)
-            root.info(f"{in_scene} {scene_name} PROCESSED to dB + LSM")
+
+                cmd = [snap_gpt, int_graph_3, f"-Pinput_tf={inter_prod2}", f"-Pext_dem={ext_dem_path}", f"-Poutput_db={out_prod1}"]
+                root.info(cmd)
+                run_snap_command(cmd)
+                root.info(f"{in_scene} {scene_name} PROCESSED to dB starting PT4")
+
+                cmd = [snap_gpt, int_graph_4, f"-Pinput_tf={inter_prod2}", f"-Pext_dem={ext_dem_path}", f"-Poutput_ls={out_prod2}"]
+                root.info(cmd)
+                run_snap_command(cmd)
+                root.info(f"{in_scene} {scene_name} PROCESSED to lsm starting COG conversion")
 
         # CONVERT TO COGS TO TEMP COG DIRECTORY**
         try:
@@ -397,12 +446,14 @@ def prepareS1(in_scene, s3_bucket='cs-odc-data', s3_dir='yemen/Sentinel_1/', int
         except Exception as e:
             root.exception(f"{in_scene} {scene_name} Upload to S3 Failed")
             raise Exception('S3  upload error', e)
+        print('not boo')
 
-        # DELETE ANYTHING WITHIN THE TEMP DIRECTORY
+#         # DELETE ANYTHING WITHIN THE TEMP DIRECTORY
         clean_up(inter_dir)
 
     except Exception as e:
         logging.error(f"could not process{scene_name} {e}")
+        print('boo')
         clean_up(inter_dir)
 
 

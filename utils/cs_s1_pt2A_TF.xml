@@ -1,0 +1,49 @@
+<graph id="Graph">
+  <version>1.0</version>
+  <node id="Read">
+    <operator>Read</operator>
+    <sources/>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <file>$input_ml</file>
+    </parameters>
+  </node>
+  <node id="Terrain-Flattening">
+    <operator>Terrain-Flattening</operator>
+    <sources>
+      <sourceProduct refid="Read"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <sourceBands/>
+      <demName>External DEM</demName>
+      <demResamplingMethod>BILINEAR_INTERPOLATION</demResamplingMethod>
+      <externalDEMFile>$ext_dem</externalDEMFile>
+      <externalDEMNoDataValue>-9999</externalDEMNoDataValue>
+      <externalDEMApplyEGM>True</externalDEMApplyEGM>
+      <outputSimulatedImage>false</outputSimulatedImage>
+      <additionalOverlap>0.1</additionalOverlap>
+      <oversamplingMultiple>1.5</oversamplingMultiple>
+    </parameters>
+  </node>
+  <node id="Write">
+    <operator>Write</operator>
+    <sources>
+      <sourceProduct refid="Terrain-Flattening"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <file>$output_tf</file>
+      <formatName>BEAM-DIMAP</formatName>
+    </parameters>
+  </node>
+  <applicationData id="Presentation">
+    <Description/>
+    <node id="Read">			
+            			<displayPosition x="143.0" y="28.0"/>
+    </node>
+    <node id="Terrain-Flattening">			
+            			<displayPosition x="232.0" y="76.0"/>
+    </node>
+    <node id="Write">			
+            			<displayPosition x="605.0" y="289.0"/>
+    </node>
+  </applicationData>
+</graph>

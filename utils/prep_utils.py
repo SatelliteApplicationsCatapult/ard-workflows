@@ -26,18 +26,18 @@ from rasterio.shutil import copy
 import numpy as np
 
 
-def to_cog(input_file, output_file):
+def to_cog(input_file, output_file, nodata=0):
     if os.path.exists(input_file):
         # ensure output cog doesn't already exist
         if not os.path.exists(output_file):
-            conv_sgl_cog(input_file, output_file)
+            conv_sgl_cog(input_file, output_file, nodata=nodata)
         else:
             logging.info(f'cog already exists: {output_file}')
     else:
         logging.warning(f'cannot find product: {input_file}')
 
 
-def conv_sgl_cog(in_path, out_path):
+def conv_sgl_cog(in_path, out_path, nodata=0):
     # set default cog profile (as recommended by alex leith)
     cog_profile = {
         'driver': 'GTiff',
@@ -61,7 +61,7 @@ def conv_sgl_cog(in_path, out_path):
     ds = gdal.Open(in_path, gdal.GA_Update)
     if ds is not None:
         b = ds.GetRasterBand(1)
-        b.SetNoDataValue(0)
+        b.SetNoDataValue(nodata)
         b.FlushCache()
         b = None
         ds = None
@@ -97,7 +97,7 @@ def setup_logging():
     return root
 
 
-def run_snap_command(command):
+def run_snap_command(command, timeout =  60*45):
     """
     Run a snap command. Internal use.
 
@@ -119,7 +119,7 @@ def run_snap_command(command):
     logging.debug(f"running {full_command}")
 
     process = subprocess.Popen(full_command, env=base_env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
+    process.timeout = timeout
     snap_logger_out = logging.getLogger("snap_stdout")
     snap_logger_err = logging.getLogger("snap_stderr")
     std_out_reader = AsynchronousFileReader(process.stdout)
@@ -132,13 +132,15 @@ def run_snap_command(command):
         while not std_err_reader.queue.empty():
             line = std_err_reader.queue.get().decode()
             snap_logger_err.info("stderr:" + line.rstrip('\n'))
+    try:
+        while process.poll() is None:
+            pass_logging()
 
-    while process.poll() is None:
-        pass_logging()
-
-    std_out_reader.join()
-    std_err_reader.join()
-
+        std_out_reader.join()
+        std_err_reader.join()
+    except subprocess.TimeoutExpired as e :
+        logging.error(f"IGNORING subprocess timeout running {command}")
+        return
     if process.returncode != 0:
         raise Exception("Snap returned non zero exit status")
 
@@ -236,7 +238,7 @@ def get_geometry(path):
         def transform(p):
             # GDAL 3 swapped the parameters around here. 
             # https://github.com/OSGeo/gdal/issues/1546
-            lat, lon, z = t.TransformPoint(p['x'], p['y'])
+            lon, lat, z = t.TransformPoint(p['x'], p['y'])
             return {'lon': lon, 'lat': lat}
 
         extent = {key: transform(p) for key, p in corners.items()}
@@ -257,6 +259,8 @@ def create_yaml(scene_dir, metadata):
     """
     Create yaml for single scene directory containing cogs.
     """
+    if scene_dir[-1] != '/':
+        scene_dir = scene_dir + '/'
     yaml_path = str(scene_dir + 'datacube-metadata.yaml')
 
     # not sure why default_flow_style is now required - strange...
@@ -281,20 +285,19 @@ def s3_create_client(s3_bucket):
         secret,
     )
 
-    endpoint = os.getenv("AWS_S3_ENDPOINT")
+    endpoint_url = os.getenv("AWS_S3_ENDPOINT_URL")
 
-    if endpoint is not None:
-        endpoint_url=f"http://{endpoint}"
+    if endpoint_url is not None:
         logging.debug('Endpoint URL: {}'.format(endpoint_url))
 
-    if endpoint is not None:
+    if endpoint_url is not None:
         s3 = session.resource('s3', endpoint_url=endpoint_url)
     else:
         s3 = session.resource('s3', region_name='eu-west-2')
 
     bucket = s3.Bucket(s3_bucket)
 
-    if endpoint is not None:
+    if endpoint_url is not None:
         s3_client = boto3.client(
             's3',
             aws_access_key_id=access,
