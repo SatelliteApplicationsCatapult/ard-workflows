@@ -259,15 +259,18 @@ def sen2cor_correction(sen2cor, in_dir, out_dir):
     :param out_dir: output dir in which to create a .SAFE L2A product dir
     :return: 
     """
-    cmd = '{} {} --output_dir {}'.format(sen2cor, in_dir, out_dir)
-    logging.debug(cmd)
-    p = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
-    out = p.stdout.read()
-    logging.debug(out)
+#     cmd = '{} {} --output_dir {}'.format(sen2cor, in_dir, out_dir)
+#     logging.debug(cmd)
+#     p = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
+#     out = p.stdout.read()
+#     logging.debug(out)
 
     try:
-        l2a_dir = glob.glob(in_dir.replace('_MSIL1C', '_MSIL2A')[:-39] + '*')[0] + '/'
-        os.rename(l2a_dir, in_dir.replace('_MSIL1C_', '_MSIL2A_'))
+#         print(f'ERROR HERE: {in_dir}')
+#         print(f"ERROR HERE: {in_dir.replace('_MSIL1C', '_MSIL2A')[:-39]}")
+#         print(f"ERROR HERE: {glob.glob(out_dir + '*L2A*')}")
+        l2a_dir = glob.glob(out_dir + '*L2A*')[0] + '/'
+#         os.rename(l2a_dir, in_dir.replace('_MSIL1C_', '_MSIL2A_'))
     except Exception as e:
         raise Exception(out, e)
 
@@ -402,6 +405,9 @@ def prepareS2(in_scene, s3_bucket='cs-odc-data', s3_dir='fiji/Sentinel_2_test/',
     # shorten scene name
     scene_name = in_scene[:-21]
     scene_name = scene_name[:-17] + scene_name.split('_')[-1]
+    if '_MSIL1C_' in in_scene:
+        scene_name = scene_name.replace('_MSIL1C_','_MSIL2A_')
+    print(scene_name)
 
     sen2cor8 = os.environ.get("SEN2COR_8")
 
@@ -410,9 +416,9 @@ def prepareS2(in_scene, s3_bucket='cs-odc-data', s3_dir='fiji/Sentinel_2_test/',
     os.makedirs(inter_dir, exist_ok=True)
     # sub-dirs used only for accessing tmp files
     down_dir = inter_dir + in_scene + '/'
+    os.makedirs(inter_dir, exist_ok=True)
     cog_dir = inter_dir + scene_name + '/'
     os.makedirs(cog_dir, exist_ok=True)
-    l2a_dir = inter_dir + '/'
 
     root = setup_logging()
 
@@ -423,7 +429,8 @@ def prepareS2(in_scene, s3_bucket='cs-odc-data', s3_dir='fiji/Sentinel_2_test/',
         # DOWNLOAD
         try:
             root.info(f"{in_scene} {scene_name} DOWNLOADING via GCloud")
-            download_s2_granule_gcloud(in_scene, inter_dir)
+            download_s2_granule_gcloud(in_scene, down_dir)
+#             raise Exception('skipping gcloud for testing')
             root.info(f"{in_scene} {scene_name} DOWNLOADED via GCloud")
         except:
             root.exception(f"{in_scene} {scene_name} UNAVAILABLE via GCloud, try ESA")
@@ -431,17 +438,19 @@ def prepareS2(in_scene, s3_bucket='cs-odc-data', s3_dir='fiji/Sentinel_2_test/',
                 s2id = find_s2_uuid(in_scene)
                 logging.debug(s2id)
                 root.info(f"{in_scene} {scene_name} AVAILABLE via ESA")
-                download_extract_s2_esa(s2id, inter_dir, down_dir)
+#                 download_extract_s2_esa(s2id, inter_dir, down_dir)
                 root.info(f"{in_scene} {scene_name} DOWNLOADED via ESA")
             except Exception as e:
                 root.exception(f"{in_scene} {scene_name} UNAVAILABLE via ESA too")
                 raise Exception('Download Error ESA', e)
 
         # [CREATE L2A WITHIN TEMP DIRECTORY]
-        if (scene_name.split('_')[1] == 'MSIL1C') & (prodlevel == 'L2A'):
+        if ('MSIL1C' in in_scene) & (prodlevel == 'L2A'):
             root.info(f"{in_scene} {scene_name} Sen2Cor Processing")
             try:
-                sen2cor_correction(sen2cor8, down_dir, l2a_dir)
+                sen2cor_correction(sen2cor8, down_dir, inter_dir)
+                l2a_dir = glob.glob(inter_dir + '*L2A*')[0] + '/'
+                down_dir = l2a_dir
                 root.info(f"{in_scene} {scene_name} Sen2Cor COMPLETE")
             except Exception as e:
                 root.exception(f"{in_scene} {scene_name} sen2cor FAILED")
@@ -486,7 +495,7 @@ def prepareS2(in_scene, s3_bucket='cs-odc-data', s3_dir='fiji/Sentinel_2_test/',
 
     except Exception as e:
         logging.error(f"could not process {scene_name}, {e}", )
-        clean_up(inter_dir)
+#         clean_up(inter_dir)
 
 
 if __name__ == '__main__':

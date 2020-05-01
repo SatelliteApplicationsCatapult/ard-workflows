@@ -1,0 +1,16 @@
+version: "3"
+
+services:
+  arddev:
+    build: .
+    environment:
+      - LOGLEVEL=ERROR
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_S3_ENDPOINT=${AWS_S3_ENDPOINT}
+      - COPERNICUS_USERNAME=${COPERNICUS_USERNAME}
+      - COPERNICUS_PWD=${COPERNICUS_PWD}
+    ports:
+      - "8887:8887"
+    volumes:
+      - ../../../:/home/dataprep
