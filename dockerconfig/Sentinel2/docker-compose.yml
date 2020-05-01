@@ -11,6 +11,6 @@ services:
       - COPERNICUS_USERNAME=${COPERNICUS_USERNAME}
       - COPERNICUS_PWD=${COPERNICUS_PWD}
     ports:
-      - "8887:8887"
+      - "8888:8888"
     volumes:
       - ../../../:/home/dataprep

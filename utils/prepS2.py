@@ -259,18 +259,15 @@ def sen2cor_correction(sen2cor, in_dir, out_dir):
     :param out_dir: output dir in which to create a .SAFE L2A product dir
     :return: 
     """
-#     cmd = '{} {} --output_dir {}'.format(sen2cor, in_dir, out_dir)
-#     logging.debug(cmd)
-#     p = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
-#     out = p.stdout.read()
-#     logging.debug(out)
+    cmd = '{} {} --output_dir {}'.format(sen2cor, in_dir, out_dir)
+    logging.debug(cmd)
+    p = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
+    out = p.stdout.read()
+    logging.debug(out)
 
     try:
-#         print(f'ERROR HERE: {in_dir}')
-#         print(f"ERROR HERE: {in_dir.replace('_MSIL1C', '_MSIL2A')[:-39]}")
-#         print(f"ERROR HERE: {glob.glob(out_dir + '*L2A*')}")
         l2a_dir = glob.glob(out_dir + '*L2A*')[0] + '/'
-#         os.rename(l2a_dir, in_dir.replace('_MSIL1C_', '_MSIL2A_'))
+        print(l2a_dir)
     except Exception as e:
         raise Exception(out, e)
 
@@ -407,7 +404,6 @@ def prepareS2(in_scene, s3_bucket='cs-odc-data', s3_dir='fiji/Sentinel_2_test/',
     scene_name = scene_name[:-17] + scene_name.split('_')[-1]
     if '_MSIL1C_' in in_scene:
         scene_name = scene_name.replace('_MSIL1C_','_MSIL2A_')
-    print(scene_name)
 
     sen2cor8 = os.environ.get("SEN2COR_8")
 
@@ -429,8 +425,9 @@ def prepareS2(in_scene, s3_bucket='cs-odc-data', s3_dir='fiji/Sentinel_2_test/',
         # DOWNLOAD
         try:
             root.info(f"{in_scene} {scene_name} DOWNLOADING via GCloud")
-            download_s2_granule_gcloud(in_scene, down_dir)
-#             raise Exception('skipping gcloud for testing')
+#             download_s2_granule_gcloud(in_scene, down_dir)
+            raise Exception('skipping gcloud for testing')
+
             root.info(f"{in_scene} {scene_name} DOWNLOADED via GCloud")
         except:
             root.exception(f"{in_scene} {scene_name} UNAVAILABLE via GCloud, try ESA")
@@ -438,7 +435,7 @@ def prepareS2(in_scene, s3_bucket='cs-odc-data', s3_dir='fiji/Sentinel_2_test/',
                 s2id = find_s2_uuid(in_scene)
                 logging.debug(s2id)
                 root.info(f"{in_scene} {scene_name} AVAILABLE via ESA")
-#                 download_extract_s2_esa(s2id, inter_dir, down_dir)
+                download_extract_s2_esa(s2id, inter_dir, down_dir)
                 root.info(f"{in_scene} {scene_name} DOWNLOADED via ESA")
             except Exception as e:
                 root.exception(f"{in_scene} {scene_name} UNAVAILABLE via ESA too")
@@ -447,6 +444,7 @@ def prepareS2(in_scene, s3_bucket='cs-odc-data', s3_dir='fiji/Sentinel_2_test/',
         # [CREATE L2A WITHIN TEMP DIRECTORY]
         if ('MSIL1C' in in_scene) & (prodlevel == 'L2A'):
             root.info(f"{in_scene} {scene_name} Sen2Cor Processing")
+            print('sen2cor')
             try:
                 sen2cor_correction(sen2cor8, down_dir, inter_dir)
                 l2a_dir = glob.glob(inter_dir + '*L2A*')[0] + '/'

@@ -45,4 +45,4 @@ RUN conda install --quiet --yes --freeze-installed \
 
 RUN pip install jupyter -U && pip install jupyterlab
 
-ENTRYPOINT ["jupyter", "lab","--ip=0.0.0.0","--port=8887","--allow-root","--NotebookApp.token=pwd"]
+ENTRYPOINT ["jupyter", "lab","--ip=0.0.0.0","--port=8888","--allow-root","--NotebookApp.token=pwd"]

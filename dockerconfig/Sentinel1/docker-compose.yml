@@ -17,6 +17,6 @@ services:
       - S1_PROCESS_P4A=${S1_PROCESS_P4A}
       - SNAP_GPT=${SNAP_GPT}
     ports:
-      - "8887:8887"
+      - "8886:8886"
     volumes:
       - ../../../:/home/dataprep
