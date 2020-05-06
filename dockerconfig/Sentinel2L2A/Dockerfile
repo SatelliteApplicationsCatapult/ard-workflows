@@ -19,16 +19,10 @@ RUN conda install --quiet --yes --freeze-installed \
     && find /opt/conda/ -follow -type f -name '*.js.map' -delete
 
 RUN pip install --no-cache-dir \
+    google-cloud-storage \
     asynchronousfilereader \
     redis \
-	sentinelsat
-
-RUN wget --quiet http://step.esa.int/downloads/7.0/installers/esa-snap_sentinel_unix_7_0.sh \
-    && /bin/sh ./esa-snap_sentinel_unix_7_0.sh -q \
-    && rm ./esa-snap_sentinel_unix_7_0.sh \
-    && /opt/snap/bin/snap --nosplash --nogui --modules --update-all
-
-COPY gpt.vmoptions /opt/snap/bin/gpt.vmoptions
+    sentinelsat
 
 # ------------------------------------------
 
@@ -42,4 +36,4 @@ RUN conda install --quiet --yes --freeze-installed \
 
 RUN pip install jupyter -U && pip install jupyterlab
 
-ENTRYPOINT ["jupyter", "lab","--ip=0.0.0.0","--port=8886","--allow-root","--NotebookApp.token=pwd"]
+ENTRYPOINT ["jupyter", "lab","--ip=0.0.0.0","--port=8885","--allow-root","--NotebookApp.token=pwd"]

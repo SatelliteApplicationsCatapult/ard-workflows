@@ -7,6 +7,7 @@ services:
       - LOGLEVEL=ERROR
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_S3_ENDPOINT_URL=${AWS_S3_ENDPOINT_URL}
       - ASF_USERNAME=${ASF_USERNAME}
       - ASF_PWD=${ASF_PWD}
       - COPERNICUS_USERNAME=${COPERNICUS_USERNAME}
@@ -19,4 +20,5 @@ services:
     ports:
       - "8886:8886"
     volumes:
-      - ../../../:/home/dataprep
+      - ../../../data:/tmp/data
+      - ../../../ard-workflows:/opt/notebooks
