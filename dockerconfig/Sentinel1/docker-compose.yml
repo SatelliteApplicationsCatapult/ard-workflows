@@ -8,14 +8,17 @@ services:
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
       - AWS_S3_ENDPOINT_URL=${AWS_S3_ENDPOINT_URL}
-      - COPERNICUS_USERNAME=${COPERNICUS_USERNAME}
-      - COPERNICUS_PWD=${COPERNICUS_PWD}
       - ASF_USERNAME=${ASF_USERNAME}
       - ASF_PWD=${ASF_PWD}
-      - USGS_USERNAME=${USGS_USERNAME}
-      - USGS_PWD=${USGS_PWD}
+      - COPERNICUS_USERNAME=${COPERNICUS_USERNAME}
+      - COPERNICUS_PWD=${COPERNICUS_PWD}
+      - S1_PROCESS_P1A=${S1_PROCESS_P1A}
+      - S1_PROCESS_P2A=${S1_PROCESS_P2A}
+      - S1_PROCESS_P3A=${S1_PROCESS_P3A}
+      - S1_PROCESS_P4A=${S1_PROCESS_P4A}
+      - SNAP_GPT=${SNAP_GPT}
     ports:
-      - "8889:8889"
+      - "8886:8886"
     volumes:
       - ../../../data:/tmp/data
       - ../../../ard-workflows:/opt/notebooks
