@@ -269,9 +269,10 @@ def sen2cor_correction(sen2cor, in_dir, out_dir):
     logging.info(out)
 
     try:
-        l2a_dir = glob.glob(out_dir + '*L2A*')[0] + '/'
-        print(l2a_dir)
+        l2a_dir = glob.glob(out_dir + '*L2A*.SAFE*')[0] + '/'
+        logging.info(f"Found L2A directory: {l2a_dir}")
     except Exception as e:
+        logging.exception(f"Could not find L2A directory within the temp folder: {out_dir}")
         raise Exception(out, e)
 
 
@@ -448,7 +449,7 @@ def prepareS2(in_scene, s3_bucket='cs-odc-data', s3_dir='fiji/Sentinel_2_test/',
             root.info(f"{in_scene} {scene_name} Sen2Cor Processing")
             try:
                 sen2cor_correction(sen2cor8, down_dir, inter_dir)
-                l2a_dir = glob.glob(inter_dir + '*L2A*')[0] + '/'
+                l2a_dir = glob.glob(inter_dir + '*L2A*.SAFE*')[0] + '/'
                 down_dir = l2a_dir
                 root.info(f"{in_scene} {scene_name} Sen2Cor COMPLETE")
             except Exception as e:
