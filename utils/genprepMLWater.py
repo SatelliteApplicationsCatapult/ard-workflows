@@ -23,24 +23,59 @@ import rasterio.features
 import gdal
 import gc
 import traceback
+import requests
+import rioxarray as rxr
 
 # ml stuff
 from sklearn_xarray import wrap
 from sklearn.ensemble import RandomForestClassifier
 
-from . prep_utils import s3_list_objects, s3_download, s3_upload_cogs, create_yaml, cog_translate, get_geometry
+from . prep_utils import *
 from . dc_import_export import export_xarray_to_geotiff
 
 
-def resamp_bands(xr, xrs):
-    if xr.attrs['res'] == xrs[0].attrs['res']:
-        return xr
-    else:
-        return xr.interp(x=xrs[0]['x'], y=xrs[0]['y'], method='nearest') # nearest as exclusively upsampling
+
+def stream_yml(s3_bucket, s3_path):
+    return yaml.safe_load(requests.get(f"{os.getenv('AWS_S3_ENDPOINT_URL')}/{s3_bucket}/{s3_path}").text)
+
+def get_ref_channel(prod):
+    if ('LANDSAT' in prod) | ('SENTINEL_2' in prod): return 'swir1'
+    elif 'SENTINEL_1' in prod: return 'vv'
     
+def get_qa_channel(prod):
+    if 'LANDSAT' in prod: return 'pixel_qa'
+    elif 'SENTINEL_2' in prod: return 'scene_classification'
+    elif 'SENTINEL_1' in prod: return 'layovershadow_mask'
+
+def get_remote_band_paths(s3_bucket, yml_paths, band_nms):
+    paths, bands = [], []
+    for yml_path in yml_paths:
+        yml = stream_yml(s3_bucket, yml_path)
+        for band_nm in band_nms:
+            try:
+                paths.append(f"{os.getenv('AWS_S3_ENDPOINT_URL')}/{s3_bucket}/{'/'.join(yml_path.split('/')[:-1])}/{yml['image']['bands'][band_nm]['path']}")
+                bands.append(band_nm)
+            except:
+                pass
+    return paths, bands
+
+def load_bands(band_paths, lvl=None):
+    dask_chunks = dict(x = 2000, y = 2000)
+    return [rxr.open_rasterio(band, chunks=dask_chunks, masked=True, sharing=True) for band in band_paths]
+
 def rename_bands(in_xr, des_bands, position):
     in_xr.name = des_bands[position]
     return in_xr
+
+def load_img(bands_data, band_nms):
+    """ assumes first band is ref"""
+    atts = bands_data[0].attrs
+    bands_data = [ rename_bands(band_data, band_nms, i) for i,band_data in enumerate(bands_data) ] # rename
+    bands_data = [ bands_data[i].rio.reproject_match(bands_data[0]) for i in range(len(band_nms)) ] # repro+resample+extent
+    bands_data = [ xr.align(bands_data[0], bands_data[i], join="override")[1] for i in range(len(band_nms)) ] # force align
+    bands_data = xr.merge(bands_data).rename({'band': 'time'}).isel(time = 0).drop(['time']) # ensure band names & dims consistent
+    bands_data = bands_data.assign_attrs(atts)
+    return bands_data
 
 def get_valid(ds, prod):
     # Identify pixels with valid data
@@ -75,23 +110,13 @@ def get_valid(ds, prod):
         )
     elif 'WOFS_SUMMARY' in prod:
         good_quality = (
-            (ds >= 0)
+            (ds.pc >= 0)
         )
     elif 'SENTINEL_1' in prod:
         good_quality = (
             (ds.vv != 0)
         )
     return good_quality
-
-def get_ref_channel(prod):
-    if ('LANDSAT' in prod) | ('SENTINEL_2' in prod): return 'swir1'
-    elif 'SENTINEL_1' in prod: return 'vv'
-    
-def get_qa_channel(prod):
-    if 'LANDSAT' in prod: return 'pixel_qa'
-    elif 'SENTINEL_2' in prod: return 'scene_classification'
-    elif 'SENTINEL_1' in prod: return 'layovershadow_mask'
-    
 
 def band_name_water(prod_path):
     """
@@ -178,37 +203,20 @@ def yaml_prep_water(scene_dir, original_yml):
     }
 
 
-def genprepmlwater(optical_yaml_path, summary_yaml_path, inter_dir='../data/', s3_bucket='public-eo-data', s3_dir='common_sensing/fiji/mlwater_test/',
+def genprepmlwater(img_yml_path, lab_yml_path, inter_dir='../data/', s3_bucket='public-eo-data', s3_dir='common_sensing/fiji/mlwater_test/',
             mask=None, output_crs=None):
     """
     optical_yaml_path: dc yml metadata of single image within S3 bucket
     summary_yaml_path: dc yml metadata of wofs-like summary product within S3 bucket
     """
 
-        
-    scene_name = os.path.dirname(optical_yaml_path).split('/')[-1]
+    scene_name = os.path.dirname(img_yml_path).split('/')[-1]
         
     inter_dir = f"{inter_dir}{scene_name}_tmp/"
     os.makedirs(inter_dir, exist_ok=True)
     cog_dir = f"{inter_dir}{scene_name}/"
     os.makedirs(cog_dir, exist_ok=True)
-    
-    
-    # Logging structure taken from - https://www.loggly.com/ultimate-guide/python-logging-basics/
-    log_file = inter_dir+'log_file.txt'
-    handler = logging.handlers.WatchedFileHandler(log_file)
-    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-    handler.setFormatter(formatter)
-    root = logging.getLogger()
-    root.setLevel(os.environ.get("LOGLEVEL", "DEBUG"))
-    root.addHandler(handler)
-    
-    root.info(f"{scene_name} Starting")
-        
-        
-    yml = f'{inter_dir}datacube-metadata.yaml'
-    yml_summary = f'{inter_dir}datacube-metadata_watersummary.yaml'
-        
+                    
     des_band_refs = {
         "LANDSAT_8": ['blue','green','red','nir','swir1','swir2','pixel_qa'],
         "LANDSAT_7": ['blue','green','red','nir','swir1','swir2','pixel_qa'],
@@ -218,116 +226,71 @@ def genprepmlwater(optical_yaml_path, summary_yaml_path, inter_dir='../data/', s
         "SENTINEL_1": ['vv','vh','layovershadow_mask'],
         "WOFS_SUMMARY": ['pc']}
 
+    root = setup_logging()
+
+    root.info(f"{scene_name} Starting")
+    
     try: 
 
         try:
-            root.info(f"{scene_name} Finding & Downloading Image yml & data")
-            if not os.path.exists(yml):
-                s3_download(s3_bucket, optical_yaml_path, yml)
-                with open (yml) as stream: yml_meta = yaml.safe_load(stream)
-                satellite = yml_meta['platform']['code'] # helper to generalise masking 
-                des_bands = des_band_refs[satellite]
-                print(satellite, des_bands)
-                band_paths_s3 = [os.path.dirname(optical_yaml_path)+'/'+yml_meta['image']['bands'][b]['path'] for b in des_bands ]
-                band_paths_local = [inter_dir+os.path.basename(i) for i in band_paths_s3]
-                for s3, loc in zip(band_paths_s3, band_paths_local): 
-                    if not os.path.exists(loc):
-                        s3_download(s3_bucket, s3, loc)
-            elif os.path.exists(yml):
-                with open (yml) as stream: yml_meta = yaml.safe_load(stream)
-                satellite = yml_meta['platform']['code'] # helper to generalise masking 
-                des_bands = des_band_refs[satellite]
-                print(satellite, des_bands)
-
-            # FIND & DOWNLOAD WATER SUMMARY DATA
-            root.info(f"{scene_name} Finding & Downloading Water Summary yml & data")
-            if not os.path.exists(yml_summary):
-                s3_download(s3_bucket, summary_yaml_path, yml_summary)
-                with open (yml_summary) as stream: yml_summary_meta = yaml.safe_load(stream)
-                summary = yml_summary_meta['platform']['code']
-                des_bands_summary = des_band_refs[summary]
-                band_paths_s3 = [os.path.dirname(summary_yaml_path)+'/'+yml_summary_meta['image']['bands'][b]['path'] for b in des_bands_summary ]
-                band_paths_local = [inter_dir+os.path.basename(i) for i in band_paths_s3]
-                for s3, loc in zip(band_paths_s3, band_paths_local): 
-                    if not os.path.exists(loc):
-                        s3_download(s3_bucket, s3, loc)
-            elif os.path.exists(yml_summary):
-                s3_download(s3_bucket, summary_yaml_path, yml_summary)
-                with open (yml_summary) as stream: yml_summary_meta = yaml.safe_load(stream)
-                summary = yml_summary_meta['platform']['code']
-                des_bands_summary = des_band_refs[summary]
-                band_paths_s3 = [os.path.dirname(summary_yaml_path)+'/'+yml_summary_meta['image']['bands'][b]['path'] for b in des_bands_summary ]
-                band_paths_local = [inter_dir+os.path.basename(i) for i in band_paths_s3]
-                for s3, loc in zip(band_paths_s3, band_paths_local): 
-                    if not os.path.exists(loc):
-                        s3_download(s3_bucket, s3, loc)                        
-            ref_channel = get_ref_channel(satellite)
-            qa_channel = get_qa_channel(satellite)
+            root.info(f"{scene_name} Finding & Streaming Image & Labels Yamls")
+            # get ymls directly
+            img_yml = stream_yml(s3_bucket, img_yml_path)
+            lab_yml = stream_yml(s3_bucket, lab_yml_path)
+            img_sat = img_yml['platform']['code']
+            lab_sat = lab_yml['platform']['code']
+            # need to know agnostic ref and qa bands plus all bands from all srcs
+            ref_channel = get_ref_channel(img_sat)
+            qa_channel = get_qa_channel(img_sat)
+            des_bands = des_band_refs[img_sat] + des_band_refs[lab_sat]
+            root.info(f"{scene_name} Found & access yamls")
         except:
             root.exception(f"{scene_name} Yaml or band files can't be found")
-            raise Exception('Download Error')
-            root.info(f"{scene_name} Found & Downloaded yml & data")
+            raise Exception('Streaming Error')
 
         try:
             root.info(f"{scene_name} Loading & Reformatting bands")
-            # LOAD & PREP IMAGE DATA
-            o_bands_data = [ xr.open_rasterio(inter_dir + yml_meta['image']['bands'][b]['path']) for b in des_bands ] # loading
-            o_bands_data = [ resamp_bands(i, o_bands_data) for i in o_bands_data ] # resamp 2 match band 1
-            bands_data = xr.merge([rename_bands(bd, des_bands, i) for i,bd in enumerate(o_bands_data)]).rename({'band': 'time'}) # ensure band names & dims consistent
-            bands_data = bands_data.assign_attrs(o_bands_data[0].attrs) # crs etc. needed later
-            bands_data['time'] = [datetime.strptime(yml_meta['extent']['center_dt'], '%Y-%m-%d %H:%M:%S')] # time dim needed for wofs
-            img_data = bands_data.isel(time = 0).drop(['time'])
+            # LOAD & PREP IMAGE & LABEL DATA
+            #### SHOULD BE LAZY    ####
+            # load all bands into same xr w/ same extent
+            paths, bands = get_remote_band_paths(s3_bucket,[img_yml_path,lab_yml_path],des_bands)
+            bands_data = load_bands(paths)
+            xr_data = load_img(bands_data, bands)
             bands_data = None
-            o_bands_data = None
-            # LOAD & PREP WATER SUMMARY DATA
-            o_bands_data = [ xr.open_rasterio(inter_dir + yml_summary_meta['image']['bands'][b]['path']) for b in des_bands_summary ] # loading
-            o_bands_data = [ resamp_bands(i, o_bands_data) for i in o_bands_data ]
-            sum_data = xr.merge([rename_bands(bd, des_bands_summary, i) for i,bd in enumerate(o_bands_data)]).rename({'band': 'time'}) # ensure band names & dims consistent
-            sum_data = sum_data.assign_attrs(o_bands_data[0].attrs) # crs etc. needed later
-            sum_data['time'] = [datetime.strptime(yml_summary_meta['extent']['center_dt'], '%Y-%m-%d %H:%M:%S')] # time dim needed for wofs
-            class_data = sum_data.isel(time = 0).drop(['time']).pc
-            sum_data = None
-            o_bands_data = None
+            #### SHOULD BE LAZY ^^ ####            
+            # catch s1 + scale + re-fromat dtype
+            if img_sat == 'SENTINEL_1':
+                att = xr_data.attrs
+                xr_data = xr_data*100
+                xr_data = xr_data.astype('uint16')
+                xr_data.attrs = att
+            else:
+                att = xr_data.attrs
+                xr_data = xr_data.astype('uint16')
+                xr_data.attrs = att
         except:
             root.exception(f"{scene_name} Band data not loaded properly")
             raise Exception('Data formatting error')
 
         try:
-            root.info(f"{scene_name} Reprojecting & alligning")
-            # REPROJECT & ALIGN CRS+DIMS
-            class_data = class_data.rio.reproject_match(img_data[ref_channel]) # repro + align grid
-            img_data, class_data = xr.align(img_data, class_data, join="override") # force alignment of x,y precision
-
-            if satellite == 'SENTINEL_1': # catch s1 and scall and re-fromat dtype
-                att = img_data.attrs
-                img_data = img_data*100
-                img_data = img_data.astype('int16')
-                img_data.attrs = att
-        except:
-            root.exception(f"{scene_name} Reprojecting & aligning failed")
-            raise Exception('Reprojection error')
-
-        try:
             root.info(f"{scene_name} Applying masks")
             # VALID REGION MASKS
-            clearskymask_img = get_valid(img_data, satellite) # img nd mask
-            clearskymask_class = get_valid(class_data, summary) # water nd mask
-            clearskymask_train = clearskymask_class.where(clearskymask_class == False, False) # empty mask
-            clearskymask_train = clearskymask_train.where((clearskymask_img == False) | (clearskymask_class == False), True) # inner true mask
-
+            validmask_img = get_valid(xr_data, img_sat) # img nd mask
+            validmask_lab = get_valid(xr_data, lab_sat) # water nd mask
+            validmask_train = validmask_img*validmask_lab # inner true mask
+            
             # ASSIGN WATER/NON WATER CLASS LABELS
-            water_thresh = 50 # 50% persistence in annual summary
-            class_data = class_data.where((class_data < water_thresh) | (clearskymask_class == False), 100) # fix > prob to water
-            class_data = class_data.where((class_data >= water_thresh) | (clearskymask_class == False), 0) # fix < prob to no water 
+            water_thresh = 50 # 50% persistence in summary
+            xr_data['pc'] = xr_data.pc.where((xr_data.pc < water_thresh) | (validmask_lab == False), 100) # fix > prob to water
+            xr_data['waterclass'] = xr_data.pc.where((xr_data.pc >= water_thresh) | (validmask_lab == False), 0) # fix < prob to no water 
+            xr_data = xr_data.drop(['pc'])
         
             # MASK TO TRAINING SAMPLES W/ IMPUTED ND
-            train_data = img_data # dup as use img 4 implementation later
-            train_data['waterclass'] = class_data # add channel for water mask
-            train_data = train_data.where(clearskymask_train == True, -9999).drop([qa_channel]) # apply inner mask
+            train_data = xr_data # dup as use img 4 implementation later
+            train_data = train_data.where(validmask_train == True, -9999).drop([qa_channel]) # apply inner mask
 
             unique, counts = np.unique(train_data.waterclass, return_counts=True)
             if (counts[0] < 500) | (counts[1] < 5000):
-                root.exception(f'no class labels should be >5000 for ok classifier. no. training class samples: {counts[0]}{counts[1]}')
                 raise Exception(f'no class labels should be >5000 for ok classifier. no. training class samples: {counts[0]}{counts[1]}')
         except:
             root.exception(f"{scene_name} Masks not applied")
@@ -338,8 +301,9 @@ def genprepmlwater(optical_yaml_path, summary_yaml_path, inter_dir='../data/', s
             # SPEC & TRAIN MODEL
             Y = train_data.waterclass.stack(z=['x','y']) # stack into 1-d arr
             X = train_data.drop(['waterclass']).stack(z=['x','y']).to_array().transpose() # stack into transposed 2-d arr
+
             # very shallow classifier - this is a super easy problem & we want it to be fast
-            wrapper = wrap(RandomForestClassifier(n_estimators=2, 
+            wrapper = wrap(RandomForestClassifier(n_estimators=4, 
                                            bootstrap = True,
                                            max_features = 'sqrt',
                                            max_depth=5,
@@ -354,15 +318,14 @@ def genprepmlwater(optical_yaml_path, summary_yaml_path, inter_dir='../data/', s
         try:
             root.info(f"{scene_name} Prediction")
             # MASK TO FULL VALID IMAGE FOR IMPLEMENTATION
-            img_data = img_data.drop([qa_channel,'waterclass']) # not sure how these ended up in here(?)
-            img_data = img_data.where(clearskymask_img == True, -9999) # apply just the img mask this time
+            xr_data = xr_data.drop([qa_channel,'waterclass']) # not sure how these ended up in here(?)
+            xr_data = xr_data.where(validmask_img == True, -9999) # apply just the img mask this time
 
             # PREDICT + ASSIGN CONFIDENCE
-            X = img_data.stack(z=['x','y']).to_array().transpose() # stack into transposed 2-d arr
-
+            X = xr_data.stack(z=['x','y']).to_array().transpose() # stack into transposed 2-d arr
             pred = wrapper.estimator.predict(X) # gen class predictions
-            pred[pred==100] = 1 # refactor water from 100 to 1
-            prob = wrapper.estimator.predict_proba(X)[:,2]*100 # gen confidence in assigned labels as int
+            pred[pred==100] = 1
+            prob = wrapper.estimator.predict_proba(X)[:,1]*100 # gen confidence in assigned labels as int
 
             # RESHAPE OUTPUTS INTO IMAGE
             vars_0 = [i for i in X.transpose().to_dataset(dim='variable').data_vars] # get list of vars within img
@@ -370,8 +333,9 @@ def genprepmlwater(optical_yaml_path, summary_yaml_path, inter_dir='../data/', s
             X_t[vars_0[0]].data = pred # add class predictions as first channel
             X_t[vars_0[1]].data = prob # add confidence as second channel
             X_t = X_t.rename({vars_0[0]:'water_mask',vars_0[1]:'water_prob'}).drop(vars_0[2:]).unstack('z').transpose().astype('int16') # rename + drop vars + unstack xy dims back to 3-d xrds + transpose predictions back into correct orientation
-            X_t = X_t.where(clearskymask_img,-9999) # ensure probs rm 4 nd regions
-            X_t.attrs = img_data.attrs
+            X_t = X_t.where(validmask_img,-9999) # ensure probs rm 4 nd regions
+            X_t.attrs = xr_data.attrs
+            X_t.attrs['crs'] = xr_data.rio.crs
         except:
             root.exception(f"{scene_name} Prediction or re-shaping failed")
             raise Exception('Prediction error')
@@ -383,7 +347,8 @@ def genprepmlwater(optical_yaml_path, summary_yaml_path, inter_dir='../data/', s
             os.makedirs(inter_prodir, exist_ok=True)
             out_mask_prod = inter_prodir + scene_name + '_watermask.tif'
             out_prob_prod = inter_prodir + scene_name + '_waterprob.tif'
-            output_crs = f"EPSG:{X_t.attrs['crs'].split(':')[-1]}"
+            output_crs = xr_data.rio.crs
+
             export_xarray_to_geotiff(X_t, out_mask_prod, bands=['water_mask'], crs=output_crs, x_coord='x', y_coord='y', no_data=-9999)
             export_xarray_to_geotiff(X_t, out_prob_prod, bands=['water_prob'], crs=output_crs, x_coord='x', y_coord='y', no_data=-9999)
         except:
@@ -393,7 +358,7 @@ def genprepmlwater(optical_yaml_path, summary_yaml_path, inter_dir='../data/', s
         try:
             root.info(f"{scene_name} Creating yaml")
             # CREATE YML
-            create_yaml(inter_prodir, yaml_prep_water(inter_prodir, yml_meta)) # assumes majority of meta copied from original product yml
+            create_yaml(inter_prodir, yaml_prep_water(inter_prodir, img_yml)) # assumes majority of meta copied from original product yml
         except:
             root.exception(f"{scene_name} yam not created")
             raise Exception('Yaml error')
@@ -405,63 +370,54 @@ def genprepmlwater(optical_yaml_path, summary_yaml_path, inter_dir='../data/', s
         except:
             root.exception(f"{scene_name} Upload to S3 Failed")
             raise Exception('S3  upload error')
-
-        root.removeHandler(handler)
-        handler.close()
             
-        class_data = None
+        xr_data = None
         att = None
         img_data = None
-        clearskymask_img = None
-        clearskymask_class = None
-        clearskymask_train = None
+        validmask_img = None
+        validmask_lab = None
+        validmask_train = None
         class_data = None
         train_data = None
         wrapperper = None
-        X = None     
+        wrapper = None
+        X = None
         Y = None
         pred = None
         prob = None
         vars_0 = None
         X_t = None
 
-#         # Tidy up log file to ensure upload
-#         shutil.move(log_file, inter_prodir + 'log_file.txt')
-#         s3_upload_cogs(glob.glob(inter_prodir + '*log_file.txt'), s3_bucket, s3_dir)
-        
-        shutil.rmtree(inter_dir)
-        gc.collect()
-
-
+        clean_up(inter_dir)
         print('not boo')
 
     except Exception as e:
-        print(e)
-        traceback.print_exc()
+        logging.error(f"could not process {scene_name}, {e}", )
 
-        class_data = None
+        xr_data = None
         att = None
         img_data = None
-        clearskymask_img = None
-        clearskymask_class = None
-        clearskymask_train = None
+        validmask_img = None
+        validmask_lab = None
+        validmask_train = None
         class_data = None
         train_data = None
         wrapperper = None
-        X = None     
+        wrapper = None
+        X = None
         Y = None
         pred = None
         prob = None
         vars_0 = None
         X_t = None
 
-#         # Tidy up log file to ensure upload
-#         shutil.move(log_file, inter_prodir + 'log_file.txt')
-#         s3_upload_cogs(glob.glob(inter_prodir + '*log_file.txt'), s3_bucket, s3_dir)
-        
-        shutil.rmtree(inter_dir)
-        gc.collect()
+        clean_up(inter_dir)
         print('boo')
 
         
-    
+if __name__ == '__main__':
+
+    genprepmlwater(
+        "common_sensing/fiji/landsat_8/LC08_L1TP_074072_20190129/datacube-metadata.yaml",
+        "common_sensing/fiji/wofs_summary/wofssummary_20130101_20140101/datacube-metadata.yaml"
+    )
