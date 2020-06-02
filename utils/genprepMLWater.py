@@ -203,8 +203,10 @@ def yaml_prep_water(scene_dir, original_yml):
     }
 
 
-def genprepmlwater(img_yml_path, lab_yml_path, inter_dir='../data/', s3_bucket='public-eo-data', s3_dir='common_sensing/fiji/mlwater_test/',
-            mask=None, output_crs=None):
+def genprepmlwater(img_yml_path, lab_yml_path,
+                   inter_dir='../tmp/data/intermediate/',
+                   s3_bucket='public-eo-data',
+                   s3_dir='common_sensing/fiji/mlwater_test/'):
     """
     optical_yaml_path: dc yml metadata of single image within S3 bucket
     summary_yaml_path: dc yml metadata of wofs-like summary product within S3 bucket
