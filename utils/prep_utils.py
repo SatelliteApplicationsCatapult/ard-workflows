@@ -24,6 +24,7 @@ from rasterio.env import GDALVersion
 from rasterio.io import MemoryFile
 from rasterio.shutil import copy
 import numpy as np
+import gc
 
 
 def to_cog(input_file, output_file, nodata=0):
@@ -73,6 +74,7 @@ def conv_sgl_cog(in_path, out_path, nodata=0):
 
 def clean_up(work_dir):
     # TODO: sort out logging changes...
+    gc.collect()
     shutil.rmtree(work_dir)
     pass
 

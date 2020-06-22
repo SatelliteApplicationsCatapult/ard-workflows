@@ -225,6 +225,7 @@ def genprepmlwater(img_yml_path, lab_yml_path,
         "LANDSAT_5": ['blue','green','red','nir','swir1','swir2','pixel_qa'],
         "LANDSAT_4": ['blue','green','red','nir','swir1','swir2','pixel_qa'],
         "SENTINEL_2": ['blue','green','red','nir','swir1','swir2','scene_classification'],
+#         "SENTINEL_2": ['blue','red','nir','swir1','scene_classification'],
         "SENTINEL_1": ['vv','vh','layovershadow_mask'],
         "WOFS_SUMMARY": ['pc']}
 
@@ -289,8 +290,12 @@ def genprepmlwater(img_yml_path, lab_yml_path,
         
             # MASK TO TRAINING SAMPLES W/ IMPUTED ND
             train_data = xr_data # dup as use img 4 implementation later
-            train_data = train_data.where(validmask_train == True, -9999).drop([qa_channel]) # apply inner mask
-
+            ### TO DO: ADD AMENDMENT FOR SINGLE POL S1 THAT HAS NO qa_channel ### attempt1 below & propogated
+            try:
+                train_data = train_data.where(validmask_train == True, -9999).drop([qa_channel]) # apply inner mask
+            except:
+                train_data = train_data.where(validmask_train == True, -9999) # apply inner mask
+                
             unique, counts = np.unique(train_data.waterclass, return_counts=True)
             if (counts[0] < 500) | (counts[1] < 5000):
                 raise Exception(f'no class labels should be >5000 for ok classifier. no. training class samples: {counts[0]}{counts[1]}')
@@ -320,7 +325,10 @@ def genprepmlwater(img_yml_path, lab_yml_path,
         try:
             root.info(f"{scene_name} Prediction")
             # MASK TO FULL VALID IMAGE FOR IMPLEMENTATION
-            xr_data = xr_data.drop([qa_channel,'waterclass']) # not sure how these ended up in here(?)
+            try:
+                xr_data = xr_data.drop([qa_channel,'waterclass']) # not sure how these ended up in here(?)
+            except:
+                xr_data = xr_data.drop(['waterclass']) # not sure how these ended up in here(?)                
             xr_data = xr_data.where(validmask_img == True, -9999) # apply just the img mask this time
 
             # PREDICT + ASSIGN CONFIDENCE
@@ -333,6 +341,9 @@ def genprepmlwater(img_yml_path, lab_yml_path,
             vars_0 = [i for i in X.transpose().to_dataset(dim='variable').data_vars] # get list of vars within img
             X_t = X.transpose().to_dataset(dim='variable') # recreate xrds (but no unstacking yet as need to drop in model outputs)
             X_t[vars_0[0]].data = pred # add class predictions as first channel
+            if len(vars_0) == 1: # catch any single var images (i.e. single pol)
+                vars_0.append('dummy1')
+                X_t[vars_0[1]] = X_t[vars_0[0]]
             X_t[vars_0[1]].data = prob # add confidence as second channel
             X_t = X_t.rename({vars_0[0]:'water_mask',vars_0[1]:'water_prob'}).drop(vars_0[2:]).unstack('z').transpose().astype('int16') # rename + drop vars + unstack xy dims back to 3-d xrds + transpose predictions back into correct orientation
             X_t = X_t.where(validmask_img,-9999) # ensure probs rm 4 nd regions
@@ -372,7 +383,11 @@ def genprepmlwater(img_yml_path, lab_yml_path,
         except:
             root.exception(f"{scene_name} Upload to S3 Failed")
             raise Exception('S3  upload error')
-            
+
+        img_yml = None
+        lab_yml = None
+        paths, bands = None, None
+        bands_data = None
         xr_data = None
         att = None
         img_data = None
@@ -396,6 +411,10 @@ def genprepmlwater(img_yml_path, lab_yml_path,
     except Exception as e:
         logging.error(f"could not process {scene_name}, {e}", )
 
+        img_yml = None
+        lab_yml = None
+        paths, bands = None, None
+        bands_data = None
         xr_data = None
         att = None
         img_data = None
@@ -412,6 +431,7 @@ def genprepmlwater(img_yml_path, lab_yml_path,
         prob = None
         vars_0 = None
         X_t = None
+
 
         clean_up(inter_dir)
         print('boo')
