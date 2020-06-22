@@ -297,8 +297,9 @@ def genprepmlwater(img_yml_path, lab_yml_path,
                 train_data = train_data.where(validmask_train == True, -9999) # apply inner mask
                 
             unique, counts = np.unique(train_data.waterclass, return_counts=True)
-            if (counts[0] < 500) | (counts[1] < 5000):
-                raise Exception(f'no class labels should be >5000 for ok classifier. no. training class samples: {counts[0]}{counts[1]}')
+            if (counts[0] < 2000) | (counts[1] < 2000):
+                root.exception(f'no class labels should be >500 for ok classifier. no. training class samples: {counts[0]}{counts[1]}')
+                raise Exception(f'no class labels should be >500 for ok classifier. no. training class samples: {counts[0]}{counts[1]}')
         except:
             root.exception(f"{scene_name} Masks not applied")
             raise Exception('Data formatting error')
@@ -310,11 +311,14 @@ def genprepmlwater(img_yml_path, lab_yml_path,
             X = train_data.drop(['waterclass']).stack(z=['x','y']).to_array().transpose() # stack into transposed 2-d arr
 
             # very shallow classifier - this is a super easy problem & we want it to be fast
+            n_jobs = 2
+#             if img_sat == 'SENTINEL_2': # try to conserve mem for S2
+#                 n_jobs = 1
             wrapper = wrap(RandomForestClassifier(n_estimators=4, 
                                            bootstrap = True,
                                            max_features = 'sqrt',
                                            max_depth=5,
-                                           n_jobs=2,
+                                           n_jobs=n_jobs,
                                            verbose=2
                                           ))
             wrapper.estimator.fit(X, Y) # do training
