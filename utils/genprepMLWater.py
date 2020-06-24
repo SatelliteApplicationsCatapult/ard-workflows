@@ -311,9 +311,9 @@ def genprepmlwater(img_yml_path, lab_yml_path,
             X = train_data.drop(['waterclass']).stack(z=['x','y']).to_array().transpose() # stack into transposed 2-d arr
 
             # very shallow classifier - this is a super easy problem & we want it to be fast
-            n_jobs = 2
+            n_jobs = 1 
 #             if img_sat == 'SENTINEL_2': # try to conserve mem for S2
-#                 n_jobs = 1
+#                 n_jobs = 1 
             wrapper = wrap(RandomForestClassifier(n_estimators=4, 
                                            bootstrap = True,
                                            max_features = 'sqrt',
