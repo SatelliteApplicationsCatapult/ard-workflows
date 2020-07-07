@@ -94,8 +94,8 @@ measurements:
       nodata: -9999
 ---
 
-name: ls7_water_classification
-description: Mapping Water Observations from Space in wofs-like products for Landsat 7.
+name: ls7_water_mlclassification
+description: Mapping Water Observations from Space in ml-generated products for Landsat 7.
 metadata_type: eo
 
 metadata:
@@ -126,8 +126,8 @@ measurements:
       nodata: -9999
 ---
 
-name: ls5_water_classification
-description: Mapping Water Observations from Space in wofs-like products for Landsat 5.
+name: ls5_water_mlclassification
+description: Mapping Water Observations from Space in ml-generated products for Landsat 5.
 metadata_type: eo
 
 metadata:
@@ -158,8 +158,8 @@ measurements:
       nodata: -9999
 ---
 
-name: ls4_water_classification
-description: Mapping Water Observations from Space in wofs-like products for Landsat 4.
+name: ls4_water_mlclassification
+description: Mapping Water Observations from Space in ml-generated products for Landsat 4.
 metadata_type: eo
 
 metadata:
