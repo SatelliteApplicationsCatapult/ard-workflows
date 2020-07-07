@@ -105,6 +105,7 @@ metadata:
     format:
         name: GeoTIFF
 
+measurements:
     - name: 'watermask'
       aliases: [water_mask, water_classification]
       dtype: int16
