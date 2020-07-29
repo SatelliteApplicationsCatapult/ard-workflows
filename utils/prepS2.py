@@ -10,7 +10,7 @@ from subprocess import Popen, PIPE, STDOUT
 from utils.prep_utils import *
 
 
-def download_s2_granule_gcloud(s2_id, download_dir, safe_form=True, bands=False):
+def download_s2_granule_gcloud(s2_id, inter_dir, download_dir, safe_form=True, bands=False):
     """
     Downloads a single Sentinel-2 (L1C or L2A) acquisition from GCloud bucket into new S2ID directory
 
@@ -27,7 +27,7 @@ def download_s2_granule_gcloud(s2_id, download_dir, safe_form=True, bands=False)
     if (not safe_form) & (not os.path.exists(dir_name)):
         os.makedirs(dir_name)
     
-    tmpjson = f"{download_dir}tmpcreds.json"
+    tmpjson = f"{inter_dir}tmpcreds.json"
     lines = ['{\n',
      f'  "client_email": "{os.getenv("GCP_CLIENT_EMAIL")}",\n',
      f'  "private_key": "{os.getenv("GCP_PRIVATE_KEY")}",\n',
@@ -39,10 +39,11 @@ def download_s2_granule_gcloud(s2_id, download_dir, safe_form=True, bands=False)
             cred.write(line)
     
 #     client = storage.Client.create_anonymous_client()
-#     client = storage.Client.from_service_account_json('/tmp/data/arkham-255409-c59a52d8653f.json')
     client = storage.Client.from_service_account_json(tmpjson)
     bucket = client.bucket(bucket_name="gcp-public-data-sentinel-2")
 
+    os.remove(tmpjson)
+    
     identifiers = s2_id.split('_')[5]
     dir1 = identifiers[1:3]
     dir2 = identifiers[3]
@@ -445,7 +446,7 @@ def prepareS2(in_scene, s3_bucket='cs-odc-data', s3_dir='fiji/Sentinel_2_test/',
         try:
             root.info(f"{in_scene} {scene_name} DOWNLOADING via GCloud")
 #             raise Exception('skipping gcloud for testing')
-            download_s2_granule_gcloud(in_scene, down_dir)
+            download_s2_granule_gcloud(in_scene, inter_dir, down_dir)
             if '_MSIL2A_' in in_scene:
                 down_dir = inter_dir + in_scene + '/' # now need explicit .SAFE dir
             root.info(f"{in_scene} {scene_name} DOWNLOADED via GCloud")
