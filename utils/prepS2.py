@@ -23,13 +23,25 @@ def download_s2_granule_gcloud(s2_id, download_dir, safe_form=True, bands=False)
     if s2_id.endswith('.SAFE'):
         s2_id = os.path.splitext(s2_id)[0]
 
-#     client = storage.Client.create_anonymous_client()
-    client = storage.Client.from_service_account_json('/tmp/data/arkham-255409-c59a52d8653f.json')
-    bucket = client.bucket(bucket_name="gcp-public-data-sentinel-2")
-    
     dir_name = download_dir
     if (not safe_form) & (not os.path.exists(dir_name)):
         os.makedirs(dir_name)
+    
+    tmpjson = f"{download_dir}tmpcreds.json"
+    lines = ['{\n',
+     f'  "client_email": "{os.getenv("GCP_CLIENT_EMAIL")}",\n',
+     f'  "private_key": "{os.getenv("GCP_PRIVATE_KEY")}",\n',
+     '  "token_uri": "https://oauth2.googleapis.com/token"\n',
+     '}\n']
+    
+    with open(tmpjson, 'w') as cred:
+        for line in lines:
+            cred.write(line)
+    
+#     client = storage.Client.create_anonymous_client()
+#     client = storage.Client.from_service_account_json('/tmp/data/arkham-255409-c59a52d8653f.json')
+    client = storage.Client.from_service_account_json(tmpjson)
+    bucket = client.bucket(bucket_name="gcp-public-data-sentinel-2")
 
     identifiers = s2_id.split('_')[5]
     dir1 = identifiers[1:3]
@@ -432,10 +444,10 @@ def prepareS2(in_scene, s3_bucket='cs-odc-data', s3_dir='fiji/Sentinel_2_test/',
         # DOWNLOAD
         try:
             root.info(f"{in_scene} {scene_name} DOWNLOADING via GCloud")
+#             raise Exception('skipping gcloud for testing')
             download_s2_granule_gcloud(in_scene, down_dir)
             if '_MSIL2A_' in in_scene:
                 down_dir = inter_dir + in_scene + '/' # now need explicit .SAFE dir
-#             raise Exception('skipping gcloud for testing')
             root.info(f"{in_scene} {scene_name} DOWNLOADED via GCloud")
         except:
             root.exception(f"{in_scene} {scene_name} UNAVAILABLE via GCloud, try ESA")
@@ -443,6 +455,8 @@ def prepareS2(in_scene, s3_bucket='cs-odc-data', s3_dir='fiji/Sentinel_2_test/',
                 s2id = find_s2_uuid(in_scene)
                 logging.debug(s2id)
                 root.info(f"{in_scene} {scene_name} AVAILABLE via ESA")
+                if '_MSIL2A_' in in_scene:
+                    down_dir = inter_dir + in_scene + '/' # now need explicit .SAFE dir
                 download_extract_s2_esa(s2id, inter_dir, down_dir)
                 root.info(f"{in_scene} {scene_name} DOWNLOADED via ESA")
             except Exception as e:
@@ -502,7 +516,7 @@ def prepareS2(in_scene, s3_bucket='cs-odc-data', s3_dir='fiji/Sentinel_2_test/',
         logging.error(f"could not process {scene_name}, {e}", )
         clean_up(inter_dir)
 
-
+        
 if __name__ == '__main__':
 
     prepareS2("S2A_MSIL2A_20190124T221941_N0211_R029_T60KYF_20190124T234344")
