@@ -23,9 +23,10 @@ def download_s2_granule_gcloud(s2_id, download_dir, safe_form=True, bands=False)
     if s2_id.endswith('.SAFE'):
         s2_id = os.path.splitext(s2_id)[0]
 
-    client = storage.Client.create_anonymous_client()
-    bucket = client.bucket(bucket_name="gcp-public-data-sentinel-2", user_project=None)
-
+#     client = storage.Client.create_anonymous_client()
+    client = storage.Client.from_service_account_json('/tmp/data/arkham-255409-c59a52d8653f.json')
+    bucket = client.bucket(bucket_name="gcp-public-data-sentinel-2")
+    
     dir_name = download_dir
     if (not safe_form) & (not os.path.exists(dir_name)):
         os.makedirs(dir_name)
@@ -409,13 +410,15 @@ def prepareS2(in_scene, s3_bucket='cs-odc-data', s3_dir='fiji/Sentinel_2_test/',
     if '_MSIL1C_' in in_scene:
         scene_name = scene_name.replace('_MSIL1C_','_MSIL2A_')
 
-    sen2cor8 = os.environ.get("SEN2COR_8")
+        sen2cor8 = os.environ.get("SEN2COR_8")
 
     # Unique inter_dir needed for clean-up
     inter_dir = inter_dir + scene_name + '_tmp/'
     os.makedirs(inter_dir, exist_ok=True)
     # sub-dirs used only for accessing tmp files
     down_dir = inter_dir + in_scene + '/'
+    if '_MSIL2A_' in in_scene:
+        down_dir = inter_dir # don't want nested .SAFE dir
     os.makedirs(inter_dir, exist_ok=True)
     cog_dir = inter_dir + scene_name + '/'
     os.makedirs(cog_dir, exist_ok=True)
@@ -430,6 +433,8 @@ def prepareS2(in_scene, s3_bucket='cs-odc-data', s3_dir='fiji/Sentinel_2_test/',
         try:
             root.info(f"{in_scene} {scene_name} DOWNLOADING via GCloud")
             download_s2_granule_gcloud(in_scene, down_dir)
+            if '_MSIL2A_' in in_scene:
+                down_dir = inter_dir + in_scene + '/' # now need explicit .SAFE dir
 #             raise Exception('skipping gcloud for testing')
             root.info(f"{in_scene} {scene_name} DOWNLOADED via GCloud")
         except:
