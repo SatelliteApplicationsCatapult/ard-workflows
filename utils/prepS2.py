@@ -275,8 +275,14 @@ def sen2cor_correction(sen2cor, in_dir, out_dir):
     """
     
     os.makedirs(f'{in_dir}AUX_DATA/', exist_ok=True) # why sen2cor, why..?
+    os.makedirs(f'{in_dir}HTML/', exist_ok=True) # why sen2cor, why..?
     
-    cmd = '{} {} --output_dir {}'.format(sen2cor, in_dir, out_dir)
+    # catch cmd format changes between sen2cor versions - annoying...
+    if '02.05.05' in sen2cor:
+        cmd = '{} {}'.format(sen2cor, in_dir)
+    elif '02.08.00' in sen2cor:
+        cmd = '{} {} --output_dir {}'.format(sen2cor, in_dir, out_dir)
+
     logging.info(cmd)
     p = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
     out = p.stdout.read()
