@@ -455,6 +455,8 @@ def prepareS2(in_scene, s3_bucket='cs-odc-data', s3_dir='fiji/Sentinel_2_test/',
             download_s2_granule_gcloud(in_scene, inter_dir, down_dir)
             if '_MSIL2A_' in in_scene:
                 down_dir = inter_dir + in_scene + '/' # now need explicit .SAFE dir
+                if not os.path.exists(down_dir): # don't do this for l1c from gcp, prevented by ESA LTA
+                    raise Exception('L2A download from Google failed, will try ESA')
             root.info(f"{in_scene} {scene_name} DOWNLOADED via GCloud")
         except:
             root.exception(f"{in_scene} {scene_name} UNAVAILABLE via GCloud, try ESA")
