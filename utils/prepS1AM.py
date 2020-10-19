@@ -443,7 +443,7 @@ def prepareS1AM(in_scene, chunks=24, ext_dem=True, s3_bucket='public-eo-data', s
             root.exception(f"{ext_dem_path_E} or {ext_dem_path_W} UNAVAILABLE")
         
         try:
-            root.info(f"{in_scene} {scene_name} Staring AM SNAP processing")        
+            root.info(f"{in_scene} {scene_name} Starting AM SNAP processing")        
             # Do AM Processing
             obj = Raw2Ard( chunks=chunks, gpt='/opt/snap/bin/gpt' )
             obj.process(down_zip, am_dir, ext_dem_E, ext_dem_W)
