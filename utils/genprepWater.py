@@ -20,7 +20,7 @@ import gdal
 
 from . dc_water_classifier import wofs_classify
 from . dc_clean_mask import landsat_qa_clean_mask
-from . prep_utils import s3_list_objects, s3_download, s3_upload_cogs, create_yaml, cog_translate
+from . prep_utils import *
 from . dc_import_export import export_xarray_to_geotiff
 
 
@@ -175,15 +175,8 @@ def per_scene_wofs(optical_yaml_path, s3_source=True, s3_bucket='public-eo-data'
     cog_dir = f"{inter_dir}{scene_name}/"
     os.makedirs(cog_dir, exist_ok=True)
     
-    # Logging structure taken from - https://www.loggly.com/ultimate-guide/python-logging-basics/
-    log_file = inter_dir+'log_file.txt'
-    handler = logging.handlers.WatchedFileHandler(log_file)
-    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-    handler.setFormatter(formatter)
-    root = logging.getLogger()
-    root.setLevel(os.environ.get("LOGLEVEL", "DEBUG"))
-    root.addHandler(handler)
-    
+    root = setup_logging()
+
     root.info(f"{scene_name} Starting")
         
     yml = f'{inter_dir}datacube-metadata.yaml'
