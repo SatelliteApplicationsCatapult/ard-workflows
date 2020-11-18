@@ -8,7 +8,7 @@ import time
 from glob import glob
 import shutil
 
-from .prep_utils import sedas_client, sedas_download, sedas_extract
+from .prep_utils import sedas_client, sedas_download, sedas_extract, sedas_find_datasets
 from .prep_utils import run_snap_command, setup_logging
 from .prep_utils import convert2cog, s3_upload_dir
 

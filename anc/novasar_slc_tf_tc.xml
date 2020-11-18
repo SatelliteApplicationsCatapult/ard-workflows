@@ -4,7 +4,7 @@
     <operator>Read</operator>
     <sources/>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <file>D:\novasarwork\SLC\NovaSAR_01_12507_slc_11_200627_225816_HH_3\NovaSAR_01_12507_slc_11_200627_225816_HH_3\metadata.xml</file>
+      <file>$input</file>
       <formatName>NOVASAR</formatName>
     </parameters>
   </node>
@@ -109,23 +109,13 @@
       <sourceBands>Gamma0_Intensity_HH</sourceBands>
     </parameters>
   </node>
-  <node id="Write(2)">
+  <node id="Write">
     <operator>Write</operator>
     <sources>
       <sourceProduct refid="LinearToFromdB"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <file>D:\novasarwork\SLC\NovaSAR_01_12507_slc_11_200627_225809_HH_1\NovaSAR_01_12507_slc_11_200627_225809_HH_1\NV_01_0030DB_ML_BandMath_TF_TC_dB.dim</file>
-      <formatName>BEAM-DIMAP</formatName>
-    </parameters>
-  </node>
-  <node id="Write">
-    <operator>Write</operator>
-    <sources>
-      <sourceProduct refid="Terrain-Correction"/>
-    </sources>
-    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <file>D:\novasarwork\SLC\NovaSAR_01_12507_slc_11_200627_225809_HH_1\NovaSAR_01_12507_slc_11_200627_225809_HH_1\NV_01_0030DB_ML_BandMath_TF_TC.dim</file>
+      <file>$output</file>
       <formatName>BEAM-DIMAP</formatName>
     </parameters>
   </node>
@@ -148,9 +138,6 @@
     </node>
     <node id="LinearToFromdB">
       <displayPosition x="650.0" y="96.0"/>
-    </node>
-    <node id="Write(2)">
-      <displayPosition x="768.0" y="75.0"/>
     </node>
     <node id="Write">
       <displayPosition x="634.0" y="170.0"/>

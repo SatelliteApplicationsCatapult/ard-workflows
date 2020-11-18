@@ -25,8 +25,8 @@ index = {"sedas_client": "1_prep_utils.ipynb",
 modules = ["prep_utils.py",
            "prep_novasar.py"]
 
-doc_url = "https://SatelliteApplicationsCatapult.github.io/ard_workflows/"
+doc_url = "https://SatelliteApplicationsCatapult.github.io/ard-workflows/"
 
-git_url = "https://github.com/SatelliteApplicationsCatapult/ard_workflows/tree/master/"
+git_url = "https://github.com/SatelliteApplicationsCatapult/ard-workflows/tree/master/"
 
 def custom_doc_links(name): return None
