@@ -13,7 +13,7 @@
       <sourceProduct refid="ThermalNoiseRemoval"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <selectedPolarisations>VH,VV</selectedPolarisations>
+      <selectedPolarisations>$source_bands</selectedPolarisations>
       <borderLimit>500</borderLimit>
       <trimThreshold>0.5</trimThreshold>
     </parameters>
@@ -42,7 +42,7 @@
       <outputImageScaleInDb>false</outputImageScaleInDb>
       <createGammaBand>false</createGammaBand>
       <createBetaBand>false</createBetaBand>
-      <selectedPolarisations>VH,VV</selectedPolarisations>
+      <selectedPolarisations>$source_bands</selectedPolarisations>
       <outputSigmaBand>false</outputSigmaBand>
       <outputGammaBand>false</outputGammaBand>
       <outputBetaBand>true</outputBetaBand>

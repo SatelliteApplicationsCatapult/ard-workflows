@@ -289,8 +289,40 @@ def yaml_prep_s1(scene_dir):
     }
 
 
-def prepareS1(in_scene, ext_dem=None, s3_bucket='public-eo-data', s3_dir='common_sensing/sentinel_1/', inter_dir='/tmp/data/intermediate/',
-              source='asf'):
+def create_source_bands(bands):
+    result = ""
+    for x in bands:
+        result = result + "Gamma0_" + x.to_upper() + ", "
+
+    return result[:-2]  # take the last comma off the end
+
+
+def create_selected_polarisations(bands):
+    result = ""
+    for x in bands:
+        result = result + x.to_upper() + ", "
+
+    return result[:-2]  # take the last comma off the end
+
+
+def available_bands(source):
+    # S1A_IW_GRDH_1SSV_20141010T063207
+
+    if "1SSV" in source:
+        return ['vh']
+    if "1SDV" in source:
+        return ['vh', 'vv']
+    raise Exception("unknown source type")
+
+
+def prepareS1(
+        in_scene,
+        ext_dem=None,
+        s3_bucket='public-eo-data',
+        s3_dir='common_sensing/sentinel_1/',
+        inter_dir='/tmp/data/intermediate/',
+        source='asf'
+):
     """
     Prepare IN_SCENE of Sentinel-1 satellite data into OUT_DIR for ODC indexing. 
 
@@ -359,23 +391,46 @@ def prepareS1(in_scene, ext_dem=None, s3_bucket='public-eo-data', s3_dir='common
         root.info(cmd)
         run_snap_command(cmd)
         root.info(f"{in_scene} {scene_name} PROCESSED to MULTILOOK starting PT2")
-                
+
+        # TODO: figure out what bands are available.
+        bands = available_bands(in_scene)
+
         if not os.path.exists(out_prod1):
             if ext_dem:
-                s3_download(s3_bucket, ext_dem, ext_dem_path) # inc. function to subset by S1 scene extent on fly due to cog   
+                # inc. function to subset by S1 scene extent on fly due to cog
+                s3_download(s3_bucket, ext_dem, ext_dem_path)
             
-                cmd = [snap_gpt, int_graph_2, f"-Pinput_ml={inter_prod1}", f"-Pext_dem={ext_dem_path}", f"-Poutput_tf={inter_prod2}"]
+                cmd = [
+                    snap_gpt,
+                    int_graph_2,
+                    f"-Pinput_ml={inter_prod1}",
+                    f"-Pext_dem={ext_dem_path}",
+                    f"-Poutput_tf={inter_prod2}",
+                    f"-Psource_bands={create_selected_polarisations(bands)}"
+                ]
                 root.info(cmd)
                 run_snap_command(cmd)
                 root.info(f"{in_scene} {scene_name} PROCESSED to TERRAIN FLATTEN starting PT3")
 
-
-                cmd = [snap_gpt, int_graph_3, f"-Pinput_tf={inter_prod2}", f"-Pext_dem={ext_dem_path}", f"-Poutput_db={out_prod1}"]
+                cmd = [
+                    snap_gpt,
+                    int_graph_3,
+                    f"-Pinput_tf={inter_prod2}",
+                    f"-Pext_dem={ext_dem_path}",
+                    f"-Poutput_db={out_prod1}",
+                    f"-Psource_bands={create_source_bands(bands)}"
+                ]
                 root.info(cmd)
                 run_snap_command(cmd)
                 root.info(f"{in_scene} {scene_name} PROCESSED to dB starting PT4")
 
-                cmd = [snap_gpt, int_graph_4, f"-Pinput_tf={inter_prod2}", f"-Pext_dem={ext_dem_path}", f"-Poutput_ls={out_prod2}"]
+                cmd = [
+                    snap_gpt,
+                    int_graph_4,
+                    f"-Pinput_tf={inter_prod2}",
+                    f"-Pext_dem={ext_dem_path}",
+                    f"-Poutput_ls={out_prod2}"
+                ]
                 root.info(cmd)
                 run_snap_command(cmd)
                 root.info(f"{in_scene} {scene_name} PROCESSED to lsm starting COG conversion")
