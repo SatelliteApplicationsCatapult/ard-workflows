@@ -13,12 +13,11 @@ import uuid
 
 from utils.prep_utils import *
 
-cookie_jar_path = os.path.join( os.path.expanduser('~'), ".bulk_download_cookiejar.txt")
+cookie_jar_path = os.path.join(os.path.expanduser('~'), ".bulk_download_cookiejar.txt")
 cookie_jar = MozillaCookieJar()
 
 
 def get_asf_cookie(user, password):
-
     logging.info("logging into asf")
 
     login_url = "https://urs.earthdata.nasa.gov/oauth/authorize"
@@ -110,7 +109,7 @@ def get_s1_asf_url(s1_name, retry=3):
         return 'NaN'
 
 
-def get_asf_file(url, output_path, chunk_size=16*1024):  # 8 kb default
+def get_asf_file(url, output_path, chunk_size=16 * 1024):  # 8 kb default
     context = {}
     opener = build_opener(HTTPCookieProcessor(cookie_jar), HTTPHandler(), HTTPSHandler(**context))
     request = Request(url)
@@ -205,7 +204,8 @@ def conv_s1scene_cogs(noncog_scene_dir, cog_scene_dir, scene_name, overwrite=Fal
 
     # iterate over prods to create parellel processing list
     for prod in prod_paths:
-        out_filename = os.path.join(cog_scene_dir, scene_name + '_' + os.path.basename(prod)[:-4] + '.tif')  # - TO DO*****
+        out_filename = os.path.join(cog_scene_dir,
+                                    scene_name + '_' + os.path.basename(prod)[:-4] + '.tif')  # - TO DO*****
         logging.info(f"converting {prod} to cog at {out_filename}")
         # ensure input file exists
         to_cog(prod, out_filename, nodata=-9999)
@@ -292,7 +292,7 @@ def yaml_prep_s1(scene_dir):
 def create_source_bands(bands):
     result = ""
     for x in bands:
-        result = result + "Gamma0_" + x.to_upper() + ", "
+        result = result + "Gamma0_" + x.upper() + ", "
 
     return result[:-2]  # take the last comma off the end
 
@@ -300,7 +300,7 @@ def create_source_bands(bands):
 def create_selected_polarisations(bands):
     result = ""
     for x in bands:
-        result = result + x.to_upper() + ", "
+        result = result + x.upper() + ", "
 
     return result[:-2]  # take the last comma off the end
 
@@ -309,7 +309,7 @@ def available_bands(source):
     # S1A_IW_GRDH_1SSV_20141010T063207
 
     if "1SSV" in source:
-        return ['vh']
+        return ['vv']
     if "1SDV" in source:
         return ['vh', 'vv']
     raise Exception("unknown source type")
@@ -324,14 +324,14 @@ def prepareS1(
         source='asf'
 ):
     """
-    Prepare IN_SCENE of Sentinel-1 satellite data into OUT_DIR for ODC indexing. 
+    Prepare IN_SCENE of Sentinel-1 satellite data into OUT_DIR for ODC indexing.
 
     :param in_scene: input Sentinel-1 scene name (either L1C or L2A) i.e. "S2A_MSIL1C_20180820T223011_N0206_R072_T60KWE_20180821T013410.SAFE"
     :param out_dir: output directory to drop COGs into.
     :param --inter: optional intermediary directory to be used for processing.
     :param --source: Api source to be used for downloading scenes. Defaults to gcloud. Options inc. 'gcloud', 'esahub', 'sedas' COMING SOON
     :return: None
-    
+
     Assumptions:
     - etc.... tbd
     """
@@ -365,7 +365,7 @@ def prepareS1(
         int_graph_2 = os.environ['S1_PROCESS_P2A']  # ENV VAR
         int_graph_3 = os.environ['S1_PROCESS_P3A']  # ENV VAR
         int_graph_4 = os.environ['S1_PROCESS_P4A']  # ENV VAR
-        
+
     root = setup_logging()
     root.info('{} {} Starting'.format(in_scene, scene_name))
 
@@ -386,27 +386,31 @@ def prepareS1(
             except Exception as e:
                 root.exception(f"{in_scene} {scene_name} UNAVAILABLE via ESA too")
                 raise Exception('Download Error ESA', e)
-
-        cmd = [snap_gpt, int_graph_1, f"-Pinput_grd={input_mani}", f"-Poutput_ml={inter_prod1}"]
+        # Figure out what bands are available.
+        bands = available_bands(in_scene)
+        cmd = [
+            snap_gpt,
+            int_graph_1,
+            f"-Pinput_grd={input_mani}",
+            f"-Poutput_ml={inter_prod1}",
+            f"-Psource_bands={create_selected_polarisations(bands)}"
+        ]
         root.info(cmd)
         run_snap_command(cmd)
         root.info(f"{in_scene} {scene_name} PROCESSED to MULTILOOK starting PT2")
 
-        # TODO: figure out what bands are available.
-        bands = available_bands(in_scene)
-
         if not os.path.exists(out_prod1):
             if ext_dem:
                 # inc. function to subset by S1 scene extent on fly due to cog
+                print(ext_dem)
                 s3_download(s3_bucket, ext_dem, ext_dem_path)
-            
+
                 cmd = [
                     snap_gpt,
                     int_graph_2,
                     f"-Pinput_ml={inter_prod1}",
                     f"-Pext_dem={ext_dem_path}",
-                    f"-Poutput_tf={inter_prod2}",
-                    f"-Psource_bands={create_selected_polarisations(bands)}"
+                    f"-Poutput_tf={inter_prod2}"
                 ]
                 root.info(cmd)
                 run_snap_command(cmd)
@@ -473,7 +477,7 @@ def prepareS1(
             raise Exception('S3  upload error', e)
         print('not boo')
 
-#         # DELETE ANYTHING WITHIN THE TEMP DIRECTORY
+        #         # DELETE ANYTHING WITHIN THE TEMP DIRECTORY
         clean_up(inter_dir)
 
     except Exception as e:
