@@ -10,6 +10,7 @@ from urllib.error import HTTPError
 import botocore
 from asynchronousfilereader import AsynchronousFileReader
 import boto3
+import botocore
 import click
 import gdal
 import rasterio
@@ -24,6 +25,7 @@ from rasterio.env import GDALVersion
 from rasterio.io import MemoryFile
 from rasterio.shutil import copy
 import numpy as np
+import gc
 
 
 def to_cog(input_file, output_file, nodata=0):
@@ -73,6 +75,7 @@ def conv_sgl_cog(in_path, out_path, nodata=0):
 
 def clean_up(work_dir):
     # TODO: sort out logging changes...
+    gc.collect()
     shutil.rmtree(work_dir)
     pass
 
@@ -238,7 +241,7 @@ def get_geometry(path):
         def transform(p):
             # GDAL 3 swapped the parameters around here. 
             # https://github.com/OSGeo/gdal/issues/1546
-            lat, lon, z = t.TransformPoint(p['x'], p['y'])
+            lon, lat, z = t.TransformPoint(p['x'], p['y'])
             return {'lon': lon, 'lat': lat}
 
         extent = {key: transform(p) for key, p in corners.items()}
@@ -285,20 +288,19 @@ def s3_create_client(s3_bucket):
         secret,
     )
 
-    endpoint = os.getenv("AWS_S3_ENDPOINT")
+    endpoint_url = os.getenv("AWS_S3_ENDPOINT_URL")
 
-    if endpoint is not None:
-        endpoint_url=f"http://{endpoint}"
+    if endpoint_url is not None:
         logging.debug('Endpoint URL: {}'.format(endpoint_url))
 
-    if endpoint is not None:
+    if endpoint_url is not None:
         s3 = session.resource('s3', endpoint_url=endpoint_url)
     else:
         s3 = session.resource('s3', region_name='eu-west-2')
 
     bucket = s3.Bucket(s3_bucket)
 
-    if endpoint is not None:
+    if endpoint_url is not None:
         s3_client = boto3.client(
             's3',
             aws_access_key_id=access,
@@ -372,10 +374,17 @@ def s3_list_objects(s3_bucket, prefix):
 
 
 def s3_list_objects_paths(s3_bucket, prefix):
-    """List of paths only returned, not full object responses - tested only for S3"""
+    """List of paths only returned, not full object responses"""
     client, bucket = s3_create_client(s3_bucket)
     
     return [e['Key'] for p in client.get_paginator("list_objects_v2").paginate(Bucket=s3_bucket, Prefix=prefix) for e in p['Contents']]
+
+
+def s3_list_objects_pathssize(s3_bucket, prefix):
+    """List of tuples paths + sizes only returned, not full object responses"""
+    client, bucket = s3_create_client(s3_bucket)
+    
+    return [(e['Key'], e['Size']) for p in client.get_paginator("list_objects_v2").paginate(Bucket=s3_bucket, Prefix=prefix) for e in p['Contents']]
 
 
 def s3_calc_scene_size(scene_name, s3_bucket, prefix):

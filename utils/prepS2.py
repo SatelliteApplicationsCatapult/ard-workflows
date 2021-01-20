@@ -10,7 +10,7 @@ from subprocess import Popen, PIPE, STDOUT
 from utils.prep_utils import *
 
 
-def download_s2_granule_gcloud(s2_id, download_dir, safe_form=True, bands=False):
+def download_s2_granule_gcloud(s2_id, inter_dir, download_dir, safe_form=True, bands=False):
     """
     Downloads a single Sentinel-2 (L1C or L2A) acquisition from GCloud bucket into new S2ID directory
 
@@ -23,13 +23,27 @@ def download_s2_granule_gcloud(s2_id, download_dir, safe_form=True, bands=False)
     if s2_id.endswith('.SAFE'):
         s2_id = os.path.splitext(s2_id)[0]
 
-    client = storage.Client.create_anonymous_client()
-    bucket = client.bucket(bucket_name="gcp-public-data-sentinel-2", user_project=None)
-
     dir_name = download_dir
     if (not safe_form) & (not os.path.exists(dir_name)):
         os.makedirs(dir_name)
+    
+    tmpjson = f"{inter_dir}tmpcreds.json"
+    lines = ['{\n',
+     f'  "client_email": "{os.getenv("GCP_CLIENT_EMAIL")}",\n',
+     f'  "private_key": "{os.getenv("GCP_PRIVATE_KEY")}",\n',
+     '  "token_uri": "https://oauth2.googleapis.com/token"\n',
+     '}\n']
+    
+    with open(tmpjson, 'w') as cred:
+        for line in lines:
+            cred.write(line)
+    
+#     client = storage.Client.create_anonymous_client()
+    client = storage.Client.from_service_account_json(tmpjson)
+    bucket = client.bucket(bucket_name="gcp-public-data-sentinel-2")
 
+    os.remove(tmpjson)
+    
     identifiers = s2_id.split('_')[5]
     dir1 = identifiers[1:3]
     dir2 = identifiers[3]
@@ -259,16 +273,26 @@ def sen2cor_correction(sen2cor, in_dir, out_dir):
     :param out_dir: output dir in which to create a .SAFE L2A product dir
     :return: 
     """
-    cmd = '{} {} --output_dir {}'.format(sen2cor, in_dir, out_dir)
-    logging.debug(cmd)
+    
+    os.makedirs(f'{in_dir}AUX_DATA/', exist_ok=True) # why sen2cor, why..?
+    os.makedirs(f'{in_dir}HTML/', exist_ok=True) # why sen2cor, why..?
+    
+    # catch cmd format changes between sen2cor versions - annoying...
+    if '02.05.05' in sen2cor:
+        cmd = '{} {}'.format(sen2cor, in_dir)
+    elif '02.08.00' in sen2cor:
+        cmd = '{} {} --output_dir {}'.format(sen2cor, in_dir, out_dir)
+
+    logging.info(cmd)
     p = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
     out = p.stdout.read()
-    logging.debug(out)
+    logging.info(out)
 
     try:
-        l2a_dir = glob.glob(in_dir.replace('_MSIL1C', '_MSIL2A')[:-39] + '*')[0] + '/'
-        os.rename(l2a_dir, in_dir.replace('_MSIL1C_', '_MSIL2A_'))
+        l2a_dir = glob.glob(out_dir + '*L2A*.SAFE*')[0] + '/'
+        logging.info(f"Found L2A directory: {l2a_dir}")
     except Exception as e:
+        logging.exception(f"Could not find L2A directory within the temp folder: {out_dir}")
         raise Exception(out, e)
 
 
@@ -402,17 +426,21 @@ def prepareS2(in_scene, s3_bucket='cs-odc-data', s3_dir='fiji/Sentinel_2_test/',
     # shorten scene name
     scene_name = in_scene[:-21]
     scene_name = scene_name[:-17] + scene_name.split('_')[-1]
+    if '_MSIL1C_' in in_scene:
+        scene_name = scene_name.replace('_MSIL1C_','_MSIL2A_')
 
-    sen2cor8 = os.environ.get("SEN2COR_8")
+        sen2cor8 = os.environ.get("SEN2COR_8")
 
     # Unique inter_dir needed for clean-up
     inter_dir = inter_dir + scene_name + '_tmp/'
     os.makedirs(inter_dir, exist_ok=True)
     # sub-dirs used only for accessing tmp files
     down_dir = inter_dir + in_scene + '/'
+    if '_MSIL2A_' in in_scene:
+        down_dir = inter_dir # don't want nested .SAFE dir
+    os.makedirs(inter_dir, exist_ok=True)
     cog_dir = inter_dir + scene_name + '/'
     os.makedirs(cog_dir, exist_ok=True)
-    l2a_dir = inter_dir + '/'
 
     root = setup_logging()
 
@@ -423,7 +451,12 @@ def prepareS2(in_scene, s3_bucket='cs-odc-data', s3_dir='fiji/Sentinel_2_test/',
         # DOWNLOAD
         try:
             root.info(f"{in_scene} {scene_name} DOWNLOADING via GCloud")
-            download_s2_granule_gcloud(in_scene, inter_dir)
+#             raise Exception('skipping gcloud for testing')
+            download_s2_granule_gcloud(in_scene, inter_dir, down_dir)
+            if '_MSIL2A_' in in_scene:
+                down_dir = inter_dir + in_scene + '/' # now need explicit .SAFE dir
+                if not os.path.exists(down_dir): # don't do this for l1c from gcp, prevented by ESA LTA
+                    raise Exception('L2A download from Google failed, will try ESA')
             root.info(f"{in_scene} {scene_name} DOWNLOADED via GCloud")
         except:
             root.exception(f"{in_scene} {scene_name} UNAVAILABLE via GCloud, try ESA")
@@ -431,6 +464,8 @@ def prepareS2(in_scene, s3_bucket='cs-odc-data', s3_dir='fiji/Sentinel_2_test/',
                 s2id = find_s2_uuid(in_scene)
                 logging.debug(s2id)
                 root.info(f"{in_scene} {scene_name} AVAILABLE via ESA")
+                if '_MSIL2A_' in in_scene:
+                    down_dir = inter_dir + in_scene + '/' # now need explicit .SAFE dir
                 download_extract_s2_esa(s2id, inter_dir, down_dir)
                 root.info(f"{in_scene} {scene_name} DOWNLOADED via ESA")
             except Exception as e:
@@ -438,10 +473,12 @@ def prepareS2(in_scene, s3_bucket='cs-odc-data', s3_dir='fiji/Sentinel_2_test/',
                 raise Exception('Download Error ESA', e)
 
         # [CREATE L2A WITHIN TEMP DIRECTORY]
-        if (scene_name.split('_')[1] == 'MSIL1C') & (prodlevel == 'L2A'):
+        if ('MSIL1C' in in_scene) & (prodlevel == 'L2A'):
             root.info(f"{in_scene} {scene_name} Sen2Cor Processing")
             try:
-                sen2cor_correction(sen2cor8, down_dir, l2a_dir)
+                sen2cor_correction(sen2cor8, down_dir, inter_dir)
+                l2a_dir = glob.glob(inter_dir + '*L2A*.SAFE*')[0] + '/'
+                down_dir = l2a_dir
                 root.info(f"{in_scene} {scene_name} Sen2Cor COMPLETE")
             except Exception as e:
                 root.exception(f"{in_scene} {scene_name} sen2cor FAILED")
@@ -488,7 +525,7 @@ def prepareS2(in_scene, s3_bucket='cs-odc-data', s3_dir='fiji/Sentinel_2_test/',
         logging.error(f"could not process {scene_name}, {e}", )
         clean_up(inter_dir)
 
-
+        
 if __name__ == '__main__':
 
     prepareS2("S2A_MSIL2A_20190124T221941_N0211_R029_T60KYF_20190124T234344")

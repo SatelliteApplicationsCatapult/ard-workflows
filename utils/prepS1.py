@@ -10,6 +10,7 @@ from http.cookiejar import MozillaCookieJar
 from urllib.request import Request, HTTPHandler, HTTPSHandler, HTTPCookieProcessor, build_opener
 from urllib.error import HTTPError
 import uuid
+from sentinelsat import SentinelAPI
 
 from utils.prep_utils import *
 
@@ -159,6 +160,64 @@ def download_extract_s1_scene_asf(s1_name, download_dir):
         zip_ref = zipfile.ZipFile(zipped, 'r')
         zip_ref.extractall(os.path.dirname(download_dir))
         zip_ref.close()
+
+
+def find_s1_uuid(s1_filename):
+    """
+    Returns S2 uuid required for download via sentinelsat, based upon an input S2 file/scene name. 
+    I.e. S2A_MSIL1C_20180820T223011_N0206_R072_T60KWE_20180821T013410
+    Assumes esa hub creds stored as env variables.
+    
+    :param s2_file_name: Sentinel-2 scene name
+    :return s2_uuid: download id
+    """
+    copernicus_username = os.getenv("COPERNICUS_USERNAME")
+    copernicus_pwd = os.getenv("COPERNICUS_PWD")
+    logging.debug(f"ESA username: {copernicus_username}")
+    esa_api = SentinelAPI(copernicus_username, copernicus_pwd)
+
+    if s1_filename[-5:] == '.SAFE':
+        res = esa_api.query(filename=s1_filename)
+        res = esa_api.to_geodataframe(res)
+
+        return res.uuid.values[0]
+        
+def download_extract_s1_esa(scene_uuid, down_dir, original_scene_dir):
+    """
+    Download a single S2 scene from ESA via sentinelsat 
+    based upon uuid. 
+    Assumes esa hub creds stored as env variables.
+    
+    :param scene_uuid: S2 download uuid from sentinelsat query
+    :param down_dir: directory in which to create a downloaded product dir
+    :param original_scene_dir: 
+    :return: 
+    """
+    # if unzipped .SAFE file doesn't exist then we must do something
+    if not os.path.exists(original_scene_dir):
+
+        # if downloaded .zip file doesn't exist then download it
+        if not os.path.exists(original_scene_dir.replace('.SAFE/', '.zip')):
+            logging.info('Downloading ESA scene zip: {}'.format(os.path.basename(original_scene_dir)))
+
+            copernicus_username = os.getenv("COPERNICUS_USERNAME")
+            copernicus_pwd = os.getenv("COPERNICUS_PWD")
+            logging.debug(f"ESA username: {copernicus_username}")
+            esa_api = SentinelAPI(copernicus_username, copernicus_pwd)
+            esa_api.download(scene_uuid, down_dir, checksum=True)
+        # extract downloaded .zip file
+        logging.info('Extracting ESA scene: {}'.format(original_scene_dir))
+        zip_ref = zipfile.ZipFile(original_scene_dir.replace('.SAFE/', '.zip'), 'r')
+        zip_ref.extractall(os.path.dirname(down_dir))
+        zip_ref.close()
+
+    else:
+        logging.warning('ESA scene already extracted: {}'.format(original_scene_dir))
+
+    # remove zipped scene but onliy if unzipped 
+    if os.path.exists(original_scene_dir) & os.path.exists(original_scene_dir.replace('.SAFE/', '.zip')):
+        logging.info('Deleting ESA scene zip: {}'.format(original_scene_dir.replace('.SAFE/', '.zip')))
+        os.remove(original_scene_dir.replace('.SAFE/', '.zip'))
 
 
 def band_name_s1(prod_path):
@@ -357,7 +416,8 @@ def prepareS1(
     out_dir1 = out_prod1[:-4] + '.data/'
     out_prod2 = inter_dir + scene_name + '_Orb_Cal_Deb_ML_TF_TC_lsm.dim'
     out_dir2 = out_prod2[:-4] + '.data/'
-
+    down_dir = inter_dir + in_scene + '/'
+    
     snap_gpt = os.environ['SNAP_GPT']
     int_graph_1 = os.environ['S1_PROCESS_P1A']  # ENV VAR
     if ext_dem:
@@ -375,13 +435,16 @@ def prepareS1(
         try:
             root.info(f"{in_scene} {scene_name} DOWNLOADING via ASF")
             download_extract_s1_scene_asf(in_scene, inter_dir)
+#             raise Exception('skipping asf for testing')
             root.info(f"{in_scene} {scene_name} DOWNLOADED via ASF")
         except Exception as e:
             root.exception(e)
             root.exception(f"{in_scene} {scene_name} UNAVAILABLE via ASF, try ESA")
             try:
+                s1id = find_s1_uuid(in_scene)
+                logging.debug(s1id)
                 root.info(f"{in_scene} {scene_name} AVAILABLE via ESA")
-                # download_extract_s1_esa(s1id, inter_dir, down_dir) # TBC
+                download_extract_s1_esa(s1id, inter_dir, down_dir)
                 root.info(f"{in_scene} {scene_name} DOWNLOADED via ESA")
             except Exception as e:
                 root.exception(f"{in_scene} {scene_name} UNAVAILABLE via ESA too")
@@ -395,6 +458,7 @@ def prepareS1(
             f"-Poutput_ml={inter_prod1}",
             f"-Psource_bands={create_selected_polarisations(bands)}"
         ]
+
         root.info(cmd)
         run_snap_command(cmd)
         root.info(f"{in_scene} {scene_name} PROCESSED to MULTILOOK starting PT2")
@@ -412,6 +476,7 @@ def prepareS1(
                     f"-Pext_dem={ext_dem_path}",
                     f"-Poutput_tf={inter_prod2}"
                 ]
+
                 root.info(cmd)
                 run_snap_command(cmd)
                 root.info(f"{in_scene} {scene_name} PROCESSED to TERRAIN FLATTEN starting PT3")
@@ -476,12 +541,12 @@ def prepareS1(
             root.exception(f"{in_scene} {scene_name} Upload to S3 Failed")
             raise Exception('S3  upload error', e)
         print('not boo')
+       # DELETE ANYTHING WITHIN THE TEMP DIRECTORY
 
-        #         # DELETE ANYTHING WITHIN THE TEMP DIRECTORY
         clean_up(inter_dir)
 
     except Exception as e:
-        logging.error(f"could not process{scene_name} {e}")
+        logging.error(f"could not process {scene_name} {e}")
         print('boo')
         clean_up(inter_dir)
 
