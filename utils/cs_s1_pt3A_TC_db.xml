@@ -13,7 +13,7 @@
       <sourceProduct refid="Read"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <sourceBands/>
+      <sourceBands>$source_bands</sourceBands>
       <demName>External DEM</demName>
       <externalDEMFile>$ext_dem</externalDEMFile>
       <externalDEMNoDataValue>-9999.0</externalDEMNoDataValue>
@@ -56,7 +56,7 @@
       <sourceProduct refid="Terrain-Correction"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <sourceBands/>
+      <sourceBands>$source_bands</sourceBands>
     </parameters>
   </node>
   <node id="Write">

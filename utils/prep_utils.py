@@ -7,6 +7,7 @@ from time import sleep
 from urllib.request import urlopen, HTTPPasswordMgrWithDefaultRealm, HTTPBasicAuthHandler, HTTPDigestAuthHandler, build_opener
 from urllib.error import HTTPError
 
+import botocore
 from asynchronousfilereader import AsynchronousFileReader
 import boto3
 import botocore
